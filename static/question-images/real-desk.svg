@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Desk by a window</title>
+  <desc id="desc">A stylized desk scene with a notebook, mug, plant and pencils in a believable arrangement.</desc>
+  <defs>
+    <linearGradient id="wall" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#efe7dc"/>
+      <stop offset="100%" stop-color="#d6ccbf"/>
+    </linearGradient>
+    <linearGradient id="windowSky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#cfe7f7"/>
+      <stop offset="100%" stop-color="#87b8d9"/>
+    </linearGradient>
+    <linearGradient id="desk" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#9b6f4e"/>
+      <stop offset="100%" stop-color="#735038"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.08"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="800" fill="url(#wall)"/>
+  <rect x="128" y="98" width="394" height="270" rx="18" fill="#faf8f4" stroke="#c2b5a4" stroke-width="16"/>
+  <rect x="152" y="122" width="346" height="222" rx="10" fill="url(#windowSky)"/>
+  <circle cx="240" cy="182" r="28" fill="#fff5be" opacity="0.9"/>
+  <path d="M184 300 C238 230 312 212 382 178 C424 157 456 130 500 122 L500 344 L152 344 Z" fill="#6fa17d" opacity="0.55"/>
+  <path d="M152 252 C206 214 252 212 320 182 C360 165 424 148 498 146 V344 H152 Z" fill="#88b08b" opacity="0.48"/>
+
+  <rect x="0" y="476" width="1200" height="324" fill="url(#desk)"/>
+  <path d="M0 488 C230 456 384 440 600 440 C856 440 1012 456 1200 492 V800 H0 Z" fill="#8c6445"/>
+
+  <g transform="translate(298 492) rotate(-9)">
+    <rect width="292" height="200" rx="18" fill="#f4f0e9"/>
+    <line x1="46" y1="58" x2="246" y2="58" stroke="#cfd8e3" stroke-width="5"/>
+    <line x1="46" y1="90" x2="246" y2="90" stroke="#cfd8e3" stroke-width="5"/>
+    <line x1="46" y1="122" x2="246" y2="122" stroke="#cfd8e3" stroke-width="5"/>
+    <line x1="46" y1="154" x2="210" y2="154" stroke="#cfd8e3" stroke-width="5"/>
+    <circle cx="28" cy="44" r="8" fill="#de8f7a"/>
+    <circle cx="28" cy="76" r="8" fill="#de8f7a"/>
+    <circle cx="28" cy="108" r="8" fill="#de8f7a"/>
+    <circle cx="28" cy="140" r="8" fill="#de8f7a"/>
+  </g>
+
+  <g transform="translate(740 494)">
+    <ellipse cx="78" cy="158" rx="102" ry="30" fill="#654630" opacity="0.28"/>
+    <rect x="0" y="0" width="124" height="132" rx="20" fill="#e3edf3"/>
+    <path d="M124 24 C164 24 176 48 176 70 C176 98 158 118 130 118" fill="none" stroke="#e3edf3" stroke-width="18"/>
+    <path d="M18 26 H104" stroke="#c4d8e2" stroke-width="6" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(860 348)">
+    <rect x="0" y="0" width="138" height="194" rx="18" fill="#d9c6aa"/>
+    <rect x="12" y="12" width="114" height="170" rx="10" fill="#f2e7d5"/>
+    <path d="M28 112 C50 58 88 36 128 24" fill="none" stroke="#4f7f5f" stroke-width="10" stroke-linecap="round"/>
+    <path d="M40 134 C58 88 90 76 126 62" fill="none" stroke="#5d8f6e" stroke-width="10" stroke-linecap="round"/>
+    <path d="M22 150 C48 118 82 104 118 102" fill="none" stroke="#6ea67d" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(1060 442)">
+    <rect x="0" y="0" width="68" height="128" rx="16" fill="#d9cfbf"/>
+    <rect x="8" y="12" width="52" height="98" rx="10" fill="#f5f1eb"/>
+    <rect x="18" y="8" width="6" height="96" fill="#ef5d5d"/>
+    <rect x="30" y="8" width="6" height="94" fill="#f2c14e"/>
+    <rect x="42" y="8" width="6" height="92" fill="#5fa4d9"/>
+  </g>
+
+  <rect width="1200" height="800" fill="#ffffff" opacity="0.06" filter="url(#grain)"/>
+</svg>

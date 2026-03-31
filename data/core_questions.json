@@ -1,0 +1,1308 @@
+[
+  {
+    "id": "core_werking_1",
+    "theme": "werking",
+    "source": "core",
+    "question": "Waarom kan AI fouten maken?",
+    "options": [
+      "Omdat AI emoties heeft",
+      "Omdat AI leert uit data die onvolledig kan zijn",
+      "Omdat AI bewust liegt",
+      "Omdat AI zelfstandig nadenkt"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_werking_2",
+    "theme": "werking",
+    "source": "core",
+    "question": "Wat heeft een AI-model nodig om te leren?",
+    "options": [
+      "Een fiets",
+      "Veel voorbeelden of data",
+      "Alleen een luidspreker",
+      "Een spelbord"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_werking_3",
+    "theme": "werking",
+    "source": "core",
+    "question": "Wat doet AI vaak met informatie?",
+    "options": [
+      "Patronen zoeken",
+      "Batterijen opladen",
+      "Papier knippen",
+      "Internetkabels maken"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_werking_4",
+    "theme": "werking",
+    "source": "core",
+    "question": "Wat is een prompt?",
+    "options": [
+      "Een vraag of opdracht voor AI",
+      "Een kapotte kabel",
+      "Een soort robotarm",
+      "Een toets op elk toetsenbord"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_werking_5",
+    "theme": "werking",
+    "source": "core",
+    "question": "Waarom lijkt AI soms slim?",
+    "options": [
+      "Omdat AI gedachten leest",
+      "Omdat AI snel patronen herkent",
+      "Omdat AI altijd gelijk heeft",
+      "Omdat AI gevoelens heeft"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_leefwereld_1",
+    "theme": "leefwereld",
+    "source": "core",
+    "question": "Waar kom je AI vaak tegen?",
+    "options": [
+      "In aanbevelingen op apps en video's",
+      "Alleen in ruimteschepen",
+      "Alleen in musea",
+      "Alleen in oude gsm's"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_leefwereld_2",
+    "theme": "leefwereld",
+    "source": "core",
+    "question": "Hoe kan AI helpen bij huiswerk?",
+    "options": [
+      "Door alles blind over te nemen",
+      "Door uitleg en voorbeelden te geven",
+      "Door toetsen te lekken",
+      "Door je boek te vervangen"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_leefwereld_3",
+    "theme": "leefwereld",
+    "source": "core",
+    "question": "Waarom gebruikt een navigatie-app AI?",
+    "options": [
+      "Om routes en files te voorspellen",
+      "Om benzine te maken",
+      "Om de straat te verbreden",
+      "Om verkeerslichten te schilderen"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_leefwereld_4",
+    "theme": "leefwereld",
+    "source": "core",
+    "question": "Wat is slim als je AI gebruikt voor een spreekbeurt?",
+    "options": [
+      "Alles meteen indienen",
+      "Feiten controleren met andere bronnen",
+      "Geen titel meer gebruiken",
+      "Je naam weglaten"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_leefwereld_5",
+    "theme": "leefwereld",
+    "source": "core",
+    "question": "Welke toepassing gebruikt vaak AI?",
+    "options": [
+      "Een leeg blad papier",
+      "Een gewone liniaal",
+      "Een app die foto's groepeert",
+      "Een gesloten boekentas"
+    ],
+    "correct_index": 2,
+    "used": false
+  },
+  {
+    "id": "core_risicos_1",
+    "theme": "risicos",
+    "source": "core",
+    "question": "Wat betekent bias in AI?",
+    "options": [
+      "Een virus in een computer",
+      "Een vooroordeel in data",
+      "Een type robot",
+      "Een programmeerfout"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_risicos_2",
+    "theme": "risicos",
+    "source": "core",
+    "question": "Waarom moet je AI-antwoorden controleren?",
+    "options": [
+      "Omdat AI soms iets verzint",
+      "Omdat AI geen letters kent",
+      "Omdat AI je scherm breekt",
+      "Omdat AI altijd te laat is"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_risicos_3",
+    "theme": "risicos",
+    "source": "core",
+    "question": "Wat kan een risico zijn van een AI-foto?",
+    "options": [
+      "Ze maakt je batterij voller",
+      "Ze kan nep zijn maar echt lijken",
+      "Ze werkt alleen in zwart-wit",
+      "Ze maakt je camera kleiner"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_risicos_4",
+    "theme": "risicos",
+    "source": "core",
+    "question": "Waarom let je op privacy bij AI?",
+    "options": [
+      "Omdat privacy de wifi sneller maakt",
+      "Omdat AI alleen buiten werkt",
+      "Omdat ingevoerde gegevens kunnen worden opgeslagen",
+      "Omdat berichten vanzelf verdwijnen"
+    ],
+    "correct_index": 2,
+    "used": false
+  },
+  {
+    "id": "core_risicos_5",
+    "theme": "risicos",
+    "source": "core",
+    "question": "Wat doe je best bij vreemd AI-advies?",
+    "options": [
+      "Meteen uitvoeren",
+      "Eerst checken bij een betrouwbare bron",
+      "Doorsturen naar iedereen",
+      "Nooit meer vragen stellen"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_verantwoord_1",
+    "theme": "verantwoord",
+    "source": "core",
+    "question": "Wat is verantwoord AI-gebruik?",
+    "options": [
+      "AI gebruiken zonder iets na te kijken",
+      "AI gebruiken met controle en eigen nadenken",
+      "AI gebruiken om anderen te misleiden",
+      "AI gebruiken zonder afspraken"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_verantwoord_2",
+    "theme": "verantwoord",
+    "source": "core",
+    "question": "Wat doe je als AI een gemene tekst maakt?",
+    "options": [
+      "Die meteen posten",
+      "Er nog meer fouten bij zetten",
+      "De tekst aanpassen of niet gebruiken",
+      "Zeggen dat AI altijd gelijk heeft"
+    ],
+    "correct_index": 2,
+    "used": false
+  },
+  {
+    "id": "core_verantwoord_3",
+    "theme": "verantwoord",
+    "source": "core",
+    "question": "Waarom is het soms eerlijk om te zeggen dat je AI gebruikte?",
+    "options": [
+      "Omdat je dan open bent over hoe je werkte",
+      "Omdat je dan minder moet lezen",
+      "Omdat AI dan sneller wordt",
+      "Omdat je dan automatisch punten krijgt"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "id": "core_verantwoord_4",
+    "theme": "verantwoord",
+    "source": "core",
+    "question": "Wat is een goede klasafspraak over AI?",
+    "options": [
+      "Iedereen gebruikt het stiekem",
+      "Je spreekt af wanneer AI wel en niet mag",
+      "Alleen de snelste leerling mag AI gebruiken",
+      "AI kiest wie straf krijgt"
+    ],
+    "correct_index": 1,
+    "used": false
+  },
+  {
+    "id": "core_verantwoord_5",
+    "theme": "verantwoord",
+    "source": "core",
+    "question": "Hoe gebruik je AI respectvol?",
+    "options": [
+      "Door beleefde en veilige prompts te geven",
+      "Door wachtwoorden te delen",
+      "Door anderen te kopiëren zonder bron",
+      "Door expres misleidende vragen te stellen"
+    ],
+    "correct_index": 0,
+    "used": false
+  },
+  {
+    "question": "Wat doet een sensor?",
+    "options": [
+      "Hij meet",
+      "Hij zingt",
+      "Hij slaapt",
+      "Hij springt"
+    ],
+    "correct_index": 0,
+    "id": "ai_1",
+    "theme": "werking",
+    "source": "ai",
+    "approved": false,
+    "used": false,
+    "rejected": true
+  },
+  {
+    "question": "Een AI krijgt duizenden foto's van katten en honden om te leren. Waarom helpt het laten zien van veel voorbeelden de AI om beter te worden?",
+    "options": [
+      "Het zorgt ervoor dat de AI sneller kan denken dan mensen",
+      "Het maakt de AI slimmer dan alle mensen samen",
+      "Het helpt de AI om patronen te herkennen in hoe katten en honden eruitzien",
+      "Het zorgt ervoor dat de AI geen fouten meer maakt bij het herkennen"
+    ],
+    "correct_index": 2,
+    "id": "ai_2",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine. Waarom helpt AI daarbij meestal beter dan een gewone lijst met websites?",
+    "options": [
+      "AI kan de belangrijkste informatie sneller vinden en op een begrijpelijke manier laten zien",
+      "AI kiest willekeurig websites zodat je meer verschillende meningen krijgt",
+      "AI zorgt dat je alleen websites ziet die door je vrienden zijn bezocht",
+      "AI vervangt alle websites door een samenvatting die door mensen is geschreven"
+    ],
+    "correct_index": 0,
+    "id": "ai_3",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je gebruikt een AI-tekstgenerator om een verslag te maken. Wat is de beste manier om eerlijk te blijven?",
+    "options": [
+      "Je schrijft erbij dat je hulp van AI hebt gekregen en controleert de informatie zelf.",
+      "Je laat het verslag precies zo staan, want AI maakt het al goed genoeg.",
+      "Je verandert alleen de moeilijke woorden, zodat niemand merkt dat AI heeft geholpen.",
+      "Je vraagt de AI om het verslag te schrijven en levert het in alsof het helemaal van jou is."
+    ],
+    "correct_index": 0,
+    "id": "ai_4",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je zoekt informatie voor een spreekbeurt op internet. Waarom kan een AI-zoekmachine handiger zijn dan een gewone lijst met websites?",
+    "options": [
+      "AI-zoekmachines tonen alleen websites die je al eerder hebt bezocht",
+      "AI-zoekmachines geven willekeurig resultaten zonder volgorde",
+      "AI-zoekmachines kunnen de belangrijkste informatie sneller vinden en samenvatten",
+      "AI-zoekmachines laten alleen video's zien in plaats van teksten"
+    ],
+    "correct_index": 2,
+    "id": "ai_5",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Waarom is het gevaarlijk om blind te vertrouwen op antwoorden van een AI, ook als die antwoorden heel zeker klinken?",
+    "options": [
+      "Een AI kan soms verkeerde informatie geven zonder dat het zelf weet dat het fout is",
+      "AI maakt altijd fouten omdat het geen echte kennis heeft zoals mensen",
+      "AI geeft alleen maar antwoorden die mensen leuk vinden om te horen",
+      "Een AI kan niet leren van nieuwe informatie na het trainen"
+    ],
+    "correct_index": 0,
+    "id": "ai_6",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt veel foto’s van katten en honden te zien. Daarna kan het nieuwe foto’s beoordelen. Waarom kan de AI dat?",
+    "options": [
+      "De AI heeft geleerd welke kenmerken vaak bij katten of honden horen",
+      "De AI onthoudt elke foto en vergelijkt die precies met nieuwe foto’s",
+      "De AI bedenkt zelf hoe een kat of hond eruit moet zien",
+      "De AI vraagt aan mensen of een foto een kat of hond is"
+    ],
+    "correct_index": 0,
+    "id": "ai_7",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine die AI gebruikt. Waarom is het belangrijk om zelf ook kritisch te blijven kijken naar de resultaten die je krijgt?",
+    "options": [
+      "Omdat AI altijd foutieve informatie geeft die je moet vermijden",
+      "Omdat AI alleen maar reclame laat zien en geen echte informatie",
+      "Omdat AI geen grote hoeveelheden informatie kan verwerken",
+      "Omdat AI soms informatie laat zien die niet helemaal klopt of verouderd is"
+    ],
+    "correct_index": 3,
+    "id": "ai_8",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI-model leert om foto’s van katten te herkennen door heel veel voorbeelden te zien. Waarom is het belangrijk dat deze voorbeelden verschillend zijn?",
+    "options": [
+      "Zodat de AI leert om katten in verschillende situaties en vormen te herkennen",
+      "Zodat de AI sneller kan werken met minder geheugen",
+      "Zodat de AI alleen de mooiste katten kiest om te onthouden",
+      "Zodat de AI geen fouten maakt bij foto’s die geen katten bevatten"
+    ],
+    "correct_index": 0,
+    "id": "ai_9",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je gebruikt een AI-tekstgenerator om een spreekbeurt te maken. Wat is de beste manier om eerlijk te blijven?",
+    "options": [
+      "Je controleert de informatie en schrijft zelf een deel erbij, zodat het klopt",
+      "Je gebruikt de tekst zoals die is en zegt dat jij het zelf hebt geschreven",
+      "Je laat de AI alles doen en verandert niets, zodat je tijd bespaart",
+      "Je kopieert de tekst en verandert alleen wat woorden zodat het anders lijkt"
+    ],
+    "correct_index": 0,
+    "id": "ai_10",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine. Welke taak doet AI in deze situatie?",
+    "options": [
+      "AI schrijft zelf het hele werkstuk voor je",
+      "AI kiest welke websites het beste bij je vraag passen",
+      "AI zorgt dat je computer sneller wordt",
+      "AI bepaalt welke kleuren je op de pagina ziet"
+    ],
+    "correct_index": 1,
+    "id": "ai_11",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je gebruikt een AI-tool om informatie te zoeken voor een werkstuk. Wat is een goede manier om eerlijk te werken?",
+    "options": [
+      "Je controleert de informatie bij meerdere bronnen en vermeldt waar je het vandaan hebt",
+      "Je kopieert alles wat de AI zegt zonder te controleren, zodat je snel klaar bent",
+      "Je verandert de antwoorden van de AI een beetje zodat het lijkt alsof je het zelf hebt bedacht",
+      "Je vraagt de AI om een kant-en-klare tekst en levert die in zonder aanpassingen"
+    ],
+    "correct_index": 0,
+    "id": "ai_12",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je gebruikt een AI-tool om informatie voor een werkstuk te verzamelen. Wat is de beste manier om zeker te weten dat je werkstuk klopt?",
+    "options": [
+      "Je gebruikt alleen de informatie die de AI geeft, want die is altijd juist.",
+      "Je vraagt aan een klasgenoot of de AI het goed heeft uitgelegd.",
+      "Je gebruikt de eerste informatie die de AI geeft en verandert die niet.",
+      "Je controleert de informatie van de AI met andere betrouwbare bronnen."
+    ],
+    "correct_index": 3,
+    "id": "ai_13",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt heel veel foto's van katten en honden te zien. Waarom kan de AI daarna meestal goed voorspellen of een nieuwe foto een kat of een hond is?",
+    "options": [
+      "De AI onthoudt alle foto's en vergelijkt ze één voor één",
+      "De AI herkent patronen in de foto's die bij katten en honden horen",
+      "De AI vraagt aan mensen wat er op de nieuwe foto staat",
+      "De AI gebruikt geluk om te raden welke het is"
+    ],
+    "correct_index": 1,
+    "id": "ai_14",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt duizenden foto's van katten en honden te zien. Daarna kan de AI nieuwe foto's herkennen als kat of hond. Hoe leert de AI dit het beste?",
+    "options": [
+      "Door zelf te bedenken wat een kat of hond is zonder voorbeelden",
+      "Door alleen maar naar de kleuren in de foto te kijken",
+      "Door willekeurig te raden en te hopen op het juiste antwoord",
+      "Door steeds te oefenen met voorbeelden en te kijken welke antwoorden kloppen"
+    ],
+    "correct_index": 3,
+    "id": "ai_15",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI leest veel teksten over dieren en leert zo dat katten vaak 'miauwen'. Waarom kan de AI soms toch een hond 'miauwen' laten zeggen?",
+    "options": [
+      "De AI heeft geleerd dat 'miauwen' vaak bij katten hoort, maar het kan fouten maken omdat het alleen patronen volgt.",
+      "De AI wil expres grappig zijn en kiest soms rare geluiden bij dieren.",
+      "De AI begrijpt echt wat dieren zeggen en denkt dat honden soms miauwen.",
+      "De AI kiest willekeurig geluiden omdat het geen regels kent over dieren."
+    ],
+    "correct_index": 0,
+    "id": "ai_16",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI-systeem geeft een antwoord dat niet klopt, omdat het informatie verzint die er eigenlijk niet is. Hoe noem je dit probleem?",
+    "options": [
+      "Hallucinatie",
+      "Bias",
+      "Privacylek",
+      "Verkeerde conclusie"
+    ],
+    "correct_index": 0,
+    "id": "ai_17",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Waarom zie jij andere TikTok-video's dan je vrienden?",
+    "options": [
+      "TikTok kiest willekeurig.",
+      "Dat is niet zo. Iedereen ziet hetzelfde.",
+      "Omdat het algoritme kijkt naar wat je eerder bekeek.",
+      "Omdat ik zelf mijn interesses heb ingevoerd."
+    ],
+    "correct_index": 2,
+    "id": "ai_18",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine met AI. Waarom kan AI je helpen om betere resultaten te vinden dan wanneer je alleen een woord intypt?",
+    "options": [
+      "AI begrijpt de betekenis van je vraag en zoekt naar relevante informatie",
+      "AI kiest willekeurig websites uit zonder te letten op inhoud",
+      "AI laat alleen de populairste websites zien, ongeacht het onderwerp",
+      "AI toont alleen afbeeldingen en geen tekst over je onderwerp"
+    ],
+    "correct_index": 0,
+    "id": "ai_19",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt duizenden foto’s van katten en honden te zien. Daarna kan het nieuwe foto’s goed herkennen. Wat heeft de AI vooral geleerd?",
+    "options": [
+      "Welke kleuren katten en honden meestal hebben",
+      "Dat katten altijd kleiner zijn dan honden",
+      "Dat elke foto van een kat of hond uniek is",
+      "Welke vormen en patronen typisch zijn voor katten en honden"
+    ],
+    "correct_index": 3,
+    "id": "ai_20",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI-systeem geeft een antwoord dat niet klopt, maar klinkt wel heel zeker. Waarom is het gevaarlijk om dit antwoord meteen te vertrouwen?",
+    "options": [
+      "De AI probeert altijd mensen te misleiden om grappig te zijn.",
+      "AI-systemen zijn altijd traag met het verwerken van informatie.",
+      "De AI kan alleen antwoorden geven als het internet verbonden is.",
+      "De AI kan een fout maken omdat het alleen leert van voorbeelden die het heeft gezien."
+    ],
+    "correct_index": 3,
+    "id": "ai_21",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Waarom is het gevaarlijk om blind te vertrouwen op antwoorden van een AI zonder zelf na te denken?",
+    "options": [
+      "AI is altijd juist, dus het is veilig om er volledig op te vertrouwen",
+      "AI onthoudt alles wat mensen zeggen en geeft daarom altijd het beste antwoord",
+      "AI kan soms verkeerde informatie geven door fouten in de data waarop het is getraind",
+      "AI kan alleen antwoorden geven op vragen die het zelf bedenkt"
+    ],
+    "correct_index": 2,
+    "id": "ai_22",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Waarom is het gevaarlijk om altijd blind te vertrouwen op een AI die informatie geeft?",
+    "options": [
+      "Omdat AI altijd vooroordelen heeft die mensen bewust invoeren",
+      "Omdat AI alleen werkt met oude informatie en niets nieuws kan leren",
+      "Omdat een AI soms fouten maakt door verkeerde of onvolledige informatie",
+      "Omdat AI altijd expres verkeerde antwoorden geeft om mensen te testen"
+    ],
+    "correct_index": 2,
+    "id": "ai_23",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt duizenden foto's van katten en honden om te leren. Waarom is het belangrijk dat deze foto's goed zijn gekozen?",
+    "options": [
+      "Zodat de AI sneller kan werken zonder pauzes",
+      "Zodat de AI zelf nieuwe foto's kan maken",
+      "Zodat de AI geen fouten meer maakt in andere opdrachten",
+      "Zodat de AI kan leren welke kenmerken bij katten en honden horen"
+    ],
+    "correct_index": 3,
+    "id": "ai_24",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI krijgt duizenden foto’s van katten en honden om te leren. Waarom helpt het zien van zoveel voorbeelden de AI om later een nieuwe foto goed te herkennen?",
+    "options": [
+      "De AI onthoudt elke foto precies en vergelijkt ze later één voor één.",
+      "De AI kiest willekeurig een foto en zegt dan wat het denkt dat erop staat.",
+      "De AI maakt een eigen foto van een kat of hond om te oefenen met herkennen.",
+      "De AI leert welke kenmerken vaak bij katten en honden horen, zodat het kan voorspellen wat op een nieuwe foto staat."
+    ],
+    "correct_index": 3,
+    "id": "ai_25",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI leert om foto’s van katten te herkennen door duizenden plaatjes te bekijken. Waarom helpt het dat de AI zoveel voorbeelden krijgt?",
+    "options": [
+      "Zodat de AI alle katten in de wereld kan onthouden",
+      "Zodat de AI kan raden welke foto’s het leukst zijn",
+      "Zodat de AI kan ontdekken welke patronen typisch zijn voor katten",
+      "Zodat de AI sneller kan tekenen wat het ziet"
+    ],
+    "correct_index": 2,
+    "id": "ai_26",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false
+  },
+  {
+    "question": "Een AI leert om foto’s van katten te herkennen door veel voorbeelden te zien. Waarom is het belangrijk dat die voorbeelden heel verschillend zijn?",
+    "options": [
+      "Zodat de AI kan leren om katten in verschillende situaties en vormen te herkennen",
+      "Zodat de AI sneller kan werken en minder geheugen gebruikt",
+      "Zodat de AI alleen de meest schattige katten kiest",
+      "Zodat de AI kan onthouden welke katten het vaakst voorkomen"
+    ],
+    "correct_index": 0,
+    "id": "ai_27",
+    "theme": "werking",
+    "source": "ai",
+    "approved": false,
+    "rejected": true,
+    "used": false
+  },
+  {
+    "question": "Een AI-model leert van veel teksten om vragen te beantwoorden. Waarom kan het soms antwoorden geven die niet kloppen, ook al heeft het veel informatie gekregen?",
+    "options": [
+      "Omdat het model niet genoeg woorden kent om een goed antwoord te maken",
+      "Omdat het model patronen volgt en niet echt begrijpt wat het leest",
+      "Omdat het model alleen maar willekeurige zinnen samenvoegt zonder reden",
+      "Omdat het model altijd oude informatie gebruikt en nooit nieuwe leert"
+    ],
+    "correct_index": 1,
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_28"
+  },
+  {
+    "question": "Stel, een AI moet een tekst schrijven, maar krijgt alleen een korte zin als opdracht. Welke methode gebruikt AI om die taak goed uit te voeren?",
+    "options": [
+      "De AI herkent patronen in veel eerder gelezen teksten om een passende tekst te maken",
+      "De AI bedenkt zelf nieuwe ideeën zonder iets te gebruiken uit eerdere teksten",
+      "De AI kiest willekeurig woorden zonder te letten op betekenis of volgorde",
+      "De AI vraagt eerst aan een mens om elk woord te controleren voordat hij schrijft"
+    ],
+    "correct_index": 0,
+    "explanation": "AI gebruikt patronen die het heeft geleerd uit veel teksten om een nieuwe passende tekst te maken. Het bedenkt geen geheel nieuwe ideeën, maar voorspelt woorden die logisch passen bij de opdracht.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_29"
+  },
+  {
+    "question": "Een AI-model gebruikt voorbeelden om te leren. Wat gebeurt er als het model tijdens het leren alleen bijna dezelfde voorbeelden te zien krijgt?",
+    "options": [
+      "Het model leert sneller en kan daardoor beter omgaan met onbekende voorbeelden",
+      "Het model onthoudt de voorbeelden en gebruikt die later precies zo weer",
+      "Het model kan alleen die specifieke voorbeelden herkennen en niet nieuwe situaties goed voorspellen",
+      "Het model raadt willekeurig een antwoord als het iets nieuws tegenkomt"
+    ],
+    "correct_index": 2,
+    "explanation": "Als een AI-model alleen bijna dezelfde voorbeelden te zien krijgt, leert het vooral die voorbeelden uit het hoofd en kan het minder goed nieuwe, verschillende situaties herkennen of voorspellen. Variatie in voorbeelden helpt AI om beter te generaliseren.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_30"
+  },
+  {
+    "question": "Een AI-model krijgt nieuwe informatie die heel anders is dan wat het eerder heeft geleerd. Waarom kan het dan moeite hebben om een goede voorspelling te doen?",
+    "options": [
+      "Het model heeft te weinig geheugen om nieuwe informatie op te slaan",
+      "Het model kan alleen informatie gebruiken die mensen handmatig hebben ingevoerd",
+      "Het model werkt alleen met tekst en kan geen nieuwe soorten data aan",
+      "Het model kent die nieuwe informatie niet omdat het alleen patronen herkent uit wat het eerder heeft gezien"
+    ],
+    "correct_index": 3,
+    "explanation": "AI-modellen leren door patronen te herkennen in de data die ze eerder hebben gekregen. Als nieuwe informatie heel anders is dan die data, kan het model die niet goed koppelen aan wat het geleerd heeft, waardoor de voorspelling minder betrouwbaar wordt.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_31"
+  },
+  {
+    "question": "Stel je voor dat een AI getraind is om fruit te herkennen met plaatjes van appels en sinaasappels. Wat gebeurt er als je de AI een foto laat zien van een groene appel, terwijl het alleen rode appels en sinaasappels heeft geleerd?",
+    "options": [
+      "De AI herkent het automatisch als een sinaasappel, omdat het alleen oranje en rood kent.",
+      "De AI zal het altijd correct herkennen, want appels lijken altijd hetzelfde.",
+      "De AI kan het waarschijnlijk niet goed herkennen, omdat de groene appel er anders uitziet dan de voorbeelden.",
+      "De AI zal de groene appel negeren omdat het geen kleur kan verwerken."
+    ],
+    "correct_index": 2,
+    "explanation": "AI leert door voorbeelden. Als het alleen rode appels ziet, kan het moeite hebben met een groene appel omdat die er anders uitziet. Het kan daardoor fouten maken bij het herkennen van nieuwe soorten die afwijken van wat het heeft geleerd.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_32"
+  },
+  {
+    "question": "Je gebruikt een chatbot om hulp te krijgen bij het schrijven van een verhaal. Wat is het belangrijkste om zelf te blijven doen terwijl de chatbot helpt?",
+    "options": [
+      "Zelf nadenken over de ideeën en het verhaal controleren",
+      "De chatbot alles laten schrijven zonder eigen aanpassingen",
+      "Alle antwoorden van de chatbot zomaar overnemen omdat het altijd klopt",
+      "De chatbot gebruiken om het verhaal te schrijven zonder het zelf te lezen"
+    ],
+    "correct_index": 0,
+    "explanation": "Een chatbot kan goede ideeën en teksten geven, maar het is belangrijk dat je zelf blijft nadenken en controleert of het verhaal klopt en bij jou past. Zo leer je meer en blijft het jouw eigen werk.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_33"
+  },
+  {
+    "question": "Je gebruikt een chatbot om snel antwoord te krijgen op een vraag over je hobby. Waarom is het toch slim om ook zelf verder te zoeken na het gesprek?",
+    "options": [
+      "Chatbots geven altijd precies het juiste antwoord, dus verder zoeken is eigenlijk niet nodig.",
+      "De chatbot kan soms informatie missen of fouten maken, dus zelf controleren helpt om het zeker te weten.",
+      "Chatbots vinden geen recente informatie, dus je moet altijd oudere boeken gebruiken.",
+      "Als je alleen op een chatbot vertrouwt, leer je niets over hoe je informatie moet vinden."
+    ],
+    "correct_index": 1,
+    "explanation": "Chatbots gebruiken vaak veel informatie, maar ze kunnen fouten maken of iets missen. Daarom is het belangrijk om zelf ook verder te zoeken en te controleren of het antwoord klopt. Zo leer je beter en voorkom je misverstanden.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_34"
+  },
+  {
+    "question": "Je praat met een chatbot op een website over een lastig onderwerp. Waarom kan het handig zijn dat deze chatbot AI gebruikt?",
+    "options": [
+      "De chatbot voelt precies aan hoe jij je voelt en kan echte emoties tonen",
+      "De chatbot kan snel veel informatie begrijpen en antwoorden geven die passen bij jouw vraag",
+      "De chatbot voorkomt dat je zelf nog iets hoeft te leren over het onderwerp",
+      "De chatbot kan zonder fouten altijd het juiste antwoord geven op elke vraag"
+    ],
+    "correct_index": 1,
+    "explanation": "AI in chatbots helpt om snel relevante informatie te vinden en begrijpelijke antwoorden te geven, maar het heeft geen echte emoties en maakt soms fouten. Daarom blijft het belangrijk dat jij zelf kritisch blijft en leert over het onderwerp.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_35"
+  },
+  {
+    "question": "Je praat met een chatbot die AI gebruikt om je vragen te beantwoorden. Waarom is het belangrijk om zelf na te denken over de antwoorden die de chatbot geeft?",
+    "options": [
+      "De chatbot heeft altijd een mening die je moet volgen.",
+      "De chatbot kan soms fouten maken of iets verkeerd begrijpen.",
+      "De chatbot weet alles beter dan een leraar of ouder.",
+      "De chatbot bedenkt zelf nieuwe feiten die betrouwbaar zijn."
+    ],
+    "correct_index": 1,
+    "explanation": "AI-chatbots kunnen soms fouten maken of dingen verkeerd uitleggen. Daarom is het belangrijk om zelf na te denken en de antwoorden te controleren, bijvoorbeeld door het te vragen aan een leraar of door zelf op te zoeken.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_36"
+  },
+  {
+    "question": "Je chat met een chatbot om hulp te krijgen bij een moeilijke vraag. Waarom is het belangrijk om de antwoorden van de chatbot altijd zelf te controleren?",
+    "options": [
+      "Omdat de chatbot soms fouten kan maken of dingen verkeerd begrijpt",
+      "Omdat de chatbot opzettelijk verkeerde informatie geeft",
+      "Omdat de chatbot alleen antwoorden geeft die populair zijn op sociale media",
+      "Omdat de chatbot altijd hetzelfde antwoord geeft, ongeacht de vraag"
+    ],
+    "correct_index": 0,
+    "explanation": "Chatbots gebruiken AI om antwoorden te geven, maar ze kunnen soms fouten maken of niet alles goed begrijpen. Daarom is het belangrijk om altijd zelf te controleren of het antwoord klopt.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_37"
+  },
+  {
+    "question": "Een chatbot op een website helpt je snel met vragen over een product. Waarom kan het soms lastig zijn voor een chatbot om jouw vraag goed te begrijpen?",
+    "options": [
+      "Omdat chatbots alleen antwoorden geven die mensen hebben geschreven en niets zelf kunnen bedenken",
+      "Omdat chatbots alleen kunnen antwoorden als je een hele lange en gedetailleerde vraag stelt",
+      "Omdat een chatbot niet altijd kan herkennen wat je precies bedoelt als je onduidelijk schrijft",
+      "Omdat een chatbot altijd maar één antwoord tegelijk kan geven en niet kan uitleggen"
+    ],
+    "correct_index": 2,
+    "explanation": "Chatbots gebruiken AI om woorden en zinnen te begrijpen, maar als je vraag onduidelijk of vaag is, kan de chatbot moeilijk inschatten wat je precies bedoelt. Daarom is het lastig voor een chatbot om altijd de juiste antwoorden te geven als de vraag niet duidelijk is.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_38"
+  },
+  {
+    "question": "Je chat met een chatbot die je helpt bij het maken van een opstel. Waarom is het belangrijk om altijd zelf te controleren wat de chatbot zegt?",
+    "options": [
+      "De chatbot weet alles beter dan een leraar",
+      "De chatbot kan soms fouten maken of dingen verkeerd uitleggen",
+      "De chatbot geeft altijd antwoorden die precies hetzelfde zijn",
+      "De chatbot bedenkt zelf nieuwe feiten die je kunt gebruiken"
+    ],
+    "correct_index": 1,
+    "explanation": "Een chatbot gebruikt informatie uit veel voorbeelden, maar kan soms fouten maken of informatie verkeerd uitleggen. Daarom is het belangrijk om altijd zelf te controleren of het antwoord klopt, vooral bij schoolwerk.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_39"
+  },
+  {
+    "question": "Een AI helpt bij het kiezen van een nieuwe film, maar kiest steeds films uit dezelfde categorie. Wat kan hier het grootste probleem zijn?",
+    "options": [
+      "De AI kan geen nieuwe films leren kennen buiten die categorie.",
+      "De AI wil expres niet dat je andere films probeert.",
+      "De AI is bevooroordeeld doordat het alleen die categorie vaak ziet.",
+      "De AI kiest willekeurig zonder reden."
+    ],
+    "correct_index": 2,
+    "explanation": "De AI kan bevooroordeeld zijn omdat de data waarin het getraind is vooral die categorie bevat, waardoor de aanbevelingen steeds hetzelfde lijken. Dit heet bias en kan zorgen dat je niet een breed aanbod krijgt.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_40"
+  },
+  {
+    "question": "Je gebruikt een AI om informatie te zoeken voor een werkstuk. De AI vertelt dat een bepaald feit klopt, maar je vindt geen andere bronnen die dit bevestigen. Wat is de beste reden om extra bronnen te zoeken?",
+    "options": [
+      "De AI wil soms expres verkeerde informatie geven om te testen of je oplet",
+      "De AI weet alles zeker en maakt nooit fouten, dus extra zoeken is niet nodig",
+      "De AI kan alleen feiten geven die in boeken staan, maar geen nieuwe informatie",
+      "De AI kan fouten maken en informatie verzinnen zonder dat je het meteen merkt"
+    ],
+    "correct_index": 3,
+    "explanation": "AI kan soms informatie verzinnen of fouten maken, ook als het zeker klinkt. Daarom is het belangrijk om altijd extra bronnen te controleren, vooral als je iets niet ergens anders kunt vinden.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_41"
+  },
+  {
+    "question": "Een AI-systeem toont je steeds dezelfde soort antwoorden, ook als de vragen iets anders zijn. Wat kan hier een belangrijk risico zijn?",
+    "options": [
+      "De AI gebruikt te veel verschillende bronnen voor zijn antwoorden.",
+      "De AI werkt te langzaam om goede antwoorden te geven.",
+      "De AI kan bevooroordeeld zijn en daardoor minder goede informatie geven.",
+      "De AI vraagt steeds om meer persoonlijke informatie."
+    ],
+    "correct_index": 2,
+    "explanation": "Als een AI steeds dezelfde soort antwoorden geeft, kan dit wijzen op bias: een vooroordeel of eenzijdige manier van denken. Dit kan ervoor zorgen dat belangrijke informatie ontbreekt of verkeerd wordt voorgesteld.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_42"
+  },
+  {
+    "question": "Je gebruikt een AI-tool om hulp te krijgen bij een moeilijke taak. Wat is een verstandige manier om met de informatie van de AI om te gaan?",
+    "options": [
+      "Je neemt de AI-antwoord precies over zonder extra te controleren",
+      "Je negeert de AI-antwoord en doet alles helemaal zelf",
+      "Je gebruikt de AI-antwoord als idee en controleert zelf of het klopt",
+      "Je kopieert de AI-antwoord, maar zegt niet dat je hulp kreeg"
+    ],
+    "correct_index": 2,
+    "explanation": "Het is belangrijk om AI-advies niet zomaar klakkeloos over te nemen, maar zelf te controleren of het klopt. Zo gebruik je AI op een verantwoorde manier en leer je zelf ook beter.",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_43"
+  },
+  {
+    "question": "Een AI-model leert door voorbeelden, maar soms krijgt het ook voorbeelden met fouten. Wat gebeurt er als een AI te vaak verkeerde voorbeelden krijgt tijdens het leren?",
+    "options": [
+      "De AI leert sneller omdat het meer verschillende voorbeelden ziet.",
+      "De AI negeert automatisch alle foutieve voorbeelden en leert alleen van de juiste.",
+      "De AI denkt dat die fouten ook goed zijn en maakt daardoor zelf fouten.",
+      "De AI raakt in de war en stopt met leren."
+    ],
+    "correct_index": 2,
+    "explanation": "Als een AI-model vaak verkeerde voorbeelden krijgt, kan het die fouten als normaal beschouwen en daardoor zelf verkeerde voorspellingen of beslissingen maken.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_44"
+  },
+  {
+    "question": "Je hebt een tekst gekregen van een AI en wilt die gebruiken voor een schoolopdracht. Waarom is het belangrijk om ook zelf goed te controleren wat er in de tekst staat?",
+    "options": [
+      "De AI kan soms fouten maken die je zelf ontdekt als je de tekst goed leest.",
+      "De AI maakt altijd perfecte teksten, dus controleren is eigenlijk niet nodig.",
+      "Als je de tekst niet controleert, wordt het automatisch gezien als plagiaat.",
+      "De AI past de tekst aan op basis van wat de docent wil horen."
+    ],
+    "correct_index": 0,
+    "explanation": "AI kan fouten of onduidelijkheden bevatten, omdat het niet altijd de juiste of actuele informatie gebruikt. Daarom is het belangrijk om de tekst zelf te controleren zodat je zeker weet dat je werk klopt en je het begrijpt.",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_45"
+  },
+  {
+    "question": "Stel je voor dat een AI een belangrijke beslissing helpt nemen, maar de gegevens waarop de AI is getraind bevatten vooral voorbeelden uit één groep mensen. Wat kan er hierdoor gebeuren?",
+    "options": [
+      "De AI zal juist betere beslissingen maken omdat het zich richt op één groep",
+      "De AI kan verkeerde conclusies trekken omdat de voorbeelden niet voor iedereen gelden",
+      "De AI kan dan geen antwoord geven omdat het te weinig informatie heeft",
+      "De AI zal altijd eerlijk en neutraal blijven, ongeacht de voorbeelden"
+    ],
+    "correct_index": 1,
+    "explanation": "Als een AI vooral is getraind met voorbeelden uit één groep, kan het vooroordelen krijgen en verkeerde conclusies trekken voor andere groepen. Dit noemen we bias, en het kan leiden tot oneerlijke beslissingen.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_46"
+  },
+  {
+    "question": "Je chat met een klantenservicebot die AI gebruikt. Waarom kan het zijn dat de bot soms een verkeerd antwoord geeft?",
+    "options": [
+      "Omdat de bot expres verkeerde informatie geeft om te testen",
+      "Omdat de bot geen toegang heeft tot internet om antwoorden te zoeken",
+      "Omdat de bot de vraag niet helemaal begrijpt door onduidelijke woorden",
+      "Omdat de bot alleen vragen over het weer kan beantwoorden"
+    ],
+    "correct_index": 2,
+    "explanation": "AI-chatbots begrijpen soms niet precies wat je bedoelt, vooral als je onduidelijke woorden of zinnen gebruikt. Daarom kunnen ze soms verkeerde antwoorden geven. Ze geven niet expres foutieve informatie, en hebben meestal toegang tot een database of internet. Ook zijn ze niet beperkt tot alleen het weer.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_47"
+  },
+  {
+    "question": "Stel je voor dat een AI getraind is om te voorspellen welk fruit iemand lekker vindt, maar het heeft alleen gegevens gekregen over appels en bananen. Wat kan er misgaan als je de AI vraagt of iemand mango lekker vindt?",
+    "options": [
+      "De AI zal automatisch goed raden omdat mango’s op appels lijken.",
+      "De AI weet dat mango niet lekker is omdat het dat in de training heeft geleerd.",
+      "De AI kan het moeilijk vinden omdat het geen voorbeelden van mango’s heeft gezien.",
+      "De AI negeert de vraag omdat mango geen fruit is."
+    ],
+    "correct_index": 2,
+    "explanation": "De AI kan alleen goed voorspellen wat het geleerd heeft. Zonder voorbeelden van mango’s kan het niet betrouwbaar raden of iemand die lekker vindt.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_48"
+  },
+  {
+    "question": "Een AI krijgt een nieuwe foto te zien van een dier dat ze nog nooit heeft gezien. Hoe weet de AI toch wat het waarschijnlijk is?",
+    "options": [
+      "De AI vraagt aan een mens wat het dier is en onthoudt dat voor later",
+      "De AI gebruikt willekeurige gissingen omdat het dier onbekend is",
+      "De AI vergelijkt de foto met eerdere voorbeelden en zoekt naar bekende patronen",
+      "De AI kijkt naar de kleur van de foto en kiest het dier met die kleur"
+    ],
+    "correct_index": 2,
+    "explanation": "AI gebruikt de patronen en kenmerken die het heeft geleerd uit voorbeelden om iets nieuws te herkennen, ook als het het specifieke dier nog nooit heeft gezien. Het vergelijkt de nieuwe foto met deze patronen om een goede voorspelling te maken.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_49"
+  },
+  {
+    "question": "Een AI helpt bij het beoordelen van sollicitaties. Waarom kan het gevaarlijk zijn om alleen naar de AI te luisteren bij het kiezen van een kandidaat?",
+    "options": [
+      "De AI werkt waarschijnlijk veel langzamer dan een mens en vertraagt het proces.",
+      "De AI geeft altijd dezelfde kandidaat als beste, omdat het geen nieuwe keuzes kan maken.",
+      "De AI kan onbedoeld voorkeur geven aan bepaalde groepen mensen door de data waarop het getraind is.",
+      "De AI kan geen emoties voelen en daarom kiest het alleen op uiterlijk."
+    ],
+    "correct_index": 2,
+    "explanation": "AI-systemen kunnen vooringenomen zijn omdat ze getraind zijn op bestaande gegevens die bijvoorbeeld bepaalde groepen bevoordelen of benadelen. Daardoor kan de AI onbedoeld 'bias' vertonen, wat kan leiden tot oneerlijke keuzes.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_50"
+  },
+  {
+    "question": "Je chat met een klantenservice via een chatbot die gebruikmaakt van AI. Welke situatie laat zien dat AI in deze chatbot niet altijd perfect is?",
+    "options": [
+      "De chatbot reageert meteen en zonder pauzes op elk bericht.",
+      "De chatbot geeft een antwoord dat niet helemaal past bij jouw vraag.",
+      "De chatbot herkent jouw taal en spelling meestal goed.",
+      "De chatbot kan simpele vragen over openingstijden snel beantwoorden."
+    ],
+    "correct_index": 1,
+    "explanation": "Een AI-chatbot kan soms moeite hebben met het begrijpen van specifieke of onverwachte vragen, waardoor het antwoord niet altijd precies klopt. Dat laat zien dat AI niet perfect is, ook al werkt het vaak goed.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_51"
+  },
+  {
+    "question": "Je chat met een chatbot over het maken van een schaatswedstrijd op school. Waarom kan het handig zijn dat de chatbot vragen stelt over hoeveel deelnemers er zijn?",
+    "options": [
+      "De chatbot probeert zo precies te begrijpen wat jij wilt voor een beter advies.",
+      "De chatbot wil alleen meer woorden gebruiken om langer te blijven praten.",
+      "De chatbot vraagt dit om te controleren of jij wel alles weet over schaatsen.",
+      "De chatbot doet dit om sneller te weten wanneer het gesprek stopt."
+    ],
+    "correct_index": 0,
+    "explanation": "Een chatbot gebruikt vragen om beter te begrijpen wat jij bedoelt, zodat het advies of de antwoorden beter passen bij jouw situatie.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_52"
+  },
+  {
+    "question": "Een AI helpt bij het kiezen van een film, maar geeft steeds alleen komedies terwijl je ook van andere genres houdt. Wat is waarschijnlijk het probleem?",
+    "options": [
+      "De AI heeft geleerd van voorbeelden met vooral komedies en denkt dat dat jouw voorkeur is",
+      "De AI heeft geen internetverbinding om andere films op te zoeken",
+      "De AI wil je expres alleen komedies laten zien omdat die populair zijn",
+      "De AI begrijpt niet dat er ook andere genres bestaan dan komedie"
+    ],
+    "correct_index": 0,
+    "explanation": "De AI baseert zijn advies op de informatie waarmee het getraind is. Als die voorbeelden vooral komedies bevatten, denkt de AI dat dit het beste bij jou past. Dit heet bias, en kan ervoor zorgen dat de AI eenzijdige of verkeerde adviezen geeft.",
+    "theme": "risicos",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": true,
+    "id": "ai_53"
+  },
+  {
+    "question": "Een AI-model krijgt tijdens het trainen steeds meer voorbeelden te zien. Wat gebeurt er met het model terwijl het deze voorbeelden verwerkt?",
+    "options": [
+      "Het model onthoudt elk voorbeeld precies zodat het die later kan terugzeggen",
+      "Het model slaat alle voorbeelden op als een grote lijst zonder ze te veranderen",
+      "Het model kiest willekeurig kenmerken uit de voorbeelden om te gebruiken",
+      "Het model leert welke kenmerken in de voorbeelden belangrijk zijn om een goede voorspelling te doen"
+    ],
+    "correct_index": 3,
+    "explanation": "Tijdens het trainen leert het AI-model welke kenmerken of patronen in de voorbeelden belangrijk zijn om een goede voorspelling te maken. Het onthoudt niet elk voorbeeld precies, maar zoekt algemene regels die toepasbaar zijn op nieuwe data.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_54"
+  },
+  {
+    "question": "Je gebruikt een AI om een moeilijke tekst te begrijpen. Wat is de beste manier om zeker te weten of de uitleg klopt?",
+    "options": [
+      "Je vertrouwt erop dat AI altijd de juiste uitleg geeft.",
+      "Je vergelijkt de uitleg met informatie uit betrouwbare boeken of websites.",
+      "Je gebruikt alleen de uitleg van AI zonder er verder over na te denken.",
+      "Je vraagt een klasgenoot om de uitleg te herhalen zonder zelf te controleren."
+    ],
+    "correct_index": 1,
+    "explanation": "AI kan soms fouten maken of dingen anders uitleggen. Door de uitleg te vergelijken met betrouwbare bronnen, controleer je of de informatie klopt en leer je beter kritisch omgaan met AI.",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_55"
+  },
+  {
+    "question": "Je gebruikt een AI om een tekst te schrijven, maar je merkt dat er persoonlijke informatie van iemand anders in staat. Wat is het beste wat je kunt doen?",
+    "options": [
+      "De tekst zo laten en hopen dat niemand het leest",
+      "De tekst aanpassen zodat die persoonlijke informatie niet meer zichtbaar is",
+      "De tekst helemaal opnieuw door de AI laten maken zonder te controleren",
+      "De persoonlijke informatie juist extra benadrukken zodat het duidelijk is"
+    ],
+    "correct_index": 1,
+    "explanation": "Het is belangrijk om persoonlijke informatie van anderen te beschermen. Daarom moet je de tekst aanpassen zodat die informatie niet zichtbaar is, zodat je privacy respecteert en verantwoord omgaat met AI-gebruik.",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_56"
+  },
+  {
+    "question": "Je gebruikt een chatbot op school die antwoorden geeft op vragen over geschiedenis. Waarom is het belangrijk om zelf ook bronnen te controleren, ook al lijkt het antwoord logisch?",
+    "options": [
+      "De chatbot kan soms verouderde of onjuiste informatie geven zonder het te merken",
+      "De chatbot wil je expres verkeerde feiten geven om je te testen",
+      "De chatbot raadt altijd het antwoord dat het meest populair is op internet",
+      "De chatbot gebruikt alleen informatie uit een specifieke encyclopedie die altijd klopt"
+    ],
+    "correct_index": 0,
+    "explanation": "Chatbots gebruiken grote hoeveelheden informatie, maar kunnen fouten maken of verouderde gegevens geven. Daarom is het belangrijk om zelf ook bronnen te controleren en niet blind te vertrouwen op wat de chatbot zegt.",
+    "theme": "leefwereld",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_57"
+  },
+  {
+    "question": "Je hebt een tekst van een AI gekregen voor je project. Wat is de beste manier om te zorgen dat de informatie klopt voordat je het gebruikt?",
+    "options": [
+      "Je neemt de tekst eerlijk over omdat de AI altijd gelijk heeft.",
+      "Je controleert de belangrijkste feiten in andere betrouwbare bronnen.",
+      "Je verandert de tekst een beetje zodat het beter klinkt.",
+      "Je gebruikt de tekst direct, want AI maakt altijd goede informatie."
+    ],
+    "correct_index": 1,
+    "explanation": "AI kan soms fouten maken of verkeerde informatie geven. Het is daarom belangrijk om belangrijke feiten zelf te controleren in betrouwbare bronnen voordat je ze gebruikt.",
+    "theme": "verantwoord",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_58"
+  },
+  {
+    "question": "Een AI-model krijgt tijdens het trainen veel voorbeelden van foto’s te zien, maar sommige voorbeelden zijn verkeerd gelabeld. Wat kan er gebeuren als het model zulke fouten leert?",
+    "options": [
+      "Het model negeert de fouten automatisch en leert alleen van correcte voorbeelden.",
+      "Het model stopt met leren zodra het een fout tegenkomt.",
+      "Het model kan verkeerde conclusies trekken en minder goed voorspellen.",
+      "Het model onthoudt alleen de fouten om ze later te vermijden."
+    ],
+    "correct_index": 2,
+    "explanation": "Als een AI-model verkeerde voorbeelden krijgt, kan het verkeerde patronen leren. Dit zorgt ervoor dat het model minder betrouwbaar wordt en fouten maakt bij nieuwe voorspellingen.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_59"
+  },
+  {
+    "question": "Stel je voor: je leert een AI om recepten te maken van basisgegevens zoals ingrediënten en kookmethodes. Waarom is het lastig voor de AI om een helemaal nieuw recept te bedenken dat nog nooit iemand heeft geprobeerd?",
+    "options": [
+      "Omdat de AI alleen kan combineren wat het in eerdere voorbeelden heeft gezien",
+      "Omdat AI niet genoeg ingrediënten kan herkennen om nieuwe recepten te maken",
+      "Omdat AI alleen simpele recepten kan maken, geen ingewikkelde gerechten",
+      "Omdat AI geen smaak kan proeven en daarom geen recepten mag maken"
+    ],
+    "correct_index": 0,
+    "explanation": "AI maakt voorspellingen en keuzes op basis van patronen die het heeft geleerd uit voorbeelden. Het kan niet zomaar iets compleet nieuws verzinnen zonder deze basis, omdat het geen eigen ervaring of creativiteit heeft zoals mensen.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_60"
+  },
+  {
+    "question": "Een AI-model leert woorden in een taal herkennen door veel teksten te lezen. Waarom kan het model soms toch een rare zin maken die niet klopt?",
+    "options": [
+      "Omdat het model opzettelijk fouten maakt om mensen te testen",
+      "Omdat het model altijd dezelfde zinnen herhaalt die het heeft gelezen",
+      "Omdat het model geen toegang heeft tot het internet om hulp te zoeken",
+      "Omdat het model alleen patronen ziet en niet echt begrijpt wat de woorden betekenen"
+    ],
+    "correct_index": 3,
+    "explanation": "AI-modellen herkennen patronen uit de voorbeelden die ze lezen, maar ze begrijpen taal niet zoals mensen dat doen. Daarom kunnen ze soms zinnen maken die grammaticaal kloppen, maar inhoudelijk vreemd zijn.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_61"
+  },
+  {
+    "question": "Stel je voor dat een AI getraind is met honderden foto’s van appels. Hoe kan de AI dan toch moeite hebben met het herkennen van een groene appel als hij vooral rode appels heeft gezien?",
+    "options": [
+      "De AI vergeet snel wat hij geleerd heeft en kan daarom nieuwe dingen niet herkennen",
+      "De AI kan alleen leren van tekst, niet van foto’s met verschillende kleuren",
+      "De AI vindt groene appels moeilijker omdat ze minder interessant zijn",
+      "De AI heeft vooral rode appels gezien, dus het herkent iets wat er anders uitziet minder goed"
+    ],
+    "correct_index": 3,
+    "explanation": "AI leert patronen uit voorbeelden. Als het vooral rode appels heeft gezien, weet het minder goed hoe groene appels eruitzien en kan het die daarom moeilijker herkennen.",
+    "theme": "werking",
+    "source": "ai",
+    "approved": true,
+    "rejected": false,
+    "used": false,
+    "id": "ai_62"
+  }
+]

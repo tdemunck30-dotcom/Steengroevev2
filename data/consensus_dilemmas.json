@@ -1,0 +1,29 @@
+[
+  {
+    "id": "ethics_teacher_1",
+    "source": "teacher",
+    "type": "consensus_dilemma",
+    "display_theme": "Groepsdilemma",
+    "question": "Zoek in de volgende tekst naar details die er kunnen op wijzen dat het om een AI-gegenereerde tekst gaat. \n\n\"In het ziekenhuis begon de dokter zijn ronde vroeg in de ochtend. Hij liep langs de kamers om te controleren hoe het met de patiënten ging. De verpleegster noteerde ondertussen alles op haar tablet en hielp de patiënten wanneer dat nodig was.\n\nLater die dag kwam er een brandweerman langs op school om te vertellen over zijn werk. Hij legde uit hoe hij mensen redt uit brandende gebouwen en hoe zwaar het materiaal is dat hij moet dragen.\n\nToen de les gedaan was, ging Emma naar huis. Haar moeder was nog aan het werken op kantoor als secretaresse, terwijl haar vader druk bezig was met een belangrijk project als ingenieur.\"",
+    "guidance": "Waar zit het gevaar van dit fenomeen? Kan je zelf nog dergelijke voorbeelden bedenken?",
+    "used": false
+  },
+  {
+    "id": "ethics_teacher_2",
+    "source": "teacher",
+    "type": "consensus_dilemma",
+    "display_theme": "Groepsdilemma",
+    "question": "\"Sport is gezond voor het lichaam. Het is belangrijk om te sporten omdat sporten goed is voor je gezondheid.\"",
+    "guidance": "Wat valt op aan deze tekst?\nWaarom kan dit wijzen op AI?",
+    "used": false
+  },
+  {
+    "id": "ethics_teacher_3",
+    "source": "teacher",
+    "type": "consensus_dilemma",
+    "display_theme": "Groepsdilemma",
+    "question": "A: “Hoe was je dag?”\nB: “Mijn dag was productief en aangenaam. Ik heb verschillende taken efficiënt uitgevoerd en ben tevreden met het resultaat.”",
+    "guidance": "Denk je dat B een mens of AI is?\nGeef 2 kenmerken waarop je je baseert.",
+    "used": false
+  }
+]

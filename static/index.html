@@ -1,0 +1,5254 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uit de Steengroeve</title>
+    <style>
+        :root {
+            --sand: #f6efdf;
+            --sand-deep: #ead8b9;
+            --stone: #2d241c;
+            --stone-soft: #6f5b47;
+            --clay: #8d5b35;
+            --clay-dark: #6d4225;
+            --sky: #d8e7ef;
+            --line: rgba(98, 73, 49, 0.16);
+            --card: rgba(255, 250, 243, 0.9);
+            --card-strong: #fffdf8;
+            --danger: #a73d2a;
+            --danger-dark: #7d2318;
+            --success: #2d6a4f;
+            --shadow: 0 24px 60px rgba(68, 49, 31, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(255, 255, 255, 0.46), transparent 22%),
+            linear-gradient(180deg, #8ab6ea 0 176px, #e8d8b8 176px 100%);
+            color: var(--stone);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            display: none;
+        }
+
+        body::after {
+            inset: 0;
+            background:
+                radial-gradient(circle at top, rgba(255, 255, 255, 0.42), transparent 24%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(109, 76, 45, 0.08));
+        }
+
+        main.app-dashboard {
+            position: relative;
+            z-index: 1;
+            width: min(1860px, calc(100vw - clamp(8px, 1.4vw, 22px)));
+            margin: 0 auto;
+            padding: 14px 16px 18px;
+            display: grid;
+            gap: 20px;
+            height: 100dvh;
+            grid-template-columns: minmax(640px, 1.26fr) minmax(400px, 0.96fr) minmax(420px, 1.02fr);
+            grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+            align-content: stretch;
+            overflow: hidden;
+        }
+
+        main.app-dashboard > * {
+            min-height: 0;
+        }
+
+        h1,
+        h2,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            font-size: clamp(2.4rem, 4vw, 3.5rem);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-size: clamp(1.45rem, 2vw, 1.8rem);
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+
+        p {
+            line-height: 1.6;
+        }
+
+        .eyebrow {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--clay-dark);
+            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid rgba(109, 66, 37, 0.12);
+        }
+
+        .panel {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 251, 244, 0.95));
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            padding: 28px;
+            backdrop-filter: blur(12px);
+        }
+
+        .panel::after {
+            content: "";
+            position: absolute;
+            left: 24px;
+            right: 24px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0));
+        }
+
+        .hero-panel {
+            display: grid;
+            grid-template-columns: minmax(0, 1.22fr) minmax(620px, 0.94fr);
+            gap: 30px;
+            align-items: start;
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 48%),
+                linear-gradient(140deg, rgba(104, 70, 44, 0.1), rgba(255, 255, 255, 0.55) 42%, rgba(255, 248, 239, 0.96) 100%);
+        }
+
+        .dashboard-hero {
+            grid-column: 1 / 4;
+            grid-row: 1;
+            padding: 20px 22px;
+            gap: 18px;
+        }
+
+        .hero-copy {
+            display: grid;
+            gap: 16px;
+        }
+
+        .lead {
+            font-size: 1.08rem;
+            color: var(--stone-soft);
+            max-width: 36rem;
+            margin-bottom: 0;
+        }
+
+        .hero-notes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .note-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.68);
+            border: 1px solid rgba(109, 66, 37, 0.12);
+            font-weight: 700;
+            color: var(--stone-soft);
+        }
+
+        .hero-side,
+        .section-heading {
+            display: grid;
+            gap: 10px;
+        }
+
+        .turn-spotlight {
+            display: grid;
+            gap: 8px;
+            padding: 18px 20px;
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.95), transparent 46%),
+                linear-gradient(135deg, rgba(188, 121, 62, 0.18), rgba(255, 248, 239, 0.92));
+            border: 1px solid rgba(141, 91, 53, 0.18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .turn-spotlight-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: #8c674b;
+            font-weight: 800;
+        }
+
+        .turn-spotlight-name {
+            font-size: clamp(1.9rem, 3.4vw, 3.1rem);
+            line-height: 1.02;
+            color: #6d3b19;
+            font-weight: 900;
+        }
+
+        .turn-spotlight-note {
+            color: var(--stone-soft);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .dashboard-hero .hero-copy {
+            gap: 10px;
+        }
+
+        .dashboard-hero h1 {
+            font-size: clamp(2rem, 2.7vw, 3rem);
+            margin-bottom: 8px;
+        }
+
+        .dashboard-hero .lead {
+            font-size: 0.98rem;
+            line-height: 1.45;
+            max-width: 56rem;
+        }
+
+        .dashboard-hero .hero-notes {
+            gap: 8px;
+        }
+
+        .dashboard-hero .note-chip {
+            min-height: 36px;
+            padding: 8px 12px;
+            font-size: 0.9rem;
+        }
+
+        .hero-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hero-tools .teacher-launch {
+            min-height: 44px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            box-shadow: none;
+            background: linear-gradient(135deg, #4a6676, #324957);
+        }
+
+        .section-heading {
+            margin-bottom: 18px;
+        }
+
+        .app-dashboard .section-heading {
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .app-dashboard .panel-intro {
+            display: none;
+        }
+
+        .dashboard-sidebar {
+            grid-column: 1;
+            grid-row: 2 / 4;
+            display: grid;
+            grid-template-rows: minmax(280px, 1.05fr) auto auto auto;
+            gap: 12px;
+            padding: 22px;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .dashboard-block {
+            min-height: 0;
+            display: grid;
+            gap: 10px;
+            align-content: start;
+        }
+
+        .players-block {
+            padding: 18px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(244, 232, 212, 0.96));
+            border: 1px solid rgba(141, 91, 53, 0.24);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            min-height: 0;
+        }
+
+        .dashboard-block.scrollable {
+            overflow: hidden;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        .dashboard-block + .dashboard-block {
+            padding-top: 12px;
+            border-top: 1px solid rgba(109, 66, 37, 0.14);
+        }
+
+        .dashboard-sidebar #playerInputs {
+            min-height: 248px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .dashboard-sidebar .action-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .dashboard-sidebar .button-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .dashboard-sidebar .action-button {
+            min-height: 96px;
+            padding: 14px 16px;
+            border-radius: 20px;
+        }
+
+        .dashboard-sidebar button.theme {
+            min-height: 88px;
+            padding: 12px 12px;
+            border-radius: 20px;
+        }
+
+        .dashboard-sidebar .button-title {
+            font-size: 1rem;
+        }
+
+        .dashboard-sidebar .button-grid .button-title {
+            font-size: 0.9rem;
+            line-height: 1.22;
+        }
+
+        .dashboard-sidebar .button-subtitle {
+            display: none;
+        }
+
+        .dashboard-sidebar .action-grid .button-subtitle {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            line-height: 1.32;
+            color: rgba(255, 247, 239, 0.86);
+        }
+
+        .dashboard-sidebar .small-actions {
+            margin-top: 0;
+        }
+
+        .dashboard-sidebar .small-actions button {
+            flex: 1 1 0;
+            min-height: 46px;
+            padding: 10px 14px;
+        }
+
+        .consensus-status {
+            display: grid;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            background: rgba(124, 48, 36, 0.08);
+            border: 1px solid rgba(155, 56, 41, 0.16);
+        }
+
+        .consensus-status strong {
+            color: #7d2418;
+            font-size: 0.98rem;
+        }
+
+        .consensus-status span {
+            color: var(--stone-soft);
+            line-height: 1.45;
+            font-weight: 700;
+        }
+
+        .consensus-status .entry-meta {
+            justify-content: flex-start;
+            min-height: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            color: #8d6a50;
+        }
+
+        .dashboard-panel {
+            min-height: 0;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            padding: 22px;
+        }
+
+        .dashboard-panel .scrollbox {
+            height: 100%;
+        }
+
+        .dashboard-start {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        .dashboard-items {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .dashboard-log {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        .dashboard-chat {
+            grid-column: 3;
+            grid-row: 3;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+            padding: 22px;
+            min-height: 0;
+        }
+
+        .dashboard-chat #chatbox {
+            height: 100%;
+        }
+
+        .panel-intro {
+            margin: 0;
+            max-width: 40rem;
+            color: var(--stone-soft);
+        }
+
+        .status-grid,
+        .button-grid,
+        .action-grid {
+            display: grid;
+            gap: 14px;
+        }
+
+        .status-grid {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .dashboard-hero .status-grid {
+            grid-template-columns: repeat(4, minmax(150px, 1fr));
+            gap: 14px;
+        }
+
+        .button-grid,
+        .action-grid {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .status-card {
+            min-height: 104px;
+            display: grid;
+            align-content: start;
+            background: var(--card-strong);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .dashboard-hero .status-card {
+            min-height: 84px;
+            padding: 14px;
+            border-radius: 18px;
+        }
+
+        .dashboard-hero .status-label {
+            margin-bottom: 6px;
+        }
+
+        .dashboard-hero .status-value {
+            font-size: clamp(1.15rem, 1.55vw, 1.5rem);
+        }
+
+        .status-label {
+            display: block;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #775f4a;
+            margin-bottom: 8px;
+        }
+
+        .status-value {
+            font-size: clamp(1.35rem, 2vw, 1.75rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .status-value.endgame {
+            color: var(--danger);
+        }
+
+        .message {
+            min-height: 26px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 249, 240, 0.92);
+            border: 1px dashed rgba(109, 66, 37, 0.22);
+            color: var(--stone-soft);
+            font-weight: 700;
+        }
+
+        .message:empty {
+            display: none;
+        }
+
+        .dashboard-hero .message {
+            min-height: 0;
+            padding: 10px 12px;
+            font-size: 0.92rem;
+        }
+
+        .alarm-banner {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -46%) scale(0.9);
+            width: min(720px, calc(100vw - 40px));
+            margin: 0;
+            padding: 30px 34px;
+            border-radius: 32px;
+            color: #fff7ef;
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            box-shadow:
+                0 34px 70px rgba(46, 26, 20, 0.36),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            text-align: center;
+            animation: pulse 0.85s ease-in-out infinite;
+            z-index: 48;
+        }
+
+        .alarm-banner.show {
+            display: block;
+        }
+
+        .alarm-banner.diamond {
+            background: linear-gradient(135deg, #2f7a96, #1d566d);
+            box-shadow: 0 18px 34px rgba(29, 86, 109, 0.24);
+        }
+
+        .alarm-banner.dynamite {
+            background: linear-gradient(135deg, var(--danger), var(--danger-dark));
+        }
+
+        .alarm-copy {
+            margin-top: 12px;
+            color: rgba(255, 247, 239, 0.88);
+            font-size: clamp(1.15rem, 2vw, 1.5rem);
+            line-height: 1.35;
+            font-weight: 700;
+        }
+
+        .alarm-banner strong {
+            display: block;
+            font-size: clamp(1.6rem, 3vw, 2.4rem);
+            line-height: 1;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .explosion-overlay {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            z-index: 60;
+            background: rgba(18, 10, 8, 0.62);
+            backdrop-filter: blur(4px) saturate(1.08);
+            pointer-events: none;
+        }
+
+        .explosion-overlay[hidden] {
+            display: none;
+        }
+
+        .explosion-overlay::before,
+        .explosion-overlay::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+        }
+
+        .explosion-overlay::before {
+            background:
+                linear-gradient(78deg, transparent 41%, rgba(255, 255, 255, 0.92) 42%, transparent 43%),
+                linear-gradient(110deg, transparent 58%, rgba(255, 255, 255, 0.78) 59%, transparent 60%),
+                linear-gradient(24deg, transparent 31%, rgba(255, 255, 255, 0.66) 32%, transparent 33%),
+                linear-gradient(152deg, transparent 47%, rgba(255, 255, 255, 0.56) 48%, transparent 49%),
+                linear-gradient(132deg, transparent 24%, rgba(255, 255, 255, 0.38) 25%, transparent 26%),
+                linear-gradient(8deg, transparent 66%, rgba(255, 255, 255, 0.26) 67%, transparent 68%);
+            opacity: 0;
+        }
+
+        .explosion-overlay::after {
+            background:
+                radial-gradient(circle at center, rgba(255, 184, 127, 0.42), transparent 22%),
+                radial-gradient(circle at 50% 44%, rgba(255, 240, 210, 0.34), transparent 10%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(19, 9, 8, 0.82));
+            opacity: 0;
+        }
+
+        .explosion-fragments {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 32%, rgba(255, 226, 190, 0.86) 0 3px, transparent 5px),
+                radial-gradient(circle at 28% 58%, rgba(255, 206, 160, 0.8) 0 4px, transparent 6px),
+                radial-gradient(circle at 44% 22%, rgba(255, 234, 208, 0.9) 0 3px, transparent 5px),
+                radial-gradient(circle at 52% 74%, rgba(255, 205, 158, 0.78) 0 4px, transparent 6px),
+                radial-gradient(circle at 64% 38%, rgba(255, 236, 214, 0.84) 0 3px, transparent 5px),
+                radial-gradient(circle at 74% 62%, rgba(255, 211, 172, 0.78) 0 4px, transparent 6px),
+                radial-gradient(circle at 82% 28%, rgba(255, 228, 188, 0.82) 0 3px, transparent 5px);
+            opacity: 0;
+            filter: blur(0.6px);
+            transform: scale(0.94);
+        }
+
+        .explosion-overlay.show::before {
+            animation: crackLines 5.4s ease forwards;
+        }
+
+        .explosion-overlay.show::after {
+            animation: explosionFlash 5.4s ease forwards;
+        }
+
+        .explosion-overlay.show .explosion-fragments {
+            animation: fragmentBurst 5.4s ease forwards;
+        }
+
+        .explosion-copy {
+            position: relative;
+            z-index: 1;
+            width: min(720px, 100%);
+            padding: 34px 36px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, rgba(34, 16, 13, 0.92), rgba(18, 9, 8, 0.96));
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #fff3e3;
+            box-shadow: 0 32px 74px rgba(0, 0, 0, 0.42);
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.32);
+            transform: scale(0.9);
+            opacity: 0;
+        }
+
+        .explosion-overlay.show .explosion-copy {
+            animation: explosionCopy 5.4s cubic-bezier(0.18, 0.84, 0.22, 1) forwards;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes crackLines {
+            0% { opacity: 0; transform: scale(0.96); }
+            8% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0.74; transform: scale(1.02); }
+        }
+
+        @keyframes explosionFlash {
+            0% { opacity: 0; }
+            6% { opacity: 1; }
+            14% { opacity: 0.38; }
+            22% { opacity: 0.84; }
+            38% { opacity: 0.42; }
+            100% { opacity: 0.9; }
+        }
+
+        @keyframes explosionCopy {
+            0% { opacity: 0; transform: scale(0.88) translateY(24px); }
+            12% { opacity: 1; transform: scale(1.04) translateY(-6px); }
+            24% { opacity: 1; transform: scale(0.99) translateY(0); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes fragmentBurst {
+            0% { opacity: 0; transform: scale(0.92); }
+            12% { opacity: 1; transform: scale(1.06); }
+            100% { opacity: 0.84; transform: scale(1.14); }
+        }
+
+        @keyframes screenShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-6px, 3px) rotate(-0.28deg); }
+            20% { transform: translate(7px, -4px) rotate(0.24deg); }
+            30% { transform: translate(-8px, -2px) rotate(-0.22deg); }
+            40% { transform: translate(8px, 4px) rotate(0.26deg); }
+            50% { transform: translate(-7px, 2px) rotate(-0.2deg); }
+            60% { transform: translate(6px, -3px) rotate(0.18deg); }
+            70% { transform: translate(-5px, 3px) rotate(-0.15deg); }
+            80% { transform: translate(4px, -2px) rotate(0.1deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        main.app-dashboard.exploding {
+            animation: screenShake 0.76s linear 7;
+        }
+
+        .columns {
+            display: grid;
+            gap: 24px;
+            grid-template-columns: 1.2fr 1fr;
+        }
+
+        .columns.equal {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: none;
+            border-radius: 20px;
+            min-height: 62px;
+            padding: 16px 22px;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(135deg, var(--clay), var(--clay-dark));
+            box-shadow: 0 16px 24px rgba(109, 66, 37, 0.22);
+            transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease, filter 140ms ease;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 28px rgba(109, 66, 37, 0.28);
+            filter: saturate(1.04);
+        }
+
+        button:disabled:hover {
+            transform: none;
+            filter: none;
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible,
+        select:focus-visible {
+            outline: 3px solid rgba(47, 122, 150, 0.35);
+            outline-offset: 3px;
+        }
+
+        button.theme,
+        .action-button {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            min-height: 118px;
+            padding: 20px 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+            border-radius: 24px;
+        }
+
+        button.theme::after,
+        .action-button::after {
+            content: "";
+            position: absolute;
+            right: -24px;
+            bottom: -34px;
+            width: 112px;
+            height: 112px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .button-title {
+            display: block;
+            font-size: 1.12rem;
+            font-weight: 800;
+            line-height: 1.25;
+            position: relative;
+            z-index: 1;
+        }
+
+        .button-subtitle {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.93rem;
+            line-height: 1.45;
+            color: rgba(255, 247, 239, 0.82);
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .theme.werking {
+            background: linear-gradient(135deg, #2e73b8, #225687);
+        }
+
+        .theme.leefwereld {
+            background: linear-gradient(135deg, #2f8f5b, #226843);
+        }
+
+        .theme.risicos {
+            background: linear-gradient(135deg, #b5412c, #842d1e);
+        }
+
+        .theme.verantwoord {
+            background: linear-gradient(135deg, #c47d1f, #996015);
+        }
+
+        .primary-action {
+            background: linear-gradient(135deg, var(--clay), var(--clay-dark));
+        }
+
+        .secondary-action {
+            background: linear-gradient(135deg, #415e73, #2b4457);
+        }
+
+        .ethics-action {
+            background: linear-gradient(135deg, #c9362b, #891f17);
+        }
+
+        .exit-action {
+            background: linear-gradient(135deg, #2f8f5b, #216745);
+        }
+
+        .scrollbox {
+            min-height: 0;
+            max-height: none;
+            overflow-y: auto;
+            padding: 16px 18px;
+            border: 1px solid rgba(109, 66, 37, 0.12);
+            border-radius: 22px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(252, 246, 236, 0.94));
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+        }
+
+        .log-entry,
+        .chat-entry,
+        .list-entry {
+            padding: 14px 4px;
+            border-bottom: 1px solid rgba(209, 196, 175, 0.75);
+        }
+
+        .log-entry:last-child,
+        .chat-entry:last-child,
+        .list-entry:last-child {
+            border-bottom: none;
+        }
+
+        .entry-title {
+            display: block;
+            font-size: 1.02rem;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .entry-meta {
+            color: #775f4a;
+            font-size: 0.93rem;
+        }
+
+        .player-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 999px;
+            background: rgba(141, 91, 53, 0.12);
+            border: 1px solid rgba(109, 66, 37, 0.1);
+            color: #6f5b47;
+            font-size: 0.84rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .player-status.escaped {
+            background: rgba(47, 143, 91, 0.14);
+            border-color: rgba(47, 143, 91, 0.2);
+            color: #226843;
+        }
+
+        .escape-button {
+            background: linear-gradient(135deg, #2f8f5b, #216745);
+            min-height: 46px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            box-shadow: none;
+            flex-shrink: 0;
+        }
+
+        .list-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .secondary-button {
+            min-height: 48px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #8a735f, #695544);
+            box-shadow: none;
+            flex-shrink: 0;
+        }
+
+        .chat-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .player-list {
+            display: grid;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px dashed rgba(141, 91, 53, 0.24);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        }
+
+        .players-block input {
+            background: #fffdf8;
+            border: 1px solid rgba(141, 91, 53, 0.26);
+            box-shadow:
+                inset 0 1px 2px rgba(47, 38, 31, 0.04),
+                0 8px 16px rgba(141, 91, 53, 0.08);
+        }
+
+        .player-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            padding: 8px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.55);
+            border: 1px solid rgba(109, 66, 37, 0.12);
+        }
+
+        .player-row .entry-meta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(141, 91, 53, 0.12);
+            border: 1px solid rgba(109, 66, 37, 0.1);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .ghost-button {
+            background: linear-gradient(135deg, #98806a, #7c6653);
+            box-shadow: none;
+            min-height: 52px;
+        }
+
+        .players-block .small-actions button:first-child {
+            background: linear-gradient(135deg, #8d5b35, #6d4225);
+        }
+
+        .players-block .small-actions button:last-child {
+            background: linear-gradient(135deg, #736153, #5a4b40);
+        }
+
+        .small-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .small-actions button {
+            flex: 1 1 220px;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            min-height: 58px;
+            border: 1px solid rgba(109, 66, 37, 0.14);
+            border-radius: 18px;
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.92);
+            color: var(--stone);
+            box-shadow: inset 0 1px 2px rgba(47, 38, 31, 0.04);
+        }
+
+        input::placeholder {
+            color: #977c65;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        select {
+            appearance: none;
+            background-image:
+                linear-gradient(45deg, transparent 50%, #6f5b47 50%),
+                linear-gradient(135deg, #6f5b47 50%, transparent 50%);
+            background-position:
+                calc(100% - 24px) calc(50% - 3px),
+                calc(100% - 18px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 38px;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            z-index: 40;
+            background: rgba(20, 16, 12, 0.82);
+            backdrop-filter: blur(8px);
+        }
+
+        .overlay[hidden] {
+            display: none;
+        }
+
+        .overlay-card {
+            position: relative;
+            width: min(760px, 100%);
+            background: linear-gradient(180deg, #201a14, #17120e);
+            color: #fff;
+            border-radius: 30px;
+            padding: 32px;
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        #questionOverlay .overlay-card {
+            max-height: min(92vh, 980px);
+            overflow-y: auto;
+        }
+
+        .teacher-overlay-card {
+            width: min(1180px, 100%);
+            max-height: min(90vh, 980px);
+            display: grid;
+            gap: 18px;
+            padding: 28px;
+            overflow-y: auto;
+        }
+
+        .teacher-auth-card {
+            width: min(520px, 100%);
+            display: grid;
+            gap: 18px;
+            padding: 28px;
+        }
+
+        .consensus-overlay-card {
+            width: min(960px, 100%);
+            max-height: min(92vh, 980px);
+            display: grid;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .teacher-review-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .teacher-review-header h2 {
+            margin: 10px 0 6px;
+        }
+
+        .teacher-review-header p {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.82);
+            max-width: 42rem;
+        }
+
+        .teacher-review-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        .teacher-count-card {
+            display: grid;
+            gap: 2px;
+            padding: 10px 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            min-width: 132px;
+        }
+
+        .teacher-count-label {
+            color: rgba(246, 232, 211, 0.74);
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .teacher-review-tools button {
+            min-height: 46px;
+            padding: 10px 16px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .teacher-auth-copy {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.82);
+            line-height: 1.55;
+        }
+
+        .teacher-auth-form {
+            display: grid;
+            gap: 10px;
+        }
+
+        .teacher-auth-form label {
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: rgba(246, 232, 211, 0.88);
+        }
+
+        .teacher-auth-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .teacher-auth-actions button {
+            min-height: 50px;
+            min-width: 170px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .consensus-guidance {
+            display: grid;
+            gap: 8px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(246, 232, 211, 0.88);
+            line-height: 1.55;
+        }
+
+        .consensus-guidance strong {
+            color: #fff1db;
+            font-size: 0.96rem;
+        }
+
+        .consensus-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .consensus-actions button {
+            min-height: 50px;
+            min-width: 190px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .consensus-outcome {
+            min-height: 0;
+        }
+
+        .teacher-refresh {
+            background: linear-gradient(135deg, #496675, #314855);
+        }
+
+        .teacher-lock {
+            background: linear-gradient(135deg, #7c4934, #5d3424);
+        }
+
+        .teacher-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 0;
+            min-height: 0;
+            padding: 0;
+            border-radius: 0;
+            background: none;
+            border: 0;
+            color: #fff1db;
+            font-weight: 900;
+            font-size: 1.65rem;
+            line-height: 1;
+        }
+
+        .teacher-generate-bar {
+            display: grid;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-generate-label {
+            color: rgba(246, 232, 211, 0.86);
+            font-size: 0.92rem;
+            font-weight: 800;
+        }
+
+        .teacher-generate-actions {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .teacher-generate-button {
+            min-height: 54px;
+            padding: 10px 12px;
+            border-radius: 16px;
+            box-shadow: none;
+            font-size: 0.92rem;
+        }
+
+        .teacher-generate-actions .teacher-generate-button {
+            min-height: 54px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 16px;
+        }
+
+        .teacher-generate-actions .teacher-generate-button::after {
+            display: none;
+        }
+
+        .teacher-auto-image-grid {
+            display: grid;
+            grid-template-columns: 150px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .teacher-auto-image-grid .teacher-inline-field {
+            margin: 0;
+        }
+
+        .teacher-auto-image-grid .teacher-generate-button {
+            min-width: 180px;
+        }
+
+        .teacher-mode-switch {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            padding: 8px;
+            border-radius: 22px;
+            background: rgba(20, 16, 12, 0.86);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(18px);
+        }
+
+        .teacher-mode-button {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+            min-height: 54px;
+            border-radius: 18px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(246, 232, 211, 0.88);
+            box-shadow: none;
+            text-align: left;
+        }
+
+        .teacher-mode-title-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .teacher-mode-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff4dd;
+        }
+
+        .teacher-mode-note {
+            color: rgba(234, 223, 206, 0.72);
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .teacher-mode-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 30px;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff4dd;
+            font-size: 0.88rem;
+            font-weight: 900;
+        }
+
+        .teacher-mode-button.active {
+            background: linear-gradient(135deg, #a4662f, #7b4b24);
+            border-color: rgba(255, 213, 165, 0.22);
+            color: #fff6ea;
+        }
+
+        .teacher-mode-button.active .teacher-mode-note {
+            color: rgba(255, 244, 221, 0.88);
+        }
+
+        .teacher-panel {
+            min-height: 0;
+            display: grid;
+            gap: 18px;
+            overflow: visible;
+            padding: 18px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            scroll-margin-top: 96px;
+            transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+        }
+
+        .teacher-panel.active-panel {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 213, 165, 0.2);
+            box-shadow: 0 18px 36px rgba(0, 0, 0, 0.18);
+        }
+
+        #teacherReviewPanel {
+            grid-template-rows: auto auto auto auto auto;
+        }
+
+        .teacher-section-head {
+            display: grid;
+            gap: 4px;
+        }
+
+        .teacher-section-head h3 {
+            margin: 0;
+            color: #fff4dd;
+            font-size: 1.08rem;
+        }
+
+        .teacher-section-head p {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.78);
+            line-height: 1.5;
+        }
+
+        .teacher-preview-panel {
+            display: grid;
+            gap: 14px;
+            padding: 16px 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-preview-header {
+            display: grid;
+            gap: 4px;
+        }
+
+        .teacher-preview-title {
+            margin: 0;
+            color: #fff4dd;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .teacher-preview-copy {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.76);
+            line-height: 1.5;
+        }
+
+        .teacher-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .teacher-preview-card {
+            display: grid;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-preview-card img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .teacher-preview-question {
+            margin: 0;
+            color: rgba(246, 232, 211, 0.92);
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .teacher-preview-explanation {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.84);
+            line-height: 1.55;
+        }
+
+        .question-turn-banner {
+            display: grid;
+            gap: 4px;
+            padding: 16px 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .question-turn-label {
+            color: rgba(246, 232, 211, 0.78);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 0.76rem;
+            font-weight: 800;
+        }
+
+        .question-turn-name {
+            color: #fff4dd;
+            font-size: clamp(1.4rem, 2.8vw, 2.2rem);
+            font-weight: 900;
+            line-height: 1.1;
+        }
+
+        #teacherManualPanel {
+            display: grid;
+            gap: 18px;
+        }
+
+        .teacher-review-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .teacher-manual-panel {
+            min-height: 0;
+        }
+
+        .teacher-delete-panel {
+            min-height: 0;
+        }
+
+        .teacher-delete-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .teacher-delete-copy {
+            margin: 0;
+            color: rgba(246, 232, 211, 0.9);
+            line-height: 1.5;
+        }
+
+        .teacher-delete-meta {
+            color: rgba(234, 223, 206, 0.76);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .teacher-delete-preview {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            border-radius: 18px;
+            margin: 0 auto;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-delete-button {
+            min-height: 46px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            box-shadow: none;
+            background: linear-gradient(135deg, #b5412c, #7c291b);
+        }
+
+        .teacher-manual-form {
+            display: grid;
+            gap: 16px;
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-manual-intro {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.82);
+            line-height: 1.55;
+        }
+
+        .teacher-manual-section {
+            display: grid;
+            gap: 16px;
+        }
+
+        .teacher-manual-tip {
+            margin: -4px 0 0;
+            color: rgba(234, 223, 206, 0.72);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .teacher-paste-zone {
+            display: grid;
+            gap: 8px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            color: rgba(246, 232, 211, 0.9);
+            cursor: text;
+            transition: border-color 140ms ease, background 140ms ease, opacity 140ms ease;
+        }
+
+        .teacher-paste-zone strong {
+            color: #fff4dd;
+            font-size: 1rem;
+        }
+
+        .teacher-paste-zone span {
+            line-height: 1.5;
+        }
+
+        .teacher-paste-zone:hover,
+        .teacher-paste-zone:focus-visible {
+            border-color: rgba(255, 213, 145, 0.5);
+            background: rgba(255, 255, 255, 0.09);
+            outline: none;
+        }
+
+        .teacher-paste-zone.uploading {
+            opacity: 0.72;
+        }
+
+        .teacher-image-preview {
+            display: grid;
+            gap: 10px;
+        }
+
+        .teacher-image-preview img {
+            width: min(420px, 100%);
+            max-height: 280px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 10px;
+        }
+
+        .teacher-form-status {
+            min-height: 24px;
+        }
+
+        .teacher-submit-button {
+            min-height: 50px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            box-shadow: none;
+            background: linear-gradient(135deg, #2f8f5b, #236846);
+        }
+
+        .teacher-empty {
+            min-height: 220px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            padding: 24px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            color: rgba(234, 223, 206, 0.84);
+        }
+
+        .teacher-question-card {
+            display: grid;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .teacher-question-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .teacher-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .teacher-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f6e8d3;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .teacher-theme {
+            background: rgba(255, 199, 96, 0.14);
+            border-color: rgba(255, 199, 96, 0.18);
+        }
+
+        .teacher-inline-field {
+            display: grid;
+            gap: 8px;
+        }
+
+        #teacherManualQuestion,
+        #teacherManualGuidance {
+            min-height: 240px;
+        }
+
+        #teacherManualExplanation {
+            min-height: 200px;
+        }
+
+        .teacher-inline-field label,
+        .teacher-option-grid label {
+            font-size: 0.86rem;
+            font-weight: 800;
+            color: rgba(246, 232, 211, 0.88);
+        }
+
+        .teacher-option-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .teacher-option-row {
+            display: grid;
+            gap: 8px;
+        }
+
+        .teacher-card-footer {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .teacher-card-message {
+            color: rgba(234, 223, 206, 0.78);
+            font-size: 0.92rem;
+            font-weight: 700;
+        }
+
+        .teacher-card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .teacher-card-actions button {
+            min-height: 46px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            box-shadow: none;
+        }
+
+        .approve-button {
+            background: linear-gradient(135deg, #2f8f5b, #236846);
+        }
+
+        .reject-button {
+            background: linear-gradient(135deg, #8a735f, #6b5645);
+        }
+
+        .delete-button {
+            background: linear-gradient(135deg, #b5412c, #7c291b);
+        }
+
+        .overlay-card .eyebrow {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #f6e8d3;
+        }
+
+        .overlay-card h2 {
+            color: #d9c4a8;
+            margin-top: 16px;
+        }
+
+        .overlay-card h1 {
+            margin: 16px 0 24px;
+            font-size: clamp(2rem, 4vw, 2.9rem);
+        }
+
+        #consensusQuestionText {
+            margin: 12px 0 18px;
+            font-size: clamp(1.6rem, 3vw, 2.35rem);
+            line-height: 1.2;
+        }
+
+        .question-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 14px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .question-instruction {
+            color: rgba(246, 232, 211, 0.86);
+            font-size: 0.96rem;
+            font-weight: 700;
+        }
+
+        .question-media {
+            margin: 0 0 22px;
+            display: grid;
+            place-items: center;
+            padding: 12px;
+            border-radius: 24px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .question-media[hidden] {
+            display: none;
+        }
+
+        .question-media img {
+            display: block;
+            width: auto;
+            max-width: 100%;
+            max-height: min(52vh, 560px);
+            object-fit: contain;
+        }
+
+        #optionsContainer {
+            display: grid;
+            gap: 14px;
+        }
+
+        #optionsContainer button {
+            min-height: 82px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            text-align: left;
+            justify-content: flex-start;
+            gap: 16px;
+            padding: 16px 18px;
+            background: linear-gradient(135deg, #6c4a2e, #4f331d);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #optionsContainer button.answer-option {
+            transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, border-color 140ms ease;
+        }
+
+        #optionsContainer button.answer-option:hover:not(:disabled) {
+            background: linear-gradient(135deg, #7c5634, #5b3b21);
+        }
+
+        #optionsContainer button.answer-option:disabled {
+            cursor: default;
+            opacity: 1;
+        }
+
+        .answer-key {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #fff4dd;
+            font-size: 1.05rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .answer-text {
+            line-height: 1.45;
+            color: #fff8ef;
+        }
+
+        #optionsContainer button.answer-option.correct {
+            background: linear-gradient(135deg, #2f8f5b, #236846);
+            border-color: rgba(158, 227, 125, 0.42);
+            box-shadow: 0 16px 28px rgba(35, 104, 70, 0.28);
+        }
+
+        #optionsContainer button.answer-option.wrong {
+            background: linear-gradient(135deg, #b5412c, #7c291b);
+            border-color: rgba(255, 143, 128, 0.42);
+            box-shadow: 0 16px 28px rgba(124, 41, 27, 0.26);
+        }
+
+        #optionsContainer button.answer-option.dimmed {
+            opacity: 0.72;
+            box-shadow: none;
+        }
+
+        .feedback-panel {
+            min-height: 28px;
+            margin: 20px 0 0;
+            display: grid;
+            gap: 8px;
+            padding: 0;
+            color: #eadfce;
+        }
+
+        .feedback-panel:not(:empty) {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+
+        .feedback-panel.success:not(:empty) {
+            background: rgba(45, 106, 79, 0.22);
+            border-color: rgba(158, 227, 125, 0.32);
+            color: #d8f1d8;
+        }
+
+        .feedback-panel.error:not(:empty) {
+            background: rgba(167, 61, 42, 0.2);
+            border-color: rgba(255, 143, 128, 0.28);
+            color: #ffe3dc;
+        }
+
+        .feedback-title {
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .feedback-detail {
+            line-height: 1.5;
+        }
+
+        .feedback-coord {
+            width: fit-content;
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .answer-popup {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background: rgba(17, 12, 9, 0.76);
+            backdrop-filter: blur(6px);
+            border-radius: inherit;
+            z-index: 6;
+        }
+
+        .answer-popup-card {
+            width: min(620px, 100%);
+            display: grid;
+            gap: 16px;
+            padding: 24px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(51, 36, 26, 0.98), rgba(31, 22, 17, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.34);
+        }
+
+        .answer-popup-card h2 {
+            margin: 4px 0 0;
+            color: #fff4df;
+        }
+
+        .answer-popup-answer {
+            display: grid;
+            gap: 6px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .answer-popup-label {
+            color: rgba(246, 232, 211, 0.78);
+            font-size: 0.84rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .answer-popup-value {
+            color: #fff8ef;
+            font-size: 1.08rem;
+            line-height: 1.45;
+            font-weight: 800;
+        }
+
+        .answer-popup-detail {
+            margin: 0;
+            color: rgba(246, 232, 211, 0.9);
+            line-height: 1.6;
+        }
+
+        .answer-popup-note {
+            display: grid;
+            gap: 8px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #f8ead8;
+        }
+
+        .answer-popup-note strong {
+            color: #fff4dd;
+        }
+
+        .answer-popup-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .answer-popup-actions .close-button {
+            margin-top: 0;
+        }
+
+        .close-button {
+            margin-top: 24px;
+            min-width: 180px;
+        }
+
+        @media (max-width: 980px) {
+            body {
+                overflow: auto;
+            }
+
+            main.app-dashboard {
+                width: 100%;
+                height: auto;
+                padding: 24px 18px 34px;
+                gap: 18px;
+                grid-template-columns: 1fr;
+                grid-template-rows: none;
+                overflow: visible;
+            }
+
+            main.app-dashboard > * {
+                grid-column: auto !important;
+                grid-row: auto !important;
+            }
+
+            .hero-panel,
+            .columns,
+            .columns.equal {
+                grid-template-columns: 1fr;
+            }
+
+            .app-dashboard .panel-intro {
+                display: block;
+            }
+
+            .dashboard-sidebar,
+            .dashboard-panel,
+            .dashboard-chat {
+                padding: 22px;
+            }
+
+            .dashboard-sidebar {
+                grid-template-rows: none;
+                overflow: visible;
+            }
+
+            .dashboard-sidebar #playerInputs {
+                min-height: 0;
+                overflow: visible;
+                padding-right: 0;
+            }
+
+            .dashboard-sidebar .button-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .dashboard-sidebar .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .teacher-generate-actions,
+            .teacher-auto-image-grid,
+            .teacher-mode-switch,
+            .teacher-option-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .teacher-auth-actions button {
+                flex: 1 1 200px;
+            }
+
+            .consensus-actions button {
+                flex: 1 1 200px;
+            }
+
+            .dashboard-sidebar .button-subtitle {
+                display: block;
+                margin-top: 6px;
+                font-size: 0.8rem;
+                line-height: 1.35;
+            }
+
+            #alarmBanner {
+                width: min(680px, calc(100vw - 36px));
+                padding: 28px 30px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            main.app-dashboard {
+                padding: 18px 14px 36px;
+                gap: 18px;
+            }
+
+            body::before {
+                width: 176vw;
+                height: 176vw;
+                top: 26px;
+                opacity: 0.52;
+            }
+
+            .panel {
+                padding: 22px 18px;
+                border-radius: 24px;
+            }
+
+            .status-grid,
+            .button-grid,
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-sidebar .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .teacher-generate-actions,
+            .teacher-auto-image-grid,
+            .teacher-mode-switch,
+            .teacher-option-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-sidebar,
+            .dashboard-panel,
+            .dashboard-chat {
+                padding: 22px 18px;
+            }
+
+            .player-row,
+            .chat-form {
+                grid-template-columns: 1fr;
+            }
+
+            .list-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .hero-notes,
+            .small-actions {
+                flex-direction: column;
+            }
+
+            .small-actions button,
+            .chat-form button,
+            .secondary-button,
+            .close-button {
+                width: 100%;
+            }
+
+            .teacher-auth-actions {
+                flex-direction: column;
+            }
+
+            .teacher-auth-actions button {
+                width: 100%;
+            }
+
+            .consensus-actions {
+                flex-direction: column;
+            }
+
+            .consensus-actions button {
+                width: 100%;
+            }
+
+            .question-top {
+                align-items: flex-start;
+            }
+
+            #optionsContainer button {
+                align-items: flex-start;
+            }
+
+            #alarmBanner {
+                width: calc(100vw - 28px);
+                padding: 24px 20px;
+                border-radius: 26px;
+            }
+
+            .player-row .entry-meta {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main id="appDashboard" class="app-dashboard">
+        <section class="panel hero-panel dashboard-hero">
+            <div class="hero-copy">
+                <span class="eyebrow">Spelbegeleiding</span>
+                <div>
+                    <h1>Uit de Steengroeve</h1>
+                    <p class="lead">
+                        De app bepaalt de startposities en geeft op willekeurige momenten een alarm voor diamant- en dynamietlocaties.
+                        Verdere pionbeweging houden spelers zelf bij op het fysieke bord.
+                    </p>
+                </div>
+                <div class="hero-notes">
+                    <span class="note-chip">1 tot 8 spelers</span>
+                    <span class="note-chip">Live alarmen tijdens het spel</span>
+                    <span class="note-chip">BavoBot voor snelle regelvragen</span>
+                </div>
+                <div class="hero-tools">
+                    <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
+                        Leerkrachtvragen
+                    </button>
+                </div>
+            </div>
+            <div class="hero-side">
+                <div class="turn-spotlight">
+                    <span class="turn-spotlight-label">Aan Beurt</span>
+                    <strong id="turnSpotlightName" class="turn-spotlight-name">-</strong>
+                    <span id="turnSpotlightNote" class="turn-spotlight-note">Start eerst een spel om de beurtvolgorde te zien.</span>
+                </div>
+                <div class="status-grid">
+                    <div class="status-card">
+                        <span class="status-label">Tijd</span>
+                        <span id="timerDisplay" class="status-value">--:--</span>
+                    </div>
+                    <div class="status-card">
+                        <span class="status-label">Fase</span>
+                        <span id="phaseDisplay" class="status-value">Geen actief spel</span>
+                    </div>
+                    <div class="status-card">
+                        <span class="status-label">Huidige speler</span>
+                        <span id="currentPlayerDisplay" class="status-value">-</span>
+                    </div>
+                    <div class="status-card">
+                        <span class="status-label">Uitgang</span>
+                        <span id="exitDisplay" class="status-value">Nog onbekend</span>
+                    </div>
+                </div>
+                <div id="statusMessage" class="message" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section class="panel dashboard-sidebar">
+            <div class="dashboard-block scrollable players-block">
+                <div class="section-heading">
+                    <span class="eyebrow">Voorbereiding</span>
+                    <h2>Spelers</h2>
+                    <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
+                </div>
+                <div id="playerInputs" class="player-list"></div>
+                <div class="small-actions">
+                    <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
+                    <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
+                </div>
+            </div>
+
+            <div class="dashboard-block">
+                <div class="section-heading">
+                    <span class="eyebrow">Besturing</span>
+                    <h2>Spelacties</h2>
+                    <p class="panel-intro">Start een nieuwe ronde of geef de beurt meteen door aan de volgende speler.</p>
+                </div>
+                <div class="action-grid">
+                    <button class="action-button primary-action" onclick="newGame()">
+                        <span class="button-title">Nieuw spel</span>
+                        <span class="button-subtitle">Reset de timer, deel startposities uit en begin opnieuw.</span>
+                    </button>
+                    <button class="action-button secondary-action" onclick="nextTurn()">
+                        <span class="button-title">Volgende speler</span>
+                        <span class="button-subtitle">Noodknop om handmatig door te springen als een beurt niet via een vraag eindigt.</span>
+                    </button>
+                    <button id="exitButton" class="action-button exit-action" type="button" onclick="pressExitButton()">
+                        <span id="exitButtonTitle" class="button-title">Groene exitknop</span>
+                        <span id="exitButtonSubtitle" class="button-subtitle">Alleen de speler aan beurt mag drukken. De uitgang verschijnt en de timer springt naar 5 minuten.</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-block">
+                <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
+                    <span class="button-title">Start groepsdilemma</span>
+                    <span class="button-subtitle">Kom samen tot een consensus en laat de leerkracht daarna jullie redenering beoordelen.</span>
+                </button>
+                <div class="consensus-status">
+                    <strong id="consensusStatusTitle">Nog niet beschikbaar</strong>
+                    <span id="consensusStatusText">Start eerst een spel om de rode knop te activeren.</span>
+                    <span id="consensusStatusMeta" class="entry-meta"></span>
+                </div>
+            </div>
+
+            <div class="dashboard-block">
+                <div class="section-heading">
+                    <h2>Themavragen</h2>
+                    <p class="panel-intro">Kies een thema en open meteen een grote meerkeuzevraag voor de groep.</p>
+                </div>
+                <div class="button-grid">
+                    <button class="theme werking" onclick="loadQuestion('werking')">
+                        <span class="button-title">Hoe werkt AI?</span>
+                        <span class="button-subtitle">Ontdek hoe modellen leren, voorspellen en keuzes maken.</span>
+                    </button>
+                    <button class="theme leefwereld" onclick="loadQuestion('leefwereld')">
+                        <span class="button-title">AI in jouw leefwereld</span>
+                        <span class="button-subtitle">Voorbeelden uit school, media en dagelijkse situaties.</span>
+                    </button>
+                    <button class="theme risicos" onclick="loadQuestion('risicos')">
+                        <span class="button-title">Risico's en valkuilen</span>
+                        <span class="button-subtitle">Herken fouten, misleiding en onbetrouwbare AI-antwoorden.</span>
+                    </button>
+                    <button class="theme verantwoord" onclick="loadQuestion('verantwoord')">
+                        <span class="button-title">Verantwoord gebruik</span>
+                        <span class="button-subtitle">Denk na over eerlijk gebruik, keuzes en goede afspraken.</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel dashboard-panel dashboard-start">
+            <div class="section-heading">
+                <span class="eyebrow">Bordinfo</span>
+                <h2>Startposities en ontsnapping</h2>
+                <p class="panel-intro">Na het starten van een spel verschijnen hier alle startcoordinaten. Zodra de uitgang zichtbaar is, kan je hier ook spelers als ontsnapt markeren.</p>
+            </div>
+            <div id="startList" class="scrollbox" aria-live="polite"></div>
+        </section>
+
+        <section class="panel dashboard-panel dashboard-items">
+            <div class="section-heading">
+                <span class="eyebrow">Alarmen</span>
+                <h2>Actieve locaties</h2>
+                <p class="panel-intro">Nieuwe diamant- en dynamietplekken komen hier duidelijk in beeld.</p>
+            </div>
+            <div id="itemList" class="scrollbox" aria-live="polite"></div>
+        </section>
+
+        <section class="panel dashboard-panel dashboard-log">
+            <div class="section-heading">
+                <span class="eyebrow">Geschiedenis</span>
+                <h2>Spelverloop</h2>
+                <p class="panel-intro">Alle belangrijke spelmomenten worden hier achter elkaar bijgehouden.</p>
+            </div>
+            <div id="log" class="scrollbox" aria-live="polite"></div>
+        </section>
+
+        <section class="panel dashboard-chat">
+            <div class="section-heading">
+                <span class="eyebrow">Hulp</span>
+                <h2>BavoBot</h2>
+                <p class="panel-intro">Stel snel een vraag over de spelregels of de AI-thema's.</p>
+            </div>
+            <div id="chatbox" class="scrollbox"></div>
+            <div class="chat-form">
+                <input id="chatInput" placeholder="Vraag iets over de regels..." />
+                <button onclick="sendChat()">Verstuur</button>
+            </div>
+        </section>
+    </main>
+
+    <section id="alarmBanner" class="alarm-banner" aria-live="assertive">
+        <strong id="alarmTitle">Alarm</strong>
+        <div id="alarmText" class="alarm-copy"></div>
+    </section>
+
+    <div id="explosionOverlay" class="explosion-overlay" hidden>
+        <div class="explosion-fragments" aria-hidden="true"></div>
+        <div class="explosion-copy">
+            <span class="eyebrow">Explosie</span>
+            <h2>De steengroeve stort in</h2>
+            <p>
+                Het scherm barst open en alles begint te rommelen. Spelers die nog binnen zijn, verliezen meteen.
+            </p>
+        </div>
+    </div>
+
+    <div id="questionOverlay" class="overlay" hidden>
+        <div class="overlay-card">
+            <div class="question-top">
+                <span id="questionEyebrow" class="eyebrow">Meerkeuzevraag</span>
+                <span id="questionInstruction" class="question-instruction">Kies het beste antwoord.</span>
+            </div>
+            <div class="question-turn-banner">
+                <span class="question-turn-label">Nu aan zet</span>
+                <strong id="questionTurnName" class="question-turn-name">-</strong>
+            </div>
+            <h2 id="questionTheme"></h2>
+            <h1 id="questionText"></h1>
+            <section id="questionMedia" class="question-media" hidden>
+                <img id="questionImage" alt="" />
+            </section>
+            <div id="optionsContainer"></div>
+            <div id="feedback" class="feedback-panel"></div>
+            <button class="close-button" onclick="closeQuestion()">Sluiten</button>
+            <div id="answerPopup" class="answer-popup" hidden>
+                <div class="answer-popup-card">
+                    <span class="eyebrow">Leer even mee</span>
+                    <h2 id="answerPopupTitle">Juiste antwoord</h2>
+                    <div class="answer-popup-answer">
+                        <span class="answer-popup-label">Juiste antwoord</span>
+                        <span id="answerPopupValue" class="answer-popup-value"></span>
+                    </div>
+                    <p id="answerPopupDetail" class="answer-popup-detail"></p>
+                    <div id="answerPopupNote" class="answer-popup-note" hidden>
+                        <strong id="answerPopupNoteTitle"></strong>
+                        <span id="answerPopupNoteText"></span>
+                        <span id="answerPopupCoord" class="feedback-coord" hidden></span>
+                    </div>
+                    <div class="answer-popup-actions">
+                        <button class="close-button" type="button" onclick="closeAnswerPopup()">Beurt afronden</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="teacherAuthOverlay" class="overlay" hidden>
+        <div class="overlay-card teacher-auth-card">
+            <div>
+                <span class="eyebrow">Leerkracht</span>
+                <h2>Leerkrachtgedeelte ontgrendelen</h2>
+                <p class="teacher-auth-copy">
+                    Geef het leerkrachtpaswoord in om leerkrachtacties uit te voeren, zoals vragen beoordelen of een groepsconsensus evalueren.
+                </p>
+            </div>
+            <form class="teacher-auth-form" onsubmit="submitTeacherPassword(); return false;">
+                <label for="teacherPasswordInput">Paswoord</label>
+                <input
+                    id="teacherPasswordInput"
+                    type="password"
+                    placeholder="Geef het leerkrachtpaswoord in"
+                    autocomplete="current-password"
+                />
+            </form>
+            <div id="teacherAuthStatus" class="message" aria-live="polite"></div>
+            <div class="teacher-auth-actions">
+                <button id="teacherAuthSubmit" type="button" onclick="submitTeacherPassword()">Ontgrendelen</button>
+                <button id="teacherAuthCancel" class="ghost-button" type="button" onclick="closeTeacherAuth()">Annuleren</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="consensusOverlay" class="overlay" hidden>
+        <div class="overlay-card consensus-overlay-card">
+            <div class="question-top">
+                <span class="eyebrow">Rode ethiekknop</span>
+                <span id="consensusInstruction" class="question-instruction">
+                    Bespreek deze vraag met alle spelers. Roep daarna de leerkracht voor de evaluatie.
+                </span>
+            </div>
+            <h2>Ethisch AI-dilemma</h2>
+            <h1 id="consensusQuestionText"></h1>
+            <div id="consensusGuidance" class="consensus-guidance"></div>
+            <div id="consensusOutcome" class="message consensus-outcome" aria-live="polite"></div>
+            <div class="consensus-actions">
+                <button id="consensusApproveButton" class="approve-button" type="button" onclick="evaluateConsensus('approve')">
+                    Leerkracht: goed
+                </button>
+                <button id="consensusRejectButton" class="reject-button" type="button" onclick="evaluateConsensus('reject')">
+                    Leerkracht: onvoldoende
+                </button>
+                <button class="close-button" type="button" onclick="closeConsensusOverlay()">Sluiten</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="teacherOverlay" class="overlay" hidden>
+        <div class="overlay-card teacher-overlay-card">
+            <div class="teacher-review-header">
+                <div>
+                    <span class="eyebrow">Leerkracht</span>
+                    <h2>Vragen beheren</h2>
+                    <p>
+                        Kies of je AI-vragen wil nakijken, of meteen zelf een nieuwe vraag, beeldvraag of groepsdilemma wil toevoegen aan het spel.
+                    </p>
+                </div>
+                <div class="teacher-review-tools">
+                    <div class="teacher-count-card">
+                        <span class="teacher-count-label">Nog na te kijken</span>
+                        <strong id="teacherPendingCount" class="teacher-count">0</strong>
+                    </div>
+                    <button class="teacher-refresh" type="button" onclick="refreshTeacherActivePanel()">Vernieuwen</button>
+                    <button class="teacher-lock" type="button" onclick="lockTeacherReview()">Vergrendelen</button>
+                    <button class="close-button" type="button" onclick="closeTeacherReview()">Sluiten</button>
+                </div>
+            </div>
+            <div class="teacher-mode-switch" aria-label="Leerkrachtacties">
+                <button
+                    id="teacherReviewTab"
+                    class="teacher-mode-button active"
+                    type="button"
+                    onclick="setTeacherMode('review')"
+                >
+                    <span class="teacher-mode-title-row">
+                        <span class="teacher-mode-title">Nakijken</span>
+                        <span id="teacherReviewTabCount" class="teacher-mode-badge">0</span>
+                    </span>
+                    <span id="teacherReviewTabNote" class="teacher-mode-note">Openstaande AI-vragen en beeldmixen</span>
+                </button>
+                <button
+                    id="teacherManualTab"
+                    class="teacher-mode-button"
+                    type="button"
+                    onclick="setTeacherMode('manual')"
+                >
+                    <span class="teacher-mode-title-row">
+                        <span class="teacher-mode-title">Toevoegen</span>
+                    </span>
+                    <span class="teacher-mode-note">Maak zelf meteen een vraag, beeldvraag of groepsdilemma.</span>
+                </button>
+                <button
+                    id="teacherDeleteTab"
+                    class="teacher-mode-button"
+                    type="button"
+                    onclick="setTeacherMode('delete')"
+                >
+                    <span class="teacher-mode-title-row">
+                        <span class="teacher-mode-title">Beheren</span>
+                        <span id="teacherDeleteTabCount" class="teacher-mode-badge">0</span>
+                    </span>
+                    <span id="teacherDeleteTabNote" class="teacher-mode-note">Bekijk en verwijder handmatige vragen, beeldvragen en dilemma's.</span>
+                </button>
+            </div>
+            <section id="teacherReviewPanel" class="teacher-panel">
+                <div class="teacher-section-head">
+                    <h3>AI-vragen nakijken</h3>
+                    <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. Alles wat nagekeken moet worden staat bovenaan samen.</p>
+                </div>
+                <div class="teacher-generate-bar">
+                    <span class="teacher-generate-label">Nieuwe AI-vraag genereren per thema</span>
+                    <div class="teacher-generate-actions">
+                        <button class="teacher-generate-button theme werking" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('werking')">Hoe werkt AI?</button>
+                        <button class="teacher-generate-button theme leefwereld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('leefwereld')">AI in jouw leefwereld</button>
+                        <button class="teacher-generate-button theme risicos" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('risicos')">Risico's en valkuilen</button>
+                        <button class="teacher-generate-button theme verantwoord" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('verantwoord')">Verantwoord gebruik</button>
+                    </div>
+                </div>
+                <div class="teacher-generate-bar">
+                    <span class="teacher-generate-label">Automatische beeldmix samenstellen</span>
+                    <div class="teacher-auto-image-grid">
+                        <div class="teacher-inline-field">
+                            <label for="teacherAutoImageCount">Aantal beeldvragen</label>
+                            <input id="teacherAutoImageCount" type="number" min="2" max="6" value="4" />
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherAutoImageFocus">Extra focus</label>
+                            <input
+                                id="teacherAutoImageFocus"
+                                type="text"
+                                maxlength="120"
+                                placeholder="Bijv. school, sport, dieren of natuur"
+                            />
+                        </div>
+                        <button
+                            id="teacherAutoImageButton"
+                            class="teacher-generate-button"
+                            data-role="teacher-generate"
+                            type="button"
+                            onclick="generateTeacherImageMix()"
+                        >
+                            Beeldmix maken
+                        </button>
+                    </div>
+                </div>
+                <div id="teacherReviewStatus" class="message" aria-live="polite"></div>
+                <section id="teacherImageMixPreviewPanel" class="teacher-preview-panel" hidden>
+                    <div class="teacher-preview-header">
+                        <h3 class="teacher-preview-title">Laatste beeldmix</h3>
+                        <p id="teacherImageMixPreviewCopy" class="teacher-preview-copy"></p>
+                    </div>
+                    <div id="teacherImageMixPreviewGrid" class="teacher-preview-grid"></div>
+                </section>
+                <div id="teacherReviewList" class="teacher-review-list"></div>
+            </section>
+            <section id="teacherManualPanel" class="teacher-panel teacher-manual-panel" hidden>
+                <div class="teacher-section-head">
+                    <h3>Zelf vragen toevoegen</h3>
+                    <p>Voeg hier rechtstreeks een eigen vraag, beeldvraag of groepsdilemma toe zonder eerst door andere schermen te moeten gaan.</p>
+                </div>
+                <form id="teacherManualForm" class="teacher-manual-form" onsubmit="submitTeacherManualQuestion(); return false;">
+                    <p id="teacherManualIntro" class="teacher-manual-intro">
+                        Voeg hier een eigen vraag toe. Die wordt meteen opgeslagen en kan daarna tijdens het spel opduiken binnen het gekozen thema.
+                    </p>
+                    <div class="teacher-inline-field">
+                        <label for="teacherManualType">Type vraag</label>
+                        <select id="teacherManualType" onchange="updateTeacherManualType()">
+                            <option value="multiple_choice">Gewone meerkeuzevraag</option>
+                            <option value="image_binary">Beeldvraag: AI of niet</option>
+                            <option value="consensus_dilemma">Groepsdilemma</option>
+                        </select>
+                    </div>
+                    <div id="teacherManualThemeField" class="teacher-inline-field">
+                        <label for="teacherManualTheme">Thema</label>
+                        <select id="teacherManualTheme">
+                            <option value="werking">Hoe werkt AI?</option>
+                            <option value="leefwereld">AI in jouw leefwereld</option>
+                            <option value="risicos">Risico's en valkuilen</option>
+                            <option value="verantwoord">Verantwoord gebruik</option>
+                        </select>
+                    </div>
+                    <div class="teacher-inline-field">
+                        <label for="teacherManualQuestion">Vraag</label>
+                        <textarea
+                            id="teacherManualQuestion"
+                            maxlength="1400"
+                            placeholder="Typ hier je eigen meerkeuzevraag"
+                        ></textarea>
+                    </div>
+                    <section id="teacherManualStandardFields" class="teacher-manual-section">
+                        <div class="teacher-option-grid">
+                            <div class="teacher-option-row">
+                                <label for="teacherManualOption0">Optie A</label>
+                                <input id="teacherManualOption0" type="text" maxlength="160" />
+                            </div>
+                            <div class="teacher-option-row">
+                                <label for="teacherManualOption1">Optie B</label>
+                                <input id="teacherManualOption1" type="text" maxlength="160" />
+                            </div>
+                            <div class="teacher-option-row">
+                                <label for="teacherManualOption2">Optie C</label>
+                                <input id="teacherManualOption2" type="text" maxlength="160" />
+                            </div>
+                            <div class="teacher-option-row">
+                                <label for="teacherManualOption3">Optie D</label>
+                                <input id="teacherManualOption3" type="text" maxlength="160" />
+                            </div>
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualCorrect">Juiste antwoord</label>
+                            <select id="teacherManualCorrect">
+                                <option value="0">A</option>
+                                <option value="1">B</option>
+                                <option value="2">C</option>
+                                <option value="3">D</option>
+                            </select>
+                        </div>
+                    </section>
+                    <section id="teacherManualImageFields" class="teacher-manual-section" hidden>
+                        <div class="teacher-inline-field">
+                            <label for="teacherImagePasteZone">Plak een foto rechtstreeks</label>
+                            <div
+                                id="teacherImagePasteZone"
+                                class="teacher-paste-zone"
+                                tabindex="0"
+                                role="button"
+                                aria-label="Plak hier een foto voor deze beeldvraag"
+                            >
+                                <strong id="teacherImagePasteTitle">Plak hier een foto</strong>
+                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in.</span>
+                            </div>
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualImageUrl">Afbeeldingspad of URL</label>
+                            <input
+                                id="teacherManualImageUrl"
+                                type="text"
+                                maxlength="260"
+                                placeholder="/static/question-images/mijn-foto.jpg"
+                            />
+                            <p class="teacher-manual-tip">
+                                Je kunt hier nog altijd zelf een pad of URL invullen, maar plakken in het vak hierboven werkt meestal het snelst.
+                            </p>
+                        </div>
+                        <div id="teacherImagePreviewBox" class="teacher-image-preview" hidden>
+                            <img id="teacherImagePreview" alt="Voorbeeld van de gekozen afbeelding" />
+                            <span id="teacherImagePreviewPath" class="teacher-manual-tip"></span>
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualImageAlt">Alt-tekst</label>
+                            <input
+                                id="teacherManualImageAlt"
+                                type="text"
+                                maxlength="220"
+                                placeholder="Korte beschrijving van wat er op het beeld te zien is"
+                            />
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualExplanation">Uitleg na het antwoord</label>
+                            <textarea
+                                id="teacherManualExplanation"
+                                maxlength="900"
+                                placeholder="Bijvoorbeeld: let op rare handen, schaduwen of onmogelijke details."
+                            ></textarea>
+                        </div>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualImageCorrect">Juiste beoordeling</label>
+                            <select id="teacherManualImageCorrect">
+                                <option value="0">Waarschijnlijk AI-gegenereerd</option>
+                                <option value="1">Waarschijnlijk niet AI-gegenereerd</option>
+                            </select>
+                        </div>
+                    </section>
+                    <section id="teacherManualConsensusFields" class="teacher-manual-section" hidden>
+                        <div class="teacher-inline-field">
+                            <label for="teacherManualGuidance">Bespreekhulp voor de groep</label>
+                            <textarea
+                                id="teacherManualGuidance"
+                                maxlength="1400"
+                                placeholder="Bijvoorbeeld: weeg privacy, toestemming, eerlijkheid en mogelijke gevolgen voor anderen mee."
+                            ></textarea>
+                            <p class="teacher-manual-tip">
+                                Deze korte hulptekst verschijnt tijdens het groepsdilemma zodat leerlingen weten waarop ze in hun consensus kunnen letten.
+                            </p>
+                        </div>
+                    </section>
+                    <div id="teacherManualStatus" class="message teacher-form-status" aria-live="polite"></div>
+                    <div class="teacher-card-footer">
+                        <span id="teacherManualHelper" class="teacher-card-message">Vul alle velden in en voeg het item daarna meteen toe aan het spel.</span>
+                        <button id="teacherManualSubmit" class="teacher-submit-button" type="submit">Vraag toevoegen</button>
+                    </div>
+                </form>
+            </section>
+            <section id="teacherDeletePanel" class="teacher-panel teacher-delete-panel" hidden>
+                <div class="teacher-section-head">
+                    <h3>Vragen beheren</h3>
+                    <p>Hier zie je alle handmatig toegevoegde vragen, beeldvragen en dilemma's samen met hun voorbeeld en uitleg.</p>
+                </div>
+                <div id="teacherDeleteStatus" class="message" aria-live="polite"></div>
+                <div id="teacherDeleteList" class="teacher-delete-list"></div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const themeLabels = {
+            werking: "Hoe werkt AI?",
+            leefwereld: "AI in jouw leefwereld",
+            risicos: "Risico's en valkuilen",
+            verantwoord: "Verantwoord gebruik"
+        };
+        const answerLetters = ["A", "B", "C", "D"];
+
+        let currentQuestionId = null;
+        let questionLocked = false;
+        let questionAnswered = false;
+        let questionTurnBusy = false;
+        let questionTurnPlayerName = "";
+        let lastRenderedLog = "";
+        let currentGameId = null;
+        let latestState = null;
+        let knownItemKeys = new Set();
+        let alarmTimeoutId = null;
+        let explosionTimeoutId = null;
+        let lastExplosionSignature = "";
+        let playerInputCount = 0;
+        let teacherReviewBusy = false;
+        let teacherManualBusy = false;
+        let teacherImageUploadBusy = false;
+        let teacherDeleteBusy = false;
+        let teacherAuthBusy = false;
+        let teacherAuthSuccessAction = null;
+        let teacherPassword = "";
+        let consensusBusy = false;
+        let teacherMode = "review";
+
+        function byId(id) {
+            return document.getElementById(id);
+        }
+
+        function autoResizeTextarea(element) {
+            if (!element) {
+                return;
+            }
+
+            const maxHeight = 520;
+            element.style.height = "auto";
+            element.style.height = Math.min(element.scrollHeight, maxHeight) + "px";
+            element.style.overflowY = element.scrollHeight > maxHeight ? "auto" : "hidden";
+        }
+
+        function bindAutoResizeTextarea(id) {
+            const element = byId(id);
+            if (!element || element.dataset.autoresizeBound === "true") {
+                return;
+            }
+
+            element.dataset.autoresizeBound = "true";
+            element.addEventListener("input", () => autoResizeTextarea(element));
+            requestAnimationFrame(() => autoResizeTextarea(element));
+        }
+
+        function refreshTeacherTextareaHeights() {
+            ["teacherManualQuestion", "teacherManualExplanation", "teacherManualGuidance"].forEach((id) => {
+                autoResizeTextarea(byId(id));
+            });
+        }
+
+        function setTeacherImagePasteZoneState(title, hint, uploading = false) {
+            const zone = byId("teacherImagePasteZone");
+            byId("teacherImagePasteTitle").textContent = title;
+            byId("teacherImagePasteHint").textContent = hint;
+            zone.classList.toggle("uploading", uploading);
+        }
+
+        function resetTeacherImagePasteZoneState() {
+            setTeacherImagePasteZoneState(
+                "Plak hier een foto",
+                "Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in."
+            );
+        }
+
+        function updateTeacherImagePreview(url = "", label = "") {
+            const previewBox = byId("teacherImagePreviewBox");
+            const previewImage = byId("teacherImagePreview");
+            const previewPath = byId("teacherImagePreviewPath");
+            const normalizedUrl = (url || "").trim();
+
+            if (!normalizedUrl) {
+                previewBox.hidden = true;
+                previewImage.hidden = true;
+                previewImage.removeAttribute("src");
+                previewPath.textContent = "";
+                return;
+            }
+
+            previewBox.hidden = false;
+            previewImage.hidden = false;
+            previewImage.src = normalizedUrl;
+            previewPath.textContent = label || normalizedUrl;
+        }
+
+        function readFileAsDataUrl(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result || ""));
+                reader.onerror = () => reject(new Error("De geplakte afbeelding kon niet gelezen worden."));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function uploadTeacherPastedImage(file) {
+            if (!file) {
+                throw new Error("Ik vond geen afbeelding in je klembord.");
+            }
+
+            const dataUrl = await readFileAsDataUrl(file);
+            const response = await fetchJson("/api/question/image-upload", {
+                method: "POST",
+                headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                body: JSON.stringify({
+                    data_url: dataUrl,
+                    filename: file.name || "clipboard-image.png"
+                })
+            });
+
+            return response;
+        }
+
+        async function handleTeacherImagePaste(event) {
+            const items = [...(event.clipboardData?.items || [])];
+            const imageItem = items.find((item) => item.type && item.type.startsWith("image/"));
+
+            if (!imageItem) {
+                setTeacherManualStatus("Ik vond geen afbeelding in je klembord. Kopieer eerst een foto en plak daarna opnieuw.", true);
+                return;
+            }
+
+            event.preventDefault();
+
+            if (teacherManualBusy || teacherImageUploadBusy) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om een geplakte afbeelding op te slaan.");
+                setTeacherManualStatus("Ontgrendel eerst het leerkrachtgedeelte en plak daarna opnieuw.", true);
+                return;
+            }
+
+            const file = imageItem.getAsFile();
+            teacherImageUploadBusy = true;
+            setTeacherImagePasteZoneState(
+                "Afbeelding wordt opgeslagen...",
+                "Even geduld. De app zet je geplakte foto nu automatisch in de juiste map.",
+                true
+            );
+            setTeacherManualStatus("Afbeelding wordt opgeslagen...");
+
+            try {
+                const data = await uploadTeacherPastedImage(file);
+                byId("teacherManualImageUrl").value = data.image_url || "";
+                updateTeacherImagePreview(
+                    data.image_url || "",
+                    "Opgeslagen beeld: " + (data.image_url || "")
+                );
+                setTeacherManualStatus(data.message || "Afbeelding opgeslagen.");
+                setTeacherImagePasteZoneState(
+                    "Foto geplakt en opgeslagen",
+                    "Je kunt nu nog de alt-tekst en uitleg invullen, of opnieuw plakken om dit beeld te vervangen."
+                );
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+
+                setTeacherManualStatus(error.message, true);
+                resetTeacherImagePasteZoneState();
+            } finally {
+                teacherImageUploadBusy = false;
+                if (!byId("teacherManualImageUrl").value.trim()) {
+                    resetTeacherImagePasteZoneState();
+                }
+            }
+        }
+
+        function bindTeacherImageHelpers() {
+            const pasteZone = byId("teacherImagePasteZone");
+            const imageUrlInput = byId("teacherManualImageUrl");
+            const previewImage = byId("teacherImagePreview");
+
+            if (pasteZone && pasteZone.dataset.bound !== "true") {
+                pasteZone.dataset.bound = "true";
+                pasteZone.addEventListener("click", () => {
+                    pasteZone.focus();
+                });
+                pasteZone.addEventListener("paste", handleTeacherImagePaste);
+            }
+
+            if (imageUrlInput && imageUrlInput.dataset.bound !== "true") {
+                imageUrlInput.dataset.bound = "true";
+                imageUrlInput.addEventListener("input", () => {
+                    const currentUrl = imageUrlInput.value.trim();
+                    if (!currentUrl) {
+                        updateTeacherImagePreview("");
+                        resetTeacherImagePasteZoneState();
+                        return;
+                    }
+
+                    updateTeacherImagePreview(currentUrl);
+                });
+            }
+
+            if (previewImage && previewImage.dataset.bound !== "true") {
+                previewImage.dataset.bound = "true";
+                previewImage.addEventListener("error", () => {
+                    if (!byId("teacherImagePreviewBox").hidden) {
+                        previewImage.hidden = true;
+                        byId("teacherImagePreviewPath").textContent =
+                            "Voorbeeld kon niet geladen worden, maar het pad blijft wel ingevuld.";
+                    }
+                });
+                previewImage.addEventListener("load", () => {
+                    previewImage.hidden = false;
+                });
+            }
+        }
+
+        function setStatusMessage(text) {
+            byId("statusMessage").textContent = text || "";
+        }
+
+        function setTeacherReviewStatus(text = "", isError = false) {
+            const status = byId("teacherReviewStatus");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function clearTeacherImageMixPreview() {
+            byId("teacherImageMixPreviewPanel").hidden = true;
+            byId("teacherImageMixPreviewCopy").textContent = "";
+            byId("teacherImageMixPreviewGrid").replaceChildren();
+        }
+
+        function renderTeacherImageMixPreview(questions, message = "") {
+            const panel = byId("teacherImageMixPreviewPanel");
+            const copy = byId("teacherImageMixPreviewCopy");
+            const grid = byId("teacherImageMixPreviewGrid");
+            const items = Array.isArray(questions)
+                ? questions.filter((question) => question && question.image_url)
+                : [];
+
+            grid.replaceChildren();
+
+            if (!items.length) {
+                clearTeacherImageMixPreview();
+                return;
+            }
+
+            copy.textContent = message || "De nieuwste beeldvragen staan hier meteen klaar om te controleren.";
+
+            items.forEach((question) => {
+                const card = document.createElement("article");
+                card.className = "teacher-preview-card";
+
+                const meta = document.createElement("div");
+                meta.className = "teacher-meta";
+
+                const source = document.createElement("span");
+                source.className = "teacher-pill";
+                source.textContent = (question.source || "beeld").toUpperCase();
+
+                const verdict = document.createElement("span");
+                verdict.className = "teacher-pill teacher-theme";
+                verdict.textContent = Number(question.correct_index) === 0
+                    ? "AI-beeld"
+                    : "Echte foto";
+
+                meta.appendChild(source);
+                meta.appendChild(verdict);
+                card.appendChild(meta);
+
+                const preview = document.createElement("img");
+                preview.src = question.image_url;
+                preview.alt = question.image_alt || "Voorbeeld van de nieuwe beeldvraag";
+                preview.loading = "lazy";
+                card.appendChild(preview);
+
+                const questionCopy = document.createElement("p");
+                questionCopy.className = "teacher-preview-question";
+                questionCopy.textContent = question.question || "Beeldvraag";
+                card.appendChild(questionCopy);
+
+                const explanation = document.createElement("div");
+                explanation.className = "teacher-delete-meta";
+                explanation.textContent = Number(question.correct_index) === 0
+                    ? "Juiste beoordeling: Waarschijnlijk AI-gegenereerd"
+                    : "Juiste beoordeling: Waarschijnlijk niet AI-gegenereerd";
+                card.appendChild(explanation);
+
+                const explanationCopy = String(question.explanation || "").trim();
+                if (explanationCopy) {
+                    const clue = document.createElement("p");
+                    clue.className = "teacher-preview-explanation";
+                    clue.textContent = "Aanwijzing voor leerlingen: " + explanationCopy;
+                    card.appendChild(clue);
+                }
+
+                grid.appendChild(card);
+            });
+
+            panel.hidden = false;
+        }
+
+        function setTeacherManualStatus(text = "", isError = false) {
+            const status = byId("teacherManualStatus");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setTeacherDeleteStatus(text = "", isError = false) {
+            const status = byId("teacherDeleteStatus");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setTeacherAuthStatus(text = "", isError = false) {
+            const status = byId("teacherAuthStatus");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setTeacherAuthButtonsDisabled(disabled) {
+            byId("teacherAuthSubmit").disabled = disabled;
+            byId("teacherAuthCancel").disabled = disabled;
+        }
+
+        function getTeacherRequestHeaders(headers = {}) {
+            return {
+                ...headers,
+                "X-Teacher-Password": teacherPassword
+            };
+        }
+
+        function openTeacherAuth(
+            message = "Geef het leerkrachtpaswoord in om deze leerkrachtactie uit te voeren.",
+            onSuccess = null
+        ) {
+            teacherAuthSuccessAction = onSuccess;
+            byId("teacherAuthOverlay").hidden = false;
+            byId("teacherPasswordInput").value = "";
+            setTeacherAuthStatus(message);
+            requestAnimationFrame(() => {
+                byId("teacherPasswordInput").focus();
+            });
+        }
+
+        function closeTeacherAuth(force = false) {
+            if (teacherAuthBusy && !force) {
+                return;
+            }
+
+            byId("teacherAuthOverlay").hidden = true;
+            byId("teacherPasswordInput").value = "";
+            setTeacherAuthStatus("");
+            if (!force) {
+                teacherAuthSuccessAction = null;
+            }
+        }
+
+        function handleTeacherAuthFailure(error) {
+            if (!error || error.status !== 401) {
+                return false;
+            }
+
+            teacherPassword = "";
+            byId("teacherOverlay").hidden = true;
+            openTeacherAuth(error.message || "Geef het leerkrachtpaswoord opnieuw in.");
+            setTeacherReviewStatus("");
+            setTeacherDeleteStatus("");
+            setStatusMessage("Leerkrachtgedeelte is opnieuw vergrendeld.");
+            return true;
+        }
+
+        function lockTeacherReview() {
+            teacherPassword = "";
+            closeTeacherReview();
+            closeTeacherAuth();
+            setStatusMessage("Leerkrachtgedeelte is opnieuw vergrendeld.");
+        }
+
+        async function submitTeacherPassword() {
+            if (teacherAuthBusy) {
+                return;
+            }
+
+            const input = byId("teacherPasswordInput");
+            const password = input.value.trim();
+
+            if (!password) {
+                setTeacherAuthStatus("Vul eerst het leerkrachtpaswoord in.", true);
+                input.focus();
+                return;
+            }
+
+            teacherAuthBusy = true;
+            setTeacherAuthButtonsDisabled(true);
+            setTeacherAuthStatus("Paswoord controleren...");
+
+            try {
+                await fetchJson("/api/teacher/auth-check", {
+                    headers: {"X-Teacher-Password": password}
+                });
+
+                teacherPassword = password;
+                const nextAction = teacherAuthSuccessAction;
+                teacherAuthSuccessAction = null;
+                closeTeacherAuth(true);
+
+                if (typeof nextAction === "function") {
+                    await nextAction();
+                } else {
+                    setStatusMessage("Leerkrachtgedeelte ontgrendeld.");
+                }
+            } catch (error) {
+                teacherPassword = "";
+                setTeacherAuthStatus(error.message, true);
+            } finally {
+                teacherAuthBusy = false;
+                setTeacherAuthButtonsDisabled(false);
+            }
+        }
+
+        function setTeacherGenerateButtonsDisabled(disabled) {
+            document
+                .querySelectorAll("[data-role='teacher-generate']")
+                .forEach((button) => {
+                    button.disabled = disabled;
+                });
+        }
+
+        function setTeacherAutoImageControlsDisabled(disabled) {
+            ["teacherAutoImageCount", "teacherAutoImageFocus"].forEach((id) => {
+                const field = byId(id);
+                if (field) {
+                    field.disabled = disabled;
+                }
+            });
+        }
+
+        function setTeacherManualButtonsDisabled(disabled) {
+            byId("teacherManualForm")
+                .querySelectorAll("input, textarea, select, button")
+                .forEach((field) => {
+                    field.disabled = disabled;
+                });
+        }
+
+        function resetTeacherManualForm() {
+            byId("teacherManualType").value = "multiple_choice";
+            byId("teacherManualTheme").value = "werking";
+            byId("teacherManualQuestion").value = "";
+            byId("teacherManualOption0").value = "";
+            byId("teacherManualOption1").value = "";
+            byId("teacherManualOption2").value = "";
+            byId("teacherManualOption3").value = "";
+            byId("teacherManualCorrect").value = "0";
+            byId("teacherManualImageUrl").value = "";
+            byId("teacherManualImageAlt").value = "";
+            byId("teacherManualExplanation").value = "";
+            byId("teacherManualImageCorrect").value = "0";
+            byId("teacherManualGuidance").value = "";
+            updateTeacherImagePreview("");
+            resetTeacherImagePasteZoneState();
+            updateTeacherManualType();
+            refreshTeacherTextareaHeights();
+            setTeacherManualStatus("");
+        }
+
+        function updateTeacherManualType() {
+            const questionType = byId("teacherManualType").value;
+            const isImageQuestion = questionType === "image_binary";
+            const isConsensusDilemma = questionType === "consensus_dilemma";
+
+            byId("teacherManualThemeField").hidden = isImageQuestion || isConsensusDilemma;
+            byId("teacherManualStandardFields").hidden = isImageQuestion || isConsensusDilemma;
+            byId("teacherManualImageFields").hidden = !isImageQuestion;
+            byId("teacherManualConsensusFields").hidden = !isConsensusDilemma;
+
+            if (isImageQuestion) {
+                byId("teacherManualSubmit").textContent = "Beeldvraag toevoegen";
+                byId("teacherManualQuestion").placeholder = "Typ hier de vraag bij de afbeelding";
+                byId("teacherManualIntro").textContent =
+                    "Voeg hier een beeldvraag toe. Je kunt een foto rechtstreeks plakken of zelf een pad invullen, en leerlingen kiezen daarna of het beeld AI-gegenereerd is of niet.";
+                byId("teacherManualHelper").textContent =
+                    "Plak een foto of vul een beeldpad in, werk daarna de beeldvelden af en voeg de foto-ronde meteen toe aan de beeldvragenpool.";
+                updateTeacherImagePreview(byId("teacherManualImageUrl").value.trim());
+                requestAnimationFrame(refreshTeacherTextareaHeights);
+                return;
+            }
+
+            if (isConsensusDilemma) {
+                byId("teacherManualSubmit").textContent = "Groepsdilemma toevoegen";
+                byId("teacherManualQuestion").placeholder = "Typ hier het groepsdilemma";
+                byId("teacherManualIntro").textContent =
+                    "Voeg hier een eigen groepsdilemma toe voor de rode ethiekknop. Leerlingen bespreken daarna samen de situatie en de leerkracht beoordeelt hun consensus.";
+                byId("teacherManualHelper").textContent =
+                    "Vul het dilemma en de besprekingshulp in en voeg het daarna meteen toe aan de rode ethiekknop.";
+                requestAnimationFrame(refreshTeacherTextareaHeights);
+                return;
+            }
+
+            byId("teacherManualSubmit").textContent = "Vraag toevoegen";
+            byId("teacherManualQuestion").placeholder = "Typ hier je eigen meerkeuzevraag";
+            byId("teacherManualIntro").textContent =
+                "Voeg hier een eigen vraag toe. Die wordt meteen opgeslagen en kan daarna tijdens het spel opduiken binnen het gekozen thema.";
+            byId("teacherManualHelper").textContent =
+                "Vul alle velden in en voeg de vraag daarna meteen toe aan de vragenpool.";
+            updateTeacherImagePreview("");
+            resetTeacherImagePasteZoneState();
+            requestAnimationFrame(refreshTeacherTextareaHeights);
+        }
+
+        function setTeacherMode(mode, options = {}) {
+            teacherMode = ["review", "manual", "delete"].includes(mode) ? mode : "review";
+            const shouldRefresh = options.refresh !== false;
+            const shouldScroll = options.scroll !== false;
+
+            const reviewActive = teacherMode === "review";
+            const manualActive = teacherMode === "manual";
+            const deleteActive = teacherMode === "delete";
+            const targetPanelId = reviewActive
+                ? "teacherReviewPanel"
+                : manualActive
+                    ? "teacherManualPanel"
+                    : "teacherDeletePanel";
+
+            byId("teacherReviewTab").classList.toggle("active", reviewActive);
+            byId("teacherManualTab").classList.toggle("active", manualActive);
+            byId("teacherDeleteTab").classList.toggle("active", deleteActive);
+            byId("teacherReviewPanel").hidden = false;
+            byId("teacherManualPanel").hidden = false;
+            byId("teacherDeletePanel").hidden = false;
+            byId("teacherReviewPanel").classList.toggle("active-panel", reviewActive);
+            byId("teacherManualPanel").classList.toggle("active-panel", manualActive);
+            byId("teacherDeletePanel").classList.toggle("active-panel", deleteActive);
+
+            if (shouldScroll) {
+                requestAnimationFrame(() => {
+                    byId(targetPanelId)?.scrollIntoView({behavior: "smooth", block: "start"});
+                });
+            }
+
+            if (!shouldRefresh) {
+                return;
+            }
+
+            if (teacherPassword && !teacherReviewBusy) {
+                refreshTeacherQuestions();
+            }
+            if (teacherPassword && !teacherDeleteBusy) {
+                refreshTeacherRemovableQuestions();
+            }
+        }
+
+        function refreshTeacherActivePanel() {
+            if (teacherPassword) {
+                refreshTeacherQuestions();
+                refreshTeacherRemovableQuestions();
+            }
+            setTeacherManualStatus("Formulier is klaar om een nieuwe vraag toe te voegen.");
+        }
+
+        function setTeacherButtonsDisabled(card, disabled) {
+            card.querySelectorAll("button").forEach((button) => {
+                button.disabled = disabled;
+            });
+        }
+
+        function setTeacherCardMessage(card, text, isError = false) {
+            const message = card.querySelector("[data-role='teacher-message']");
+            if (!message) {
+                return;
+            }
+            message.textContent = text || "";
+            message.style.color = isError ? "#ffd0c8" : "rgba(234, 223, 206, 0.78)";
+        }
+
+        function createTeacherOptionRow(value, index) {
+            const row = document.createElement("div");
+            row.className = "teacher-option-row";
+
+            const label = document.createElement("label");
+            label.textContent = "Optie " + (answerLetters[index] || String(index + 1));
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 160;
+            input.value = value || "";
+            input.dataset.role = "option";
+
+            row.appendChild(label);
+            row.appendChild(input);
+            return row;
+        }
+
+        function createTeacherQuestionCard(question) {
+            const card = document.createElement("article");
+            card.className = "teacher-question-card";
+            card.dataset.id = question.id;
+
+            const top = document.createElement("div");
+            top.className = "teacher-question-top";
+
+            const meta = document.createElement("div");
+            meta.className = "teacher-meta";
+
+            const theme = document.createElement("span");
+            theme.className = "teacher-pill teacher-theme";
+            theme.textContent = themeLabels[question.theme] || question.theme || "Thema";
+
+            const source = document.createElement("span");
+            source.className = "teacher-pill";
+            source.textContent = (question.source || "ai").toUpperCase();
+
+            const questionId = document.createElement("span");
+            questionId.className = "teacher-pill";
+            questionId.textContent = question.id;
+
+            meta.appendChild(theme);
+            meta.appendChild(source);
+            meta.appendChild(questionId);
+
+            const correctField = document.createElement("div");
+            correctField.className = "teacher-inline-field";
+
+            const correctLabel = document.createElement("label");
+            correctLabel.textContent = "Juiste antwoord";
+
+            const correctSelect = document.createElement("select");
+            correctSelect.dataset.role = "correct-index";
+            answerLetters.forEach((letter, index) => {
+                const option = document.createElement("option");
+                option.value = String(index);
+                option.textContent = letter;
+                correctSelect.appendChild(option);
+            });
+            correctSelect.value = String(
+                Number.isInteger(question.correct_index) ? question.correct_index : 0
+            );
+
+            correctField.appendChild(correctLabel);
+            correctField.appendChild(correctSelect);
+
+            top.appendChild(meta);
+            top.appendChild(correctField);
+
+            const questionField = document.createElement("div");
+            questionField.className = "teacher-inline-field";
+
+            const questionLabel = document.createElement("label");
+            questionLabel.textContent = "Vraag";
+
+            const questionInput = document.createElement("textarea");
+            questionInput.dataset.role = "question";
+            questionInput.value = question.question || "";
+
+            questionField.appendChild(questionLabel);
+            questionField.appendChild(questionInput);
+
+            const optionGrid = document.createElement("div");
+            optionGrid.className = "teacher-option-grid";
+
+            (question.options || []).slice(0, 4).forEach((option, index) => {
+                optionGrid.appendChild(createTeacherOptionRow(option, index));
+            });
+
+            while (optionGrid.children.length < 4) {
+                optionGrid.appendChild(createTeacherOptionRow("", optionGrid.children.length));
+            }
+
+            const footer = document.createElement("div");
+            footer.className = "teacher-card-footer";
+
+            const message = document.createElement("span");
+            message.className = "teacher-card-message";
+            message.dataset.role = "teacher-message";
+            message.textContent = "Pas aan waar nodig en kies daarna een reviewactie.";
+
+            const actions = document.createElement("div");
+            actions.className = "teacher-card-actions";
+
+            const approveButton = document.createElement("button");
+            approveButton.type = "button";
+            approveButton.className = "approve-button";
+            approveButton.textContent = "Goedkeuren";
+            approveButton.onclick = () => submitTeacherReview(question.id, "approve", card);
+
+            const rejectButton = document.createElement("button");
+            rejectButton.type = "button";
+            rejectButton.className = "reject-button";
+            rejectButton.textContent = "Afkeuren";
+            rejectButton.onclick = () => submitTeacherReview(question.id, "reject", card);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "delete-button";
+            deleteButton.textContent = "Verwijderen";
+            deleteButton.onclick = () => submitTeacherReview(question.id, "delete", card);
+
+            actions.appendChild(approveButton);
+            actions.appendChild(rejectButton);
+            actions.appendChild(deleteButton);
+
+            footer.appendChild(message);
+            footer.appendChild(actions);
+
+            card.appendChild(top);
+            card.appendChild(questionField);
+            card.appendChild(optionGrid);
+            card.appendChild(footer);
+            return card;
+        }
+
+        function setTeacherOverviewCounts(pendingCount, removableCount) {
+            const safePendingCount = Number.isFinite(pendingCount) ? pendingCount : null;
+            const safeRemovableCount = Number.isFinite(removableCount) ? removableCount : null;
+            const reviewCount = byId("teacherReviewTabCount");
+            const reviewNote = byId("teacherReviewTabNote");
+            const deleteCount = byId("teacherDeleteTabCount");
+            const deleteNote = byId("teacherDeleteTabNote");
+
+            if (reviewCount && safePendingCount !== null) {
+                reviewCount.textContent = String(safePendingCount);
+            }
+
+            if (reviewNote && safePendingCount !== null) {
+                reviewNote.textContent = safePendingCount === 0
+                    ? "Geen openstaande AI-vragen of beeldmixen."
+                    : safePendingCount === 1
+                        ? "1 openstaande AI-vraag of beeldmix."
+                        : safePendingCount + " openstaande AI-vragen of beeldmixen.";
+            }
+
+            if (deleteCount && safeRemovableCount !== null) {
+                deleteCount.textContent = String(safeRemovableCount);
+            }
+
+            if (deleteNote && safeRemovableCount !== null) {
+                deleteNote.textContent = safeRemovableCount === 0
+                    ? "Er staan nu geen verwijderbare items klaar."
+                    : safeRemovableCount === 1
+                        ? "1 handmatig item kan verwijderd worden."
+                        : safeRemovableCount + " handmatige items kunnen verwijderd worden.";
+            }
+        }
+
+        function renderTeacherQuestions(questions) {
+            const list = byId("teacherReviewList");
+            list.replaceChildren();
+            const pendingCount = (questions || []).length;
+            byId("teacherPendingCount").textContent = String(pendingCount);
+            setTeacherOverviewCounts(pendingCount);
+
+            if (!questions || questions.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "teacher-empty";
+                empty.textContent = "Er staan momenteel geen AI-vragen meer in afwachting.";
+                list.appendChild(empty);
+                return;
+            }
+
+            questions.forEach((question) => {
+                list.appendChild(createTeacherQuestionCard(question));
+            });
+        }
+
+        function createTeacherDeleteCard(question) {
+            const card = document.createElement("article");
+            card.className = "teacher-question-card";
+            card.dataset.id = question.id;
+
+            const top = document.createElement("div");
+            top.className = "teacher-question-top";
+
+            const meta = document.createElement("div");
+            meta.className = "teacher-meta";
+
+            const theme = document.createElement("span");
+            theme.className = "teacher-pill teacher-theme";
+            theme.textContent = question.display_theme || "Vraag";
+
+            const source = document.createElement("span");
+            source.className = "teacher-pill";
+            source.textContent = (question.source || question.store || "vraag").toUpperCase();
+
+            const questionId = document.createElement("span");
+            questionId.className = "teacher-pill";
+            questionId.textContent = question.id;
+
+            meta.appendChild(theme);
+            meta.appendChild(source);
+            meta.appendChild(questionId);
+            top.appendChild(meta);
+
+            if (question.type === "image_binary" && question.image_url) {
+                const preview = document.createElement("img");
+                preview.className = "teacher-delete-preview";
+                preview.src = question.image_url;
+                preview.alt = question.image_alt || "Voorbeeldbeeld";
+                preview.loading = "lazy";
+                card.appendChild(top);
+                card.appendChild(preview);
+            } else {
+                card.appendChild(top);
+            }
+
+            const questionCopy = document.createElement("p");
+            questionCopy.className = "teacher-delete-copy";
+            questionCopy.textContent = question.question || "";
+            card.appendChild(questionCopy);
+
+            const detail = document.createElement("div");
+            detail.className = "teacher-delete-meta";
+            if (question.type === "consensus_dilemma") {
+                detail.textContent = question.guidance
+                    ? "Bespreekhulp: " + question.guidance
+                    : "Geen extra besprekingshulp toegevoegd.";
+            } else if (question.type === "image_binary") {
+                detail.textContent = "Juiste beoordeling: " + (question.correct_label || "-");
+            } else {
+                detail.textContent = "Juiste antwoord: " + (question.correct_label || "-");
+            }
+            card.appendChild(detail);
+
+            if (question.type === "image_binary" && question.image_url) {
+                const path = document.createElement("div");
+                path.className = "teacher-delete-meta";
+                path.textContent = "Beeld: " + question.image_url;
+                card.appendChild(path);
+            }
+
+            if (question.type === "image_binary" && question.explanation) {
+                const clue = document.createElement("p");
+                clue.className = "teacher-preview-explanation";
+                clue.textContent = "Aanwijzing voor leerlingen: " + question.explanation;
+                card.appendChild(clue);
+            }
+
+            const usage = document.createElement("div");
+            usage.className = "teacher-delete-meta";
+            if (question.type === "consensus_dilemma") {
+                usage.textContent = question.used
+                    ? "Dit groepsdilemma is in het huidige spel al gebruikt."
+                    : "Dit groepsdilemma is in het huidige spel nog niet gebruikt.";
+            } else {
+                usage.textContent = question.used
+                    ? "Deze vraag is in het huidige spel al gebruikt."
+                    : "Deze vraag is nog niet gebruikt in het huidige spel.";
+            }
+            card.appendChild(usage);
+
+            const footer = document.createElement("div");
+            footer.className = "teacher-card-footer";
+
+            const helper = document.createElement("span");
+            helper.className = "teacher-card-message";
+            helper.textContent = "Verwijderen haalt dit item meteen uit de app.";
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "teacher-delete-button";
+            deleteButton.textContent = "Verwijderen";
+            deleteButton.onclick = () => deleteTeacherManagedQuestion(question.id);
+
+            footer.appendChild(helper);
+            footer.appendChild(deleteButton);
+            card.appendChild(footer);
+            return card;
+        }
+
+        function renderTeacherRemovableQuestions(questions) {
+            const list = byId("teacherDeleteList");
+            list.replaceChildren();
+            setTeacherOverviewCounts(undefined, (questions || []).length);
+
+            if (!questions || questions.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "teacher-empty";
+                empty.textContent = "Er staan momenteel geen handmatige vragen, beeldvragen of groepsdilemma's klaar om te verwijderen.";
+                list.appendChild(empty);
+                return;
+            }
+
+            questions.forEach((question) => {
+                list.appendChild(createTeacherDeleteCard(question));
+            });
+        }
+
+        async function refreshTeacherQuestions(force = false) {
+            if (teacherReviewBusy && !force) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth(
+                    "Geef het leerkrachtpaswoord in om de AI-vragen te openen.",
+                    async () => {
+                        byId("teacherOverlay").hidden = false;
+                        await refreshTeacherQuestions(true);
+                    }
+                );
+                return;
+            }
+
+            teacherReviewBusy = true;
+            setTeacherGenerateButtonsDisabled(true);
+            setTeacherAutoImageControlsDisabled(true);
+            setTeacherReviewStatus("Wachtende AI-vragen laden...");
+
+            try {
+                const questions = await fetchJson("/api/question/pending", {
+                    headers: getTeacherRequestHeaders()
+                });
+                renderTeacherQuestions(questions);
+                setTeacherReviewStatus(
+                    questions.length
+                        ? "Pas vragen aan en keur ze daarna goed voor gebruik in het spel."
+                        : "Er staan geen AI-vragen meer in afwachting."
+                );
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                renderTeacherQuestions([]);
+                setTeacherReviewStatus(error.message, true);
+            } finally {
+                teacherReviewBusy = false;
+                setTeacherGenerateButtonsDisabled(false);
+                setTeacherAutoImageControlsDisabled(false);
+            }
+        }
+
+        async function refreshTeacherRemovableQuestions(force = false) {
+            if (teacherDeleteBusy && !force) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth(
+                    "Geef het leerkrachtpaswoord in om verwijderbare items te bekijken.",
+                    async () => {
+                        byId("teacherOverlay").hidden = false;
+                        setTeacherMode("delete");
+                        await refreshTeacherRemovableQuestions(true);
+                    }
+                );
+                return;
+            }
+
+            teacherDeleteBusy = true;
+            setTeacherDeleteStatus("Verwijderbare items laden...");
+
+            try {
+                const questions = await fetchJson("/api/question/removable", {
+                    headers: getTeacherRequestHeaders()
+                });
+                renderTeacherRemovableQuestions(questions);
+                setTeacherDeleteStatus(
+                    questions.length
+                        ? "Kies hier veilig welke handmatige vragen, beeldvragen of groepsdilemma's je uit de app wil halen."
+                        : "Er staan geen verwijderbare items klaar."
+                );
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                renderTeacherRemovableQuestions([]);
+                setTeacherDeleteStatus(error.message, true);
+            } finally {
+                teacherDeleteBusy = false;
+            }
+        }
+
+        async function deleteTeacherManagedQuestion(questionId) {
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om items te verwijderen.");
+                return;
+            }
+
+            if (!window.confirm("Wil je dit item echt uit de app verwijderen?")) {
+                return;
+            }
+
+            teacherDeleteBusy = true;
+            setTeacherDeleteStatus("Vraag wordt verwijderd...");
+
+            try {
+                const data = await fetchJson("/api/question/remove", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify({id: questionId})
+                });
+
+                setStatusMessage(data.message);
+                setTeacherDeleteStatus(data.message);
+                await refreshTeacherRemovableQuestions(true);
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherDeleteStatus(error.message, true);
+            } finally {
+                teacherDeleteBusy = false;
+            }
+        }
+
+        function openTeacherReview() {
+            if (!teacherPassword) {
+                openTeacherAuth(
+                    "Geef het leerkrachtpaswoord in om de AI-vragen te openen.",
+                    async () => {
+                        byId("teacherOverlay").hidden = false;
+                        setTeacherMode("review", {scroll: false, refresh: false});
+                        await refreshTeacherQuestions(true);
+                        await refreshTeacherRemovableQuestions(true);
+                    }
+                );
+                return;
+            }
+
+            byId("teacherOverlay").hidden = false;
+            setTeacherMode("review", {scroll: false, refresh: false});
+            refreshTeacherQuestions();
+            refreshTeacherRemovableQuestions();
+        }
+
+        function closeTeacherReview() {
+            byId("teacherOverlay").hidden = true;
+            setTeacherReviewStatus("");
+            setTeacherManualStatus("");
+            setTeacherDeleteStatus("");
+        }
+
+        async function generateTeacherQuestion(theme) {
+            if (teacherReviewBusy) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om nieuwe AI-vragen te genereren.");
+                return;
+            }
+
+            teacherReviewBusy = true;
+            setTeacherGenerateButtonsDisabled(true);
+            setTeacherAutoImageControlsDisabled(true);
+            setTeacherReviewStatus("Nieuwe AI-vraag voor " + (themeLabels[theme] || theme) + " wordt gemaakt...");
+
+            try {
+                const data = await fetchJson("/api/question/generate?theme=" + encodeURIComponent(theme), {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders()
+                });
+
+                const label = themeLabels[theme] || theme;
+                const message = "Nieuwe AI-vraag toegevoegd voor " + label + " en klaar voor review.";
+                setStatusMessage(message);
+                setTeacherReviewStatus(message);
+                teacherReviewBusy = false;
+                await refreshTeacherQuestions(true);
+                return data;
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherReviewStatus(error.message, true);
+            } finally {
+                teacherReviewBusy = false;
+                setTeacherGenerateButtonsDisabled(false);
+                setTeacherAutoImageControlsDisabled(false);
+            }
+        }
+
+        function collectTeacherAutoImagePayload() {
+            const count = Number(byId("teacherAutoImageCount").value);
+            const focus = byId("teacherAutoImageFocus").value.trim();
+
+            if (Number.isNaN(count) || count < 2 || count > 6) {
+                throw new Error("Kies een aantal beeldvragen tussen 2 en 6.");
+            }
+
+            return {
+                count,
+                focus
+            };
+        }
+
+        async function generateTeacherImageMix() {
+            if (teacherReviewBusy) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om een automatische beeldmix te maken.");
+                return;
+            }
+
+            let payload;
+            try {
+                payload = collectTeacherAutoImagePayload();
+            } catch (error) {
+                setTeacherReviewStatus(error.message, true);
+                return;
+            }
+
+            teacherReviewBusy = true;
+            setTeacherGenerateButtonsDisabled(true);
+            setTeacherAutoImageControlsDisabled(true);
+            setTeacherReviewStatus("Automatische beeldmix wordt samengesteld...");
+
+            try {
+                const data = await fetchJson("/api/question/image-set/generate", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify(payload)
+                });
+
+                const message = data.message || "Automatische beeldmix toegevoegd aan de beeldvragenpool.";
+                setStatusMessage(message);
+                setTeacherReviewStatus(message);
+                setTeacherMode("review", {refresh: false});
+                renderTeacherImageMixPreview(
+                    data.questions || [],
+                    data.preview_message
+                        || "De nieuwste beeldmix staat hieronder klaar. Alleen nieuw aangemaakte AI-vragen worden extra toegevoegd."
+                );
+                return data;
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherReviewStatus(error.message, true);
+            } finally {
+                teacherReviewBusy = false;
+                setTeacherGenerateButtonsDisabled(false);
+                setTeacherAutoImageControlsDisabled(false);
+            }
+        }
+
+        function collectTeacherReviewPayload(card, action) {
+            const payload = {
+                id: card.dataset.id,
+                action
+            };
+
+            if (action !== "approve") {
+                return payload;
+            }
+
+            const question = card.querySelector("[data-role='question']").value.trim();
+            const options = [...card.querySelectorAll("[data-role='option']")]
+                .map((input) => input.value.trim());
+            const correctIndex = Number(card.querySelector("[data-role='correct-index']").value);
+
+            if (!question) {
+                throw new Error("Vul eerst een vraagtekst in.");
+            }
+
+            if (options.length !== 4 || options.some((option) => !option)) {
+                throw new Error("Vul alle vier antwoordopties in.");
+            }
+
+            if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 3) {
+                throw new Error("Kies welk antwoord juist is.");
+            }
+
+            payload.question = question;
+            payload.options = options;
+            payload.correct_index = correctIndex;
+            return payload;
+        }
+
+        function collectTeacherManualPayload() {
+            const questionType = byId("teacherManualType").value;
+            const question = byId("teacherManualQuestion").value.trim();
+
+            if (!question) {
+                throw new Error("Vul eerst een vraagtekst in.");
+            }
+
+            if (questionType === "consensus_dilemma") {
+                const guidance = byId("teacherManualGuidance").value.trim();
+
+                if (!guidance) {
+                    throw new Error("Vul korte besprekingshulp in voor dit groepsdilemma.");
+                }
+
+                return {
+                    question_type: "consensus_dilemma",
+                    question,
+                    guidance,
+                    correct_index: 0
+                };
+            }
+
+            if (questionType === "image_binary") {
+                const imageUrl = byId("teacherManualImageUrl").value.trim();
+                const imageAlt = byId("teacherManualImageAlt").value.trim();
+                const explanation = byId("teacherManualExplanation").value.trim();
+                const correctIndex = Number(byId("teacherManualImageCorrect").value);
+
+                if (!imageUrl) {
+                    throw new Error("Vul een afbeeldingspad of URL in.");
+                }
+
+                if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 1) {
+                    throw new Error("Kies of het beeld AI-gegenereerd is of niet.");
+                }
+
+                return {
+                    question_type: "image_binary",
+                    question,
+                    correct_index: correctIndex,
+                    image_url: imageUrl,
+                    image_alt: imageAlt,
+                    explanation
+                };
+            }
+
+            const options = [
+                byId("teacherManualOption0").value.trim(),
+                byId("teacherManualOption1").value.trim(),
+                byId("teacherManualOption2").value.trim(),
+                byId("teacherManualOption3").value.trim()
+            ];
+            const correctIndex = Number(byId("teacherManualCorrect").value);
+            const theme = byId("teacherManualTheme").value;
+
+            if (options.some((option) => !option)) {
+                throw new Error("Vul alle vier antwoordopties in.");
+            }
+
+            if (new Set(options.map((option) => option.toLowerCase())).size !== 4) {
+                throw new Error("Gebruik vier verschillende antwoordopties.");
+            }
+
+            if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 3) {
+                throw new Error("Kies welk antwoord juist is.");
+            }
+
+            return {
+                question_type: "multiple_choice",
+                theme,
+                question,
+                options,
+                correct_index: correctIndex
+            };
+        }
+
+        async function submitTeacherManualQuestion() {
+            if (teacherManualBusy) {
+                return;
+            }
+
+            if (teacherImageUploadBusy) {
+                setTeacherManualStatus("Wacht even tot de geplakte afbeelding volledig is opgeslagen.", true);
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om zelf een item toe te voegen.");
+                return;
+            }
+
+            let payload;
+            try {
+                payload = collectTeacherManualPayload();
+            } catch (error) {
+                setTeacherManualStatus(error.message, true);
+                return;
+            }
+
+            teacherManualBusy = true;
+            setTeacherManualButtonsDisabled(true);
+            setTeacherManualStatus("Vraag wordt opgeslagen...");
+
+            try {
+                const data = await fetchJson("/api/question/manual", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify(payload)
+                });
+
+                resetTeacherManualForm();
+                setTeacherManualStatus(data.message);
+                setTeacherReviewStatus("");
+                setStatusMessage(data.message);
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherManualStatus(error.message, true);
+            } finally {
+                teacherManualBusy = false;
+                setTeacherManualButtonsDisabled(false);
+            }
+        }
+
+        async function submitTeacherReview(questionId, action, card) {
+            if (action === "delete" && !window.confirm("Wil je deze AI-vraag echt verwijderen?")) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om deze reviewactie uit te voeren.");
+                return;
+            }
+
+            let payload;
+            try {
+                payload = collectTeacherReviewPayload(card, action);
+            } catch (error) {
+                setTeacherCardMessage(card, error.message, true);
+                return;
+            }
+
+            setTeacherButtonsDisabled(card, true);
+            setTeacherCardMessage(card, "Bezig met opslaan...");
+
+            try {
+                const data = await fetchJson("/api/question/review", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify(payload)
+                });
+
+                setStatusMessage(data.message);
+                setTeacherReviewStatus(data.message);
+                await refreshTeacherQuestions(true);
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherButtonsDisabled(card, false);
+                setTeacherCardMessage(card, error.message, true);
+                setTeacherReviewStatus(error.message, true);
+            }
+        }
+
+        function setConsensusButtonsDisabled(disabled) {
+            byId("consensusApproveButton").disabled = disabled;
+            byId("consensusRejectButton").disabled = disabled;
+        }
+
+        function setConsensusOutcome(text = "", isError = false) {
+            const outcome = byId("consensusOutcome");
+            outcome.textContent = text;
+            outcome.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function showConsensusOverlay(source) {
+            const question = source.question || source.consensus_question || "";
+            const guidance = source.guidance || source.consensus_guidance || "";
+
+            byId("consensusQuestionText").textContent = question;
+            byId("consensusInstruction").textContent =
+                "Bespreek deze vraag met alle spelers. Roep daarna de leerkracht voor de evaluatie.";
+
+            const guidanceBox = byId("consensusGuidance");
+            guidanceBox.replaceChildren();
+
+            const title = document.createElement("strong");
+            title.textContent = "Waarop letten bij jullie consensus?";
+
+            const text = document.createElement("span");
+            text.textContent = guidance || "Zoek samen een eerlijk, doordacht en goed onderbouwd antwoord.";
+
+            const rule = document.createElement("span");
+            rule.textContent =
+                "Bij een goede consensus mag de groep een doorgang van 5 tegels maken. Bij een onvoldoende consensus ontploffen 3 willekeurige tegels definitief.";
+
+            guidanceBox.appendChild(title);
+            guidanceBox.appendChild(text);
+            guidanceBox.appendChild(rule);
+
+            setConsensusOutcome("");
+            setConsensusButtonsDisabled(false);
+            byId("consensusOverlay").hidden = false;
+        }
+
+        function closeConsensusOverlay() {
+            if (consensusBusy) {
+                return;
+            }
+
+            byId("consensusOverlay").hidden = true;
+            setConsensusOutcome("");
+        }
+
+        function renderConsensusStatus(state) {
+            const button = byId("consensusButton");
+            const title = byId("consensusStatusTitle");
+            const text = byId("consensusStatusText");
+            const meta = byId("consensusStatusMeta");
+            const usedCount = Number(state?.consensus_used_count || 0);
+            const remainingUses = Math.max(0, 3 - usedCount);
+
+            meta.textContent = "";
+
+            if (!state) {
+                button.disabled = true;
+                title.textContent = "Nog niet beschikbaar";
+                text.textContent = "Start eerst een spel om de rode knop te activeren.";
+                return;
+            }
+
+            if (!["running", "endgame"].includes(state.phase || "")) {
+                button.disabled = true;
+                title.textContent = "Spel niet actief";
+                text.textContent = "De rode knop werkt alleen tijdens een lopend spel.";
+                return;
+            }
+
+            if (state.consensus_active) {
+                button.disabled = false;
+                title.textContent = "Groepsdilemma actief";
+                text.textContent = "De groep is bezig met een ethische AI-vraag. Open de overlay opnieuw om verder te bespreken.";
+                meta.textContent = "Nog " + remainingUses + " van 3 beurten over. " + (state.consensus_question || "");
+                return;
+            }
+
+            if (usedCount >= 3) {
+                button.disabled = true;
+                title.textContent = "Rode knop opgebruikt";
+                text.textContent = "De groep heeft alle 3 groepsdilemma's in dit spel al gebruikt.";
+                meta.textContent = Array.isArray(state.destroyed_tiles) && state.destroyed_tiles.length
+                    ? "Verwoeste tegels: " + state.destroyed_tiles.join(", ")
+                    : "Verdiende doorgangtegels: " + (state.passage_bonus_tiles || 0);
+                return;
+            }
+
+            button.disabled = false;
+            title.textContent = usedCount > 0 ? "Nog " + remainingUses + " groepsdilemma's over" : "Beschikbaar";
+            text.textContent =
+                "Druk alleen als de hele groep bewust voor een ethisch AI-dilemma kiest en samen een consensus wil zoeken.";
+
+            const metaParts = ["Nog " + remainingUses + " van 3 gebruiken over."];
+            if ((state.passage_bonus_tiles || 0) > 0) {
+                metaParts.push("Verdiende doorgangtegels: " + state.passage_bonus_tiles + ".");
+            }
+            if (Array.isArray(state.destroyed_tiles) && state.destroyed_tiles.length) {
+                metaParts.push("Verwoeste tegels: " + state.destroyed_tiles.join(", ") + ".");
+            }
+            metaParts.push("Beloning: doorgang van 5 tegels. Straf: 3 tegels ontploffen.");
+            meta.textContent = metaParts.join(" ");
+        }
+
+        async function openConsensusChallenge() {
+            if (!latestState) {
+                setStatusMessage("Start eerst een spel om de rode ethiekknop te gebruiken.");
+                return;
+            }
+
+            if (latestState.consensus_active && latestState.consensus_question) {
+                showConsensusOverlay(latestState);
+                return;
+            }
+
+            if (Number(latestState.consensus_used_count || 0) >= 3) {
+                setStatusMessage("De rode ethiekknop is in dit spel al 3 keer gebruikt.");
+                return;
+            }
+
+            consensusBusy = true;
+            byId("consensusButton").disabled = true;
+
+            try {
+                const data = await fetchJson("/api/consensus/start", {method: "POST"});
+                renderState(data.state);
+                showConsensusOverlay(data);
+                setStatusMessage(data.message);
+            } catch (error) {
+                renderConsensusStatus(latestState);
+                setStatusMessage(error.message);
+            } finally {
+                consensusBusy = false;
+            }
+        }
+
+        async function evaluateConsensus(decision) {
+            if (consensusBusy) {
+                return;
+            }
+
+            if (!latestState || !latestState.consensus_active) {
+                setConsensusOutcome("Er is momenteel geen actieve groepsvraag meer.", true);
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth(
+                    "Geef het leerkrachtpaswoord in om de groepsconsensus te beoordelen.",
+                    async () => {
+                        await evaluateConsensus(decision);
+                    }
+                );
+                return;
+            }
+
+            consensusBusy = true;
+            setConsensusButtonsDisabled(true);
+            setConsensusOutcome("Leerkrachtbeoordeling wordt opgeslagen...");
+
+            try {
+                const data = await fetchJson("/api/consensus/evaluate", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify({decision})
+                });
+
+                renderState(data.state);
+                setConsensusOutcome(data.message, decision === "reject");
+                setStatusMessage(data.message);
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    setConsensusButtonsDisabled(false);
+                    setConsensusOutcome(
+                        "Leerkrachttoegang verlopen. Geef het paswoord opnieuw in en probeer nog eens.",
+                        true
+                    );
+                    return;
+                }
+
+                setConsensusButtonsDisabled(false);
+                setConsensusOutcome(error.message, true);
+                setStatusMessage(error.message);
+            } finally {
+                consensusBusy = false;
+                if (!latestState || !latestState.consensus_active) {
+                    setConsensusButtonsDisabled(true);
+                }
+            }
+        }
+
+        function resetQuestionFeedback() {
+            const feedback = byId("feedback");
+            feedback.className = "feedback-panel";
+            feedback.replaceChildren();
+        }
+
+        function resetAnswerPopup() {
+            byId("answerPopup").hidden = true;
+            byId("answerPopupTitle").textContent = "Juiste antwoord";
+            byId("answerPopupValue").textContent = "";
+            byId("answerPopupDetail").textContent = "";
+            byId("answerPopupNoteTitle").textContent = "";
+            byId("answerPopupNoteText").textContent = "";
+            byId("answerPopupNote").hidden = true;
+            byId("answerPopupCoord").textContent = "";
+            byId("answerPopupCoord").hidden = true;
+        }
+
+        async function finishQuestionTurn(advanceTurn = questionAnswered) {
+            if (questionTurnBusy) {
+                return;
+            }
+
+            byId("answerPopup").hidden = true;
+            byId("questionOverlay").hidden = true;
+            byId("optionsContainer").replaceChildren();
+            renderQuestionMedia(null);
+            resetQuestionFeedback();
+            currentQuestionId = null;
+            questionLocked = false;
+
+            const shouldAdvance = Boolean(
+                advanceTurn
+                && latestState
+                && ["running", "endgame"].includes(latestState.phase || "")
+            );
+
+            if (!shouldAdvance) {
+                questionAnswered = false;
+                questionTurnPlayerName = "";
+                return;
+            }
+
+            questionTurnBusy = true;
+
+            try {
+                const data = await fetchJson("/api/next_turn", {method: "POST"});
+                renderState(data.state);
+                const prefix = questionTurnPlayerName
+                    ? questionTurnPlayerName + " is klaar. "
+                    : "";
+                setStatusMessage(prefix + (data.message || "Volgende speler is aan de beurt."));
+            } catch (error) {
+                setStatusMessage(error.message);
+            } finally {
+                questionTurnBusy = false;
+                questionAnswered = false;
+                questionTurnPlayerName = "";
+            }
+        }
+
+        function showAnswerPopup({title, answer, detail, noteTitle = "", noteText = "", coord = ""}) {
+            byId("answerPopupTitle").textContent = title || "Juiste antwoord";
+            byId("answerPopupValue").textContent = answer || "";
+            byId("answerPopupDetail").textContent = detail || "";
+
+            const hasNote = Boolean(noteTitle || noteText || coord);
+            byId("answerPopupNote").hidden = !hasNote;
+            byId("answerPopupNoteTitle").textContent = noteTitle || "";
+            byId("answerPopupNoteText").textContent = noteText || "";
+            byId("answerPopupCoord").textContent = coord || "";
+            byId("answerPopupCoord").hidden = !coord;
+            byId("answerPopup").hidden = false;
+        }
+
+        function closeAnswerPopup() {
+            finishQuestionTurn(true);
+        }
+
+        function setQuestionFeedback(type, titleText, detailText, coord = "") {
+            const feedback = byId("feedback");
+            feedback.className = type ? "feedback-panel " + type : "feedback-panel";
+            feedback.replaceChildren();
+
+            if (!titleText) {
+                return;
+            }
+
+            const title = document.createElement("strong");
+            title.className = "feedback-title";
+            title.textContent = titleText;
+
+            const detail = document.createElement("span");
+            detail.className = "feedback-detail";
+            detail.textContent = detailText;
+
+            feedback.appendChild(title);
+            feedback.appendChild(detail);
+
+            if (coord) {
+                const badge = document.createElement("span");
+                badge.className = "feedback-coord";
+                badge.textContent = coord;
+                feedback.appendChild(badge);
+            }
+        }
+
+        function setQuestionButtonsDisabled(disabled) {
+            byId("optionsContainer")
+                .querySelectorAll("button.answer-option")
+                .forEach((button) => {
+                    button.disabled = disabled;
+                });
+        }
+
+        function renderQuestionMedia(question) {
+            const media = byId("questionMedia");
+            const image = byId("questionImage");
+
+            if (!question || !question.image_url) {
+                media.hidden = true;
+                image.removeAttribute("src");
+                image.alt = "";
+                return;
+            }
+
+            image.src = question.image_url;
+            image.alt = question.image_alt || "Beeld bij de vraag";
+            media.hidden = false;
+        }
+
+        function markQuestionAnswers(chosenIndex, correctIndex, revealCorrectAnswer = true) {
+            byId("optionsContainer")
+                .querySelectorAll("button.answer-option")
+                .forEach((button) => {
+                    const optionIndex = Number(button.dataset.index);
+                    button.disabled = true;
+                    button.classList.remove("correct", "wrong", "dimmed");
+
+                    if (optionIndex === chosenIndex && chosenIndex === correctIndex) {
+                        button.classList.add("correct");
+                    } else if (optionIndex === chosenIndex && chosenIndex !== correctIndex) {
+                        button.classList.add("wrong");
+                    } else if (revealCorrectAnswer && optionIndex === correctIndex) {
+                        button.classList.add("correct");
+                    } else {
+                        button.classList.add("dimmed");
+                    }
+                });
+        }
+
+        function createAnswerButton(option, index) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "answer-option";
+            button.dataset.index = String(index);
+            button.onclick = () => submitAnswer(index);
+
+            const key = document.createElement("span");
+            key.className = "answer-key";
+            key.textContent = answerLetters[index] || String(index + 1);
+
+            const text = document.createElement("span");
+            text.className = "answer-text";
+            text.textContent = option;
+
+            button.appendChild(key);
+            button.appendChild(text);
+            return button;
+        }
+
+        function createPlayerInput(value = "") {
+            const wrapper = document.createElement("div");
+            wrapper.className = "player-row";
+
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 40;
+            input.placeholder = "Naam speler " + (playerInputCount + 1);
+            input.value = value;
+
+            const badge = document.createElement("span");
+            badge.className = "entry-meta";
+            badge.textContent = "Speler " + (playerInputCount + 1);
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(badge);
+            return wrapper;
+        }
+
+        function syncPlayerLabels() {
+            const rows = [...byId("playerInputs").children];
+            rows.forEach((row, index) => {
+                const input = row.querySelector("input");
+                const label = row.querySelector("span");
+                if (input) {
+                    input.placeholder = "Naam speler " + (index + 1);
+                }
+                if (label) {
+                    label.textContent = "Speler " + (index + 1);
+                }
+            });
+            playerInputCount = rows.length;
+        }
+
+        function addPlayerInput(value = "") {
+            if (playerInputCount >= 8) {
+                setStatusMessage("Je kan maximaal 8 spelers ingeven.");
+                return;
+            }
+
+            byId("playerInputs").appendChild(createPlayerInput(value));
+            syncPlayerLabels();
+        }
+
+        function removePlayerInput() {
+            const container = byId("playerInputs");
+            if (container.children.length <= 1) {
+                setStatusMessage("Laat minstens één speler over.");
+                return;
+            }
+
+            container.removeChild(container.lastElementChild);
+            syncPlayerLabels();
+        }
+
+        function getPlayerNames() {
+            return [...byId("playerInputs").querySelectorAll("input")]
+                .map((input) => input.value.trim())
+                .filter(Boolean);
+        }
+
+        function itemKey(item) {
+            return [item.kind, item.coord, item.spawned_at].join("|");
+        }
+
+        function playAlarmTone() {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                return;
+            }
+
+            const audio = new AudioCtx();
+            const oscillator = audio.createOscillator();
+            const gain = audio.createGain();
+
+            oscillator.type = "square";
+            oscillator.frequency.setValueAtTime(880, audio.currentTime);
+            gain.gain.setValueAtTime(0.001, audio.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.08, audio.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.35);
+
+            oscillator.connect(gain);
+            gain.connect(audio.destination);
+
+            oscillator.start();
+            oscillator.stop(audio.currentTime + 0.36);
+
+            oscillator.onended = () => {
+                audio.close().catch(() => {});
+            };
+        }
+
+        function playExplosionRumble() {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) {
+                return;
+            }
+
+            const audio = new AudioCtx();
+            const master = audio.createGain();
+            const low = audio.createOscillator();
+            const mid = audio.createOscillator();
+            const high = audio.createOscillator();
+            const tremolo = audio.createOscillator();
+            const tremoloGain = audio.createGain();
+            const duration = 5.2;
+
+            low.type = "sawtooth";
+            low.frequency.setValueAtTime(42, audio.currentTime);
+            low.frequency.exponentialRampToValueAtTime(24, audio.currentTime + duration);
+
+            mid.type = "triangle";
+            mid.frequency.setValueAtTime(68, audio.currentTime);
+            mid.frequency.exponentialRampToValueAtTime(34, audio.currentTime + duration);
+
+            high.type = "square";
+            high.frequency.setValueAtTime(118, audio.currentTime);
+            high.frequency.exponentialRampToValueAtTime(62, audio.currentTime + duration);
+
+            tremolo.type = "sine";
+            tremolo.frequency.setValueAtTime(5.4, audio.currentTime);
+            tremoloGain.gain.setValueAtTime(0.07, audio.currentTime);
+
+            master.gain.setValueAtTime(0.001, audio.currentTime);
+            master.gain.exponentialRampToValueAtTime(0.14, audio.currentTime + 0.24);
+            master.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + duration);
+
+            tremolo.connect(tremoloGain);
+            tremoloGain.connect(master.gain);
+            low.connect(master);
+            mid.connect(master);
+            high.connect(master);
+            master.connect(audio.destination);
+
+            low.start();
+            mid.start();
+            high.start();
+            tremolo.start();
+
+            low.stop(audio.currentTime + duration);
+            mid.stop(audio.currentTime + duration);
+            high.stop(audio.currentTime + duration);
+            tremolo.stop(audio.currentTime + duration);
+
+            tremolo.onended = () => {
+                audio.close().catch(() => {});
+            };
+        }
+
+        function triggerExplosionEffect() {
+            const overlay = byId("explosionOverlay");
+            const dashboard = byId("appDashboard");
+
+            overlay.hidden = false;
+            overlay.classList.remove("show");
+            dashboard.classList.remove("exploding");
+
+            void overlay.offsetWidth;
+
+            overlay.classList.add("show");
+            dashboard.classList.add("exploding");
+
+            if (navigator.vibrate) {
+                navigator.vibrate([420, 130, 360, 120, 420, 100, 260]);
+            }
+            playExplosionRumble();
+
+            if (explosionTimeoutId) {
+                clearTimeout(explosionTimeoutId);
+            }
+
+            explosionTimeoutId = setTimeout(() => {
+                overlay.classList.remove("show");
+                overlay.hidden = true;
+                dashboard.classList.remove("exploding");
+            }, 5400);
+        }
+
+        function showAlarm(item) {
+            const banner = byId("alarmBanner");
+            const title = byId("alarmTitle");
+            const text = byId("alarmText");
+            const label = item.kind === "diamond" ? "Diamant" : "Dynamiet";
+
+            banner.classList.remove("diamond", "dynamite");
+            banner.classList.add("show", item.kind);
+            title.textContent = "Alarm: " + label;
+            text.textContent = "Leg " + label.toLowerCase() + " op coordinaat " + item.coord + ".";
+
+            if (navigator.vibrate) {
+                navigator.vibrate([160, 90, 160]);
+            }
+            playAlarmTone();
+
+            if (alarmTimeoutId) {
+                clearTimeout(alarmTimeoutId);
+            }
+
+            alarmTimeoutId = setTimeout(() => {
+                banner.classList.remove("show", "diamond", "dynamite");
+            }, 4000);
+        }
+
+        function appendChatLine(author, text) {
+            const chatbox = byId("chatbox");
+            const entry = document.createElement("div");
+            entry.className = "chat-entry";
+
+            const label = document.createElement("strong");
+            label.textContent = author + ": ";
+            entry.appendChild(label);
+            entry.appendChild(document.createTextNode(text));
+
+            chatbox.appendChild(entry);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        function renderEventLog(entries) {
+            const serialized = JSON.stringify(entries || []);
+            if (serialized === lastRenderedLog) {
+                return;
+            }
+
+            lastRenderedLog = serialized;
+            const log = byId("log");
+            log.replaceChildren();
+
+            if (!entries || entries.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "log-entry";
+                empty.textContent = "Nog geen spelactiviteit.";
+                log.appendChild(empty);
+                return;
+            }
+
+            entries.forEach((line) => {
+                const entry = document.createElement("div");
+                entry.className = "log-entry";
+                entry.textContent = line;
+                log.appendChild(entry);
+            });
+
+            log.scrollTop = log.scrollHeight;
+        }
+
+        async function markPlayerEscaped(playerId) {
+            try {
+                const data = await fetchJson("/api/escape/" + encodeURIComponent(playerId), {
+                    method: "POST"
+                });
+
+                renderState(data.state);
+                setStatusMessage(data.message);
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        function renderStartPositions(state) {
+            const list = byId("startList");
+            list.replaceChildren();
+            const players = state && Array.isArray(state.players) ? state.players : [];
+            const escapeAvailable = Boolean(state && state.exit_known && ["running", "endgame"].includes(state.phase || ""));
+
+            if (!players || players.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "list-entry";
+                empty.textContent = "Start een spel om startcoordinaten te krijgen.";
+                list.appendChild(empty);
+                return;
+            }
+
+            players.forEach((player) => {
+                const entry = document.createElement("div");
+                entry.className = "list-entry";
+
+                const row = document.createElement("div");
+                row.className = "list-row";
+
+                const content = document.createElement("div");
+
+                const title = document.createElement("span");
+                title.className = "entry-title";
+                title.textContent = player.name;
+
+                const meta = document.createElement("span");
+                meta.className = "entry-meta";
+
+                if (player.escaped) {
+                    meta.textContent = "Start op " + player.start_coord + " · Ontsnapt voor de explosie";
+                } else if (escapeAvailable) {
+                    meta.textContent = "Start op " + player.start_coord + " · Uitgang zichtbaar";
+                } else {
+                    meta.textContent = "Start op " + player.start_coord;
+                }
+
+                content.appendChild(title);
+                content.appendChild(meta);
+
+                if (player.escaped) {
+                    const escapedBadge = document.createElement("span");
+                    escapedBadge.className = "player-status escaped";
+                    escapedBadge.textContent = "Ontsnapt";
+                    row.appendChild(content);
+                    row.appendChild(escapedBadge);
+                } else if (escapeAvailable) {
+                    const escapeButton = document.createElement("button");
+                    escapeButton.type = "button";
+                    escapeButton.className = "escape-button";
+                    escapeButton.textContent = "Bereikt uitgang";
+                    escapeButton.onclick = () => markPlayerEscaped(player.id);
+                    row.appendChild(content);
+                    row.appendChild(escapeButton);
+                } else {
+                    const activeBadge = document.createElement("span");
+                    activeBadge.className = "player-status";
+                    activeBadge.textContent = "In groeve";
+                    row.appendChild(content);
+                    row.appendChild(activeBadge);
+                }
+
+                entry.appendChild(row);
+                list.appendChild(entry);
+            });
+        }
+
+        function renderItems(items) {
+            const list = byId("itemList");
+            list.replaceChildren();
+
+            if (!items || items.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "list-entry";
+                empty.textContent = "Nog geen actieve diamant- of dynamietlocaties.";
+                list.appendChild(empty);
+                return;
+            }
+
+            [...items]
+                .sort((a, b) => b.spawned_at - a.spawned_at)
+                .forEach((item) => {
+                const entry = document.createElement("div");
+                entry.className = "list-entry";
+
+                const row = document.createElement("div");
+                row.className = "list-row";
+
+                const content = document.createElement("div");
+
+                const title = document.createElement("span");
+                title.className = "entry-title";
+                title.textContent = item.kind === "diamond" ? "Diamant" : "Dynamiet";
+
+                const meta = document.createElement("span");
+                meta.className = "entry-meta";
+                meta.textContent = "Coordinaat " + item.coord;
+
+                content.appendChild(title);
+                content.appendChild(meta);
+
+                const removeButton = document.createElement("button");
+                removeButton.className = "secondary-button";
+                removeButton.textContent = "Opgehaald";
+                removeButton.onclick = () => removeItem(item.coord);
+
+                row.appendChild(content);
+                row.appendChild(removeButton);
+                entry.appendChild(row);
+                list.appendChild(entry);
+                });
+        }
+
+        function getCurrentPlayerInfo(state) {
+            if (!state || !Array.isArray(state.players) || state.players.length === 0) {
+                return null;
+            }
+
+            let index = state.turn_index || 0;
+            for (let i = 0; i < state.players.length; i += 1) {
+                const player = state.players[index];
+                if (player && !player.escaped) {
+                    return player;
+                }
+                index = (index + 1) % state.players.length;
+            }
+
+            return null;
+        }
+
+        function getCurrentPlayer(state) {
+            const player = getCurrentPlayerInfo(state);
+            return player ? player.name : "Iedereen ontsnapt";
+        }
+
+        function renderTurnSpotlight(state) {
+            const spotlightName = byId("turnSpotlightName");
+            const spotlightNote = byId("turnSpotlightNote");
+            const overlayName = byId("questionTurnName");
+
+            if (!state) {
+                spotlightName.textContent = "-";
+                spotlightNote.textContent = "Start eerst een spel om de beurtvolgorde te zien.";
+                overlayName.textContent = "-";
+                return;
+            }
+
+            const player = getCurrentPlayerInfo(state);
+            if (!player) {
+                spotlightName.textContent = "Iedereen ontsnapt";
+                spotlightNote.textContent = "Er is momenteel geen actieve speler meer aan beurt.";
+                overlayName.textContent = "Iedereen ontsnapt";
+                return;
+            }
+
+            spotlightName.textContent = player.name;
+            spotlightNote.textContent = "Deze speler is nu aan zet. Na een afgeronde vraag springt de beurt automatisch door.";
+            overlayName.textContent = player.name;
+        }
+
+        function renderExitButton(state) {
+            const button = byId("exitButton");
+            const title = byId("exitButtonTitle");
+            const subtitle = byId("exitButtonSubtitle");
+
+            if (!state) {
+                button.disabled = true;
+                title.textContent = "Groene exitknop";
+                subtitle.textContent = "Start eerst een spel om de groene exitknop beschikbaar te maken.";
+                return;
+            }
+
+            if (!["running", "endgame"].includes(state.phase || "")) {
+                button.disabled = true;
+                title.textContent = "Groene exitknop";
+                subtitle.textContent = "Deze knop werkt alleen tijdens een lopend spel.";
+                return;
+            }
+
+            if (state.emergency_pressed) {
+                button.disabled = true;
+                title.textContent = "Exit geactiveerd";
+                subtitle.textContent = state.exit_known
+                    ? "Uitgang onthuld op " + state.exit_coord + ". De eindfase loopt al."
+                    : "De eindfase loopt al.";
+                return;
+            }
+
+            const currentPlayer = getCurrentPlayerInfo(state);
+            button.disabled = !currentPlayer;
+            title.textContent = "Groene exitknop";
+            subtitle.textContent = currentPlayer
+                ? currentPlayer.name + " mag nu drukken. De uitgang verschijnt en de teller springt meteen naar 5 minuten."
+                : "Er is momenteel geen actieve speler aan beurt.";
+        }
+
+        async function pressExitButton() {
+            if (!latestState) {
+                setStatusMessage("Start eerst een spel om de groene exitknop te gebruiken.");
+                return;
+            }
+
+            const currentPlayer = getCurrentPlayerInfo(latestState);
+            if (!currentPlayer) {
+                setStatusMessage("Er is momenteel geen actieve speler aan beurt.");
+                return;
+            }
+
+            try {
+                const data = await fetchJson("/api/emergency/" + encodeURIComponent(currentPlayer.id), {
+                    method: "POST"
+                });
+
+                renderState(data.state);
+                const exitSuffix = data.state && data.state.exit_coord ? " Uitgang: " + data.state.exit_coord + "." : "";
+                setStatusMessage(data.message + exitSuffix);
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        function renderState(state) {
+            latestState = state;
+
+            if (!state) {
+                byId("timerDisplay").textContent = "--:--";
+                byId("phaseDisplay").textContent = "Geen actief spel";
+                byId("phaseDisplay").classList.remove("endgame");
+                byId("currentPlayerDisplay").textContent = "-";
+                byId("exitDisplay").textContent = "Nog onbekend";
+                byId("alarmBanner").classList.remove("show", "diamond", "dynamite");
+                byId("consensusOverlay").hidden = true;
+                byId("explosionOverlay").hidden = true;
+                byId("explosionOverlay").classList.remove("show");
+                byId("appDashboard").classList.remove("exploding");
+                currentGameId = null;
+                lastExplosionSignature = "";
+                knownItemKeys = new Set();
+                renderStartPositions(null);
+                renderItems([]);
+                renderEventLog([]);
+                renderConsensusStatus(null);
+                renderExitButton(null);
+                renderTurnSpotlight(null);
+                return;
+            }
+
+            if (state.game_id !== currentGameId) {
+                byId("consensusOverlay").hidden = true;
+                byId("explosionOverlay").hidden = true;
+                byId("explosionOverlay").classList.remove("show");
+                byId("appDashboard").classList.remove("exploding");
+                currentGameId = state.game_id;
+                lastExplosionSignature = "";
+                knownItemKeys = new Set((state.items || []).map(itemKey));
+                byId("alarmBanner").classList.remove("show", "diamond", "dynamite");
+            } else {
+                const newItems = (state.items || []).filter((item) => !knownItemKeys.has(itemKey(item)));
+                newItems.forEach((item) => {
+                    knownItemKeys.add(itemKey(item));
+                    showAlarm(item);
+                });
+            }
+
+            if (state.deadline_at) {
+                const referenceTime = state.timer_paused && state.paused_at
+                    ? state.paused_at
+                    : Date.now() / 1000;
+                const remaining = Math.max(0, Math.floor(state.deadline_at - referenceTime));
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                byId("timerDisplay").textContent = minutes + ":" + String(seconds).padStart(2, "0");
+            } else {
+                byId("timerDisplay").textContent = "--:--";
+            }
+
+            byId("phaseDisplay").textContent = state.timer_paused
+                ? (state.phase || "-") + " · gepauzeerd"
+                : state.phase || "-";
+            byId("phaseDisplay").classList.toggle("endgame", state.phase === "endgame");
+            byId("currentPlayerDisplay").textContent = getCurrentPlayer(state);
+            byId("exitDisplay").textContent = state.exit_known ? state.exit_coord : "Nog onbekend";
+            renderTurnSpotlight(state);
+            knownItemKeys = new Set((state.items || []).map(itemKey));
+            renderStartPositions(state);
+            renderItems(state.items);
+            renderEventLog(state.event_log);
+            renderConsensusStatus(state);
+            renderExitButton(state);
+
+            const explosionEntry = [...(state.event_log || [])]
+                .reverse()
+                .find((line) => line.includes("Explosie!"));
+            if (explosionEntry && explosionEntry !== lastExplosionSignature) {
+                lastExplosionSignature = explosionEntry;
+                triggerExplosionEffect();
+            }
+        }
+
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, options);
+            let data = {};
+
+            try {
+                data = await response.json();
+            } catch (error) {
+                data = {};
+            }
+
+            if (!response.ok) {
+                const error = new Error(data.detail || data.message || "De aanvraag mislukte.");
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
+        }
+
+        async function refreshState() {
+            try {
+                const data = await fetchJson("/api/state");
+                renderState(data);
+            } catch (error) {
+                renderState(null);
+                setStatusMessage(error.message);
+            }
+        }
+
+        async function newGame() {
+            const playerNames = getPlayerNames();
+            if (playerNames.length === 0) {
+                setStatusMessage("Vul minstens één spelersnaam in.");
+                return;
+            }
+
+            try {
+                const data = await fetchJson("/api/new", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        player_names: playerNames,
+                        timer_minutes: 30,
+                        auto_exit_reveal_minute: 25,
+                        emergency_endgame_minutes: 5
+                    })
+                });
+
+                renderState(data.state);
+                setStatusMessage(data.message);
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        async function removeItem(coord) {
+            try {
+                const data = await fetchJson("/api/item/remove", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({coord})
+                });
+
+                renderState(data.state);
+                setStatusMessage(data.message);
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        async function nextTurn() {
+            try {
+                const data = await fetchJson("/api/next_turn", {method: "POST"});
+                renderState(data.state);
+                setStatusMessage(data.message);
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        async function sendChat() {
+            const input = byId("chatInput");
+            const message = input.value.trim();
+            if (!message) {
+                return;
+            }
+
+            appendChatLine("Jij", message);
+            input.value = "";
+
+            try {
+                const data = await fetchJson("/api/chat", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({player_id: "p1", message})
+                });
+
+                appendChatLine("BavoBot", data.reply);
+                await refreshState();
+            } catch (error) {
+                appendChatLine("BavoBot", error.message);
+            }
+        }
+
+        async function loadQuestion(theme) {
+            try {
+                const data = await fetchJson("/api/question/next", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({theme})
+                });
+
+                if (!data.id) {
+                    setStatusMessage(data.message || "Geen vraag beschikbaar.");
+                    return;
+                }
+
+                currentQuestionId = data.id;
+                questionLocked = false;
+                questionAnswered = false;
+                questionTurnPlayerName = getCurrentPlayer(latestState);
+                byId("questionEyebrow").textContent = data.eyebrow || "Meerkeuzevraag";
+                byId("questionTheme").textContent = data.display_theme || themeLabels[theme] || theme;
+                byId("questionText").textContent = data.question;
+                byId("questionInstruction").textContent = data.instruction || "Kies het beste antwoord. Na het afronden springt de beurt automatisch naar de volgende speler.";
+                byId("questionTurnName").textContent = questionTurnPlayerName || "Groep";
+                renderQuestionMedia(data);
+                resetQuestionFeedback();
+                resetAnswerPopup();
+                byId("optionsContainer").replaceChildren();
+
+                data.options.forEach((option, index) => {
+                    byId("optionsContainer").appendChild(createAnswerButton(option, index));
+                });
+
+                byId("questionOverlay").hidden = false;
+            } catch (error) {
+                setStatusMessage(error.message);
+            }
+        }
+
+        async function submitAnswer(index) {
+            if (!currentQuestionId || questionLocked) {
+                return;
+            }
+
+            questionLocked = true;
+            setQuestionButtonsDisabled(true);
+
+            try {
+                const data = await fetchJson("/api/question/answer", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        id: currentQuestionId,
+                        chosen_index: index
+                    })
+                });
+
+                markQuestionAnswers(index, data.correct_index, data.correct);
+                questionAnswered = true;
+                const explanation = (data.explanation || "").trim();
+                const correctOption = (data.correct_option || "").trim();
+                const correctLabel = (data.correct_label || "").trim();
+                const answerLine = correctOption
+                    ? (correctLabel ? correctLabel + ". " + correctOption : correctOption)
+                    : "Bekijk samen welk antwoord het best past.";
+                const successDetail = explanation
+                    ? explanation + " Je mag zelf kiezen waar de tegel geplaatst wordt."
+                    : "Je mag zelf kiezen waar de tegel geplaatst wordt.";
+                const errorDetail = explanation
+                    ? explanation + " De tegel moet nu geplaatst worden op dit coordinaat:"
+                    : "De tegel moet nu geplaatst worden op dit coordinaat:";
+
+                if (data.correct) {
+                    setQuestionFeedback(
+                        "success",
+                        "Correct!",
+                        successDetail
+                    );
+                    showAnswerPopup({
+                        title: "Goed uitgelegd",
+                        answer: answerLine,
+                        detail: explanation,
+                        noteTitle: "Wat nu?",
+                        noteText: "Je mag zelf kiezen waar de tegel geplaatst wordt."
+                    });
+                } else {
+                    const autoData = await fetchJson("/api/tile/auto_place", {method: "POST"});
+                    setQuestionFeedback(
+                        "error",
+                        "Niet juist.",
+                        errorDetail,
+                        autoData.coord
+                    );
+                    showAnswerPopup({
+                        title: "Even leren van deze vraag",
+                        answer: answerLine,
+                        detail: explanation,
+                        noteTitle: "Wat nu?",
+                        noteText: "De tegel moet nu geplaatst worden op dit coordinaat:",
+                        coord: autoData.coord
+                    });
+                }
+
+                await refreshState();
+            } catch (error) {
+                questionLocked = false;
+                setQuestionButtonsDisabled(false);
+                setStatusMessage(error.message);
+            }
+        }
+
+        function closeQuestion() {
+            byId("optionsContainer").replaceChildren();
+            renderQuestionMedia(null);
+            resetQuestionFeedback();
+            finishQuestionTurn(questionAnswered);
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            ["", "", "", ""].forEach((name) => addPlayerInput(name));
+            bindAutoResizeTextarea("teacherManualQuestion");
+            bindAutoResizeTextarea("teacherManualExplanation");
+            bindAutoResizeTextarea("teacherManualGuidance");
+            bindTeacherImageHelpers();
+            resetTeacherManualForm();
+            updateTeacherManualType();
+            setTeacherMode("review", {scroll: false});
+            renderEventLog([]);
+            refreshState();
+            setInterval(refreshState, 1000);
+        });
+    </script>
+</body>
+</html>

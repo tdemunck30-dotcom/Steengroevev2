@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1600" role="img" aria-label="A quarry game board style background">
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8db7ea"/>
+      <stop offset="100%" stop-color="#b9d5f4"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ead8b4"/>
+      <stop offset="100%" stop-color="#c89e6d"/>
+    </linearGradient>
+    <linearGradient id="boardFace" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#d8ccb5"/>
+      <stop offset="100%" stop-color="#cbbda4"/>
+    </linearGradient>
+    <linearGradient id="boardHead" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#cfc3ac"/>
+      <stop offset="100%" stop-color="#b9ae99"/>
+    </linearGradient>
+    <linearGradient id="crateRed" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff6a43"/>
+      <stop offset="100%" stop-color="#b7261a"/>
+    </linearGradient>
+    <linearGradient id="coneOrange" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ff9c46"/>
+      <stop offset="100%" stop-color="#e3621a"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffd768"/>
+      <stop offset="100%" stop-color="#d79c17"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#9ca8b1"/>
+      <stop offset="100%" stop-color="#5b6670"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#5d4026" flood-opacity="0.22"/>
+    </filter>
+    <pattern id="rockPattern" width="180" height="180" patternUnits="userSpaceOnUse">
+      <rect width="180" height="180" fill="#be956a"/>
+      <ellipse cx="32" cy="36" rx="34" ry="26" fill="#8f6a47"/>
+      <ellipse cx="86" cy="24" rx="28" ry="22" fill="#a97d57"/>
+      <ellipse cx="143" cy="42" rx="38" ry="28" fill="#815f42"/>
+      <ellipse cx="56" cy="92" rx="44" ry="30" fill="#a77b53"/>
+      <ellipse cx="126" cy="102" rx="34" ry="24" fill="#8d6848"/>
+      <ellipse cx="24" cy="150" rx="30" ry="22" fill="#7a593d"/>
+      <ellipse cx="84" cy="152" rx="38" ry="28" fill="#b3885d"/>
+      <ellipse cx="151" cy="147" rx="32" ry="24" fill="#8d6a48"/>
+      <path d="M8 116c16-18 42-25 58-8s11 35-5 47-45 16-58-8 3-23 5-31Z" fill="#9a734d"/>
+      <path d="M94 60c14-15 35-20 49-8s12 30 1 40-34 16-47 4-16-23-3-36Z" fill="#b58b60"/>
+    </pattern>
+    <pattern id="gridMinor" width="65" height="62" patternUnits="userSpaceOnUse">
+      <path d="M65 0V62M0 62H65" fill="none" stroke="#5a5146" stroke-opacity="0.5" stroke-width="1.7"/>
+    </pattern>
+    <pattern id="gridMajor" width="195" height="186" patternUnits="userSpaceOnUse">
+      <path d="M195 0V186M0 186H195" fill="none" stroke="#4d443a" stroke-opacity="0.5" stroke-width="2.7"/>
+    </pattern>
+    <g id="cloud">
+      <ellipse cx="24" cy="24" rx="24" ry="14" fill="#ffffff" fill-opacity="0.94"/>
+      <ellipse cx="48" cy="18" rx="22" ry="16" fill="#ffffff" fill-opacity="0.96"/>
+      <ellipse cx="72" cy="24" rx="25" ry="14" fill="#ffffff" fill-opacity="0.94"/>
+      <ellipse cx="52" cy="30" rx="38" ry="16" fill="#f8fbff" fill-opacity="0.95"/>
+    </g>
+    <g id="miner">
+      <circle cx="24" cy="18" r="12" fill="#ffd14f"/>
+      <path d="M10 19c3-12 26-12 29 0v5H10z" fill="#f5bf26"/>
+      <circle cx="24" cy="28" r="11" fill="#f1c39e"/>
+      <circle cx="20" cy="27" r="1.3" fill="#3f2a1b"/>
+      <circle cx="28" cy="27" r="1.3" fill="#3f2a1b"/>
+      <path d="M20 33c3 2 8 2 11 0" fill="none" stroke="#7e5232" stroke-width="1.8" stroke-linecap="round"/>
+      <rect x="13" y="40" width="22" height="28" rx="8" fill="#2d72b8"/>
+      <rect x="18" y="40" width="12" height="10" rx="4" fill="#ffd75e" fill-opacity="0.86"/>
+      <path d="M15 68l-8 20" stroke="#5f422c" stroke-width="5" stroke-linecap="round"/>
+      <path d="M33 68l8 20" stroke="#5f422c" stroke-width="5" stroke-linecap="round"/>
+      <path d="M14 48L3 64" stroke="#f1c39e" stroke-width="6" stroke-linecap="round"/>
+      <path d="M34 48l11 12" stroke="#f1c39e" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    <g id="crate">
+      <rect x="4" y="10" width="42" height="28" rx="5" fill="url(#crateRed)" stroke="#7e1d12" stroke-width="2.5"/>
+      <path d="M25 10v28M6 20h38" stroke="#ffd2b0" stroke-opacity="0.42" stroke-width="2"/>
+      <rect x="16" y="20" width="18" height="8" rx="2" fill="#ffc938"/>
+    </g>
+    <g id="cone">
+      <ellipse cx="18" cy="38" rx="16" ry="5" fill="#a46833" fill-opacity="0.38"/>
+      <path d="M18 4L32 34H4Z" fill="url(#coneOrange)" stroke="#9e4a17" stroke-width="2"/>
+      <path d="M11 18h14M8 28h20" stroke="#fff2d7" stroke-width="3" stroke-linecap="round"/>
+    </g>
+    <g id="goldPile">
+      <ellipse cx="28" cy="26" rx="28" ry="10" fill="#8e6433" fill-opacity="0.28"/>
+      <circle cx="13" cy="18" r="10" fill="url(#gold)"/>
+      <circle cx="26" cy="13" r="11" fill="url(#gold)"/>
+      <circle cx="39" cy="18" r="10" fill="url(#gold)"/>
+      <circle cx="18" cy="26" r="9" fill="url(#gold)"/>
+      <circle cx="31" cy="25" r="9" fill="url(#gold)"/>
+      <circle cx="45" cy="26" r="8" fill="url(#gold)"/>
+    </g>
+    <g id="ladder">
+      <path d="M8 5L2 44M30 5l6 39" stroke="#7d4f1f" stroke-width="5" stroke-linecap="round"/>
+      <path d="M8 14h19M6 24h21M5 34h22" stroke="#a96d28" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <g id="cart">
+      <rect x="6" y="14" width="48" height="22" rx="6" fill="#7f8b93"/>
+      <path d="M4 34h52l-8 14H12Z" fill="#606a72"/>
+      <circle cx="18" cy="52" r="9" fill="#3b444b"/>
+      <circle cx="42" cy="52" r="9" fill="#3b444b"/>
+      <use href="#goldPile" x="4" y="-6"/>
+    </g>
+  </defs>
+
+  <rect width="1600" height="1600" fill="url(#ground)"/>
+  <rect width="1600" height="218" fill="url(#sky)"/>
+
+  <use href="#cloud" x="70" y="28"/>
+  <use href="#cloud" x="220" y="42" transform="scale(0.9)"/>
+  <use href="#cloud" x="392" y="24" transform="scale(1.02)"/>
+  <use href="#cloud" x="588" y="38" transform="scale(0.86)"/>
+  <use href="#cloud" x="770" y="24" transform="scale(1.04)"/>
+  <use href="#cloud" x="975" y="42" transform="scale(0.9)"/>
+  <use href="#cloud" x="1146" y="22" transform="scale(1.02)"/>
+  <use href="#cloud" x="1330" y="38" transform="scale(0.9)"/>
+
+  <rect x="0" y="160" width="1600" height="170" fill="url(#rockPattern)"/>
+  <rect x="0" y="330" width="170" height="1090" fill="url(#rockPattern)"/>
+  <rect x="1430" y="330" width="170" height="1090" fill="url(#rockPattern)"/>
+  <rect x="0" y="1420" width="1600" height="180" fill="url(#rockPattern)"/>
+
+  <g filter="url(#softShadow)">
+    <rect x="190" y="260" width="1224" height="1114" rx="8" fill="url(#boardFace)" stroke="#544b3f" stroke-width="4"/>
+    <rect x="190" y="260" width="1224" height="60" fill="url(#boardHead)"/>
+    <rect x="190" y="260" width="54" height="1114" fill="url(#boardHead)"/>
+    <rect x="244" y="320" width="1170" height="1054" fill="url(#gridMinor)"/>
+    <rect x="244" y="320" width="1170" height="1054" fill="url(#gridMajor)"/>
+    <path d="M244 260v1114M190 320h1224" stroke="#5c5347" stroke-width="2.6"/>
+  </g>
+
+  <g font-family="Aptos, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#4d4439" text-anchor="middle">
+    <text x="276.5" y="297">A</text>
+    <text x="341.5" y="297">B</text>
+    <text x="406.5" y="297">C</text>
+    <text x="471.5" y="297">D</text>
+    <text x="536.5" y="297">E</text>
+    <text x="601.5" y="297">F</text>
+    <text x="666.5" y="297">G</text>
+    <text x="731.5" y="297">H</text>
+    <text x="796.5" y="297">I</text>
+    <text x="861.5" y="297">J</text>
+    <text x="926.5" y="297">K</text>
+    <text x="991.5" y="297">L</text>
+    <text x="1056.5" y="297">M</text>
+    <text x="1121.5" y="297">N</text>
+    <text x="1186.5" y="297">O</text>
+    <text x="1251.5" y="297">P</text>
+    <text x="1316.5" y="297">Q</text>
+    <text x="1381.5" y="297">R</text>
+  </g>
+
+  <g font-family="Aptos, Segoe UI, sans-serif" font-size="18" font-weight="700" fill="#4d4439" text-anchor="middle">
+    <text x="216" y="357">1</text>
+    <text x="216" y="419">2</text>
+    <text x="216" y="481">3</text>
+    <text x="216" y="543">4</text>
+    <text x="216" y="605">5</text>
+    <text x="216" y="667">6</text>
+    <text x="216" y="729">7</text>
+    <text x="216" y="791">8</text>
+    <text x="216" y="853">9</text>
+    <text x="216" y="915">10</text>
+    <text x="216" y="977">11</text>
+    <text x="216" y="1039">12</text>
+    <text x="216" y="1101">13</text>
+    <text x="216" y="1163">14</text>
+    <text x="216" y="1225">15</text>
+    <text x="216" y="1287">16</text>
+    <text x="216" y="1349">17</text>
+  </g>
+
+  <g opacity="0.95">
+    <use href="#miner" transform="translate(48 188) scale(1.45)"/>
+    <use href="#ladder" transform="translate(110 192) rotate(-8 20 20) scale(1.3)"/>
+    <use href="#ladder" transform="translate(242 192) rotate(8 20 20) scale(1.3)"/>
+    <use href="#miner" transform="translate(320 198) scale(1.34)"/>
+    <use href="#miner" transform="translate(436 178) scale(1.22)"/>
+    <use href="#crate" transform="translate(642 212) scale(1.45)"/>
+    <use href="#crate" transform="translate(742 214) scale(1.35)"/>
+    <use href="#miner" transform="translate(872 176) scale(1.34)"/>
+    <use href="#goldPile" transform="translate(1048 182) scale(1.35)"/>
+    <rect x="1198" y="214" width="38" height="48" rx="6" fill="#2f3338"/>
+    <rect x="1154" y="182" width="26" height="82" rx="6" fill="#6dd3ff" fill-opacity="0.9"/>
+    <use href="#goldPile" transform="translate(1298 188) scale(1.4)"/>
+    <use href="#miner" transform="translate(1452 186) scale(1.3)"/>
+
+    <use href="#miner" transform="translate(14 370) scale(1.48)"/>
+    <use href="#miner" transform="translate(24 610) scale(1.4)"/>
+    <use href="#ladder" transform="translate(44 738) rotate(-12 20 20) scale(1.45)"/>
+    <use href="#miner" transform="translate(16 874) scale(1.38)"/>
+    <use href="#crate" transform="translate(58 1068) scale(1.5)"/>
+    <use href="#miner" transform="translate(28 1316) scale(1.5)"/>
+
+    <use href="#miner" transform="translate(1454 354) scale(1.48)"/>
+    <use href="#miner" transform="translate(1464 590) scale(1.38)"/>
+    <use href="#miner" transform="translate(1466 816) scale(1.4)"/>
+    <use href="#crate" transform="translate(1484 962) scale(1.46)"/>
+    <use href="#miner" transform="translate(1450 1128) scale(1.42)"/>
+    <use href="#miner" transform="translate(1448 1362) scale(1.5)"/>
+
+    <use href="#cone" transform="translate(28 1460) scale(1.55)"/>
+    <use href="#miner" transform="translate(110 1450) scale(1.4)"/>
+    <use href="#miner" transform="translate(238 1460) scale(1.22)"/>
+    <use href="#cone" transform="translate(448 1450) scale(1.62)"/>
+    <use href="#cart" transform="translate(560 1452) scale(1.32)"/>
+    <use href="#crate" transform="translate(694 1472) scale(1.4)"/>
+    <use href="#cone" transform="translate(854 1450) scale(1.62)"/>
+    <path d="M1044 1490l94-54 16 32-52 60Z" fill="#f0c12b" stroke="#9f7415" stroke-width="3"/>
+    <rect x="1138" y="1432" width="80" height="64" rx="10" fill="#51616a" stroke="#39464d" stroke-width="3"/>
+    <rect x="1148" y="1440" width="58" height="54" rx="8" fill="#f0bf2e"/>
+    <circle cx="1154" cy="1498" r="16" fill="#636f77"/>
+    <circle cx="1202" cy="1498" r="16" fill="#636f77"/>
+    <use href="#cone" transform="translate(1274 1454) scale(1.62)"/>
+    <use href="#cart" transform="translate(1336 1442) scale(1.2)"/>
+    <use href="#crate" transform="translate(1474 1468) scale(1.22)"/>
+  </g>
+</svg>
