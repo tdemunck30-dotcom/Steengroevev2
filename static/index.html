@@ -438,9 +438,8 @@
         }
 
         .consensus-block {
+            display: grid;
             gap: 12px;
-            padding-top: 18px;
-            margin-top: 8px;
         }
 
         .consensus-block .section-heading {
@@ -546,6 +545,25 @@
         .dashboard-start {
             grid-column: 2;
             grid-row: 2;
+            grid-template-rows: auto minmax(0, 1fr) auto;
+        }
+
+        .dashboard-start .scrollbox {
+            max-height: 136px;
+        }
+
+        .dashboard-start .consensus-block {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(109, 66, 37, 0.14);
+        }
+
+        .dashboard-start .consensus-block .section-heading {
+            margin-bottom: 6px;
+        }
+
+        .dashboard-start .consensus-block .action-button {
+            min-height: 76px;
         }
 
         .dashboard-items {
@@ -2886,22 +2904,6 @@
                 </div>
             </div>
 
-            <div class="dashboard-block consensus-block">
-                <div class="section-heading">
-                    <h2>Groepsdilemma</h2>
-                    <p class="panel-intro">Gebruik de rode knop wanneer de groep samen een ethische afweging wil maken.</p>
-                </div>
-                <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
-                    <span class="button-title">Start groepsdilemma</span>
-                    <span class="button-subtitle">Kom samen tot een consensus en laat de leerkracht daarna jullie redenering beoordelen.</span>
-                </button>
-                <div class="consensus-status">
-                    <strong id="consensusStatusTitle">Nog niet beschikbaar</strong>
-                    <span id="consensusStatusText">Start eerst een spel om de rode knop te activeren.</span>
-                    <span id="consensusStatusMeta" class="entry-meta"></span>
-                </div>
-            </div>
-
             <div class="dashboard-block">
                 <div class="section-heading">
                     <h2>Themavragen</h2>
@@ -2935,6 +2937,21 @@
                 <p class="panel-intro">Na het starten van een spel verschijnen hier alle startcoordinaten. Zodra de uitgang zichtbaar is, kan je hier ook spelers als ontsnapt markeren.</p>
             </div>
             <div id="startList" class="scrollbox" aria-live="polite"></div>
+            <div class="consensus-block">
+                <div class="section-heading">
+                    <h2>Groepsdilemma</h2>
+                    <p class="panel-intro">Gebruik de rode knop wanneer de groep samen een ethische afweging wil maken.</p>
+                </div>
+                <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
+                    <span class="button-title">Start groepsdilemma</span>
+                    <span class="button-subtitle">Kom samen tot een consensus en laat de leerkracht daarna jullie redenering beoordelen.</span>
+                </button>
+                <div class="consensus-status">
+                    <strong id="consensusStatusTitle">Nog niet beschikbaar</strong>
+                    <span id="consensusStatusText">Start eerst een spel om de rode knop te activeren.</span>
+                    <span id="consensusStatusMeta" class="entry-meta"></span>
+                </div>
+            </div>
         </section>
 
         <section class="panel dashboard-panel compact-panel items-compact-panel dashboard-items">
