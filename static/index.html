@@ -285,7 +285,8 @@
             grid-column: 1;
             grid-row: 2 / 4;
             display: grid;
-            grid-template-rows: minmax(280px, 1.05fr) auto auto auto;
+            grid-template-rows: auto auto auto auto;
+            align-content: start;
             gap: 12px;
             padding: 22px;
             overflow-x: hidden;
@@ -319,19 +320,20 @@
         }
 
         .dashboard-sidebar #playerInputs {
-            min-height: 248px;
+            min-height: 0;
+            max-height: min(260px, 34vh);
             overflow-y: auto;
             padding-right: 4px;
         }
 
         .dashboard-sidebar .action-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
         }
 
         .dashboard-sidebar .button-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
         }
 
         .dashboard-sidebar .action-button {
@@ -369,10 +371,14 @@
 
         .dashboard-sidebar .small-actions {
             margin-top: 0;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
         .dashboard-sidebar .small-actions button {
-            flex: 1 1 0;
+            flex: none;
+            width: 100%;
             min-height: 46px;
             padding: 10px 14px;
         }
@@ -2507,6 +2513,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .dashboard-sidebar .small-actions {
+                grid-template-columns: 1fr;
+            }
+
             .teacher-generate-actions,
             .teacher-auto-image-grid,
             .teacher-mode-switch,
@@ -2532,6 +2542,30 @@
             #alarmBanner {
                 width: min(680px, calc(100vw - 36px));
                 padding: 28px 30px;
+            }
+        }
+
+        @media (max-width: 1460px) {
+            .dashboard-sidebar #playerInputs {
+                max-height: min(220px, 30vh);
+            }
+
+            .dashboard-sidebar .action-grid,
+            .dashboard-sidebar .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-sidebar .small-actions {
+                grid-template-columns: 1fr;
+            }
+
+            .player-row {
+                grid-template-columns: 1fr;
+                align-items: stretch;
+            }
+
+            .player-row .entry-meta {
+                justify-content: flex-start;
             }
         }
 
