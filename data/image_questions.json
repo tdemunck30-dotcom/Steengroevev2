@@ -339,7 +339,7 @@
     "explanation": "De woorden afgebeeld op het bord en het glas lijken nergens op te slaan. Dit komt vaak voor bij AI-gegenereerde foto's.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": true
   },
   {
     "id": "image_round_24",
@@ -427,42 +427,6 @@
     "image_url": "/static/question-images/uploads/image-1773668381-4192.png",
     "image_alt": "Beeld bij de vraag",
     "explanation": "De derde persoon van links op de onderste rij heeft een snorretje. Het isq belangrijk om op kleine details te letten om echte van valse foto's van elkaar te onderscheiden.",
-    "approved": true,
-    "rejected": false,
-    "used": false
-  },
-  {
-    "id": "image_round_29",
-    "source": "teacher",
-    "type": "image_binary",
-    "display_theme": "Beeldronde",
-    "question": "Kijk goed: is deze foto waarschijnlijk met AI gemaakt of niet?",
-    "options": [
-      "Waarschijnlijk AI-gegenereerd",
-      "Waarschijnlijk niet AI-gegenereerd"
-    ],
-    "correct_index": 0,
-    "image_url": "/static/question-images/uploads/image-1773666736-7720.png",
-    "image_alt": "Beeld bij de vraag",
-    "explanation": "De positie van het hand lijkt een beetje vreemd. Ook met de vingers klopt er iets niet.",
-    "approved": true,
-    "rejected": false,
-    "used": true
-  },
-  {
-    "id": "image_round_30",
-    "source": "auto",
-    "type": "image_binary",
-    "display_theme": "Beeldronde",
-    "question": "Kijk goed: is deze foto waarschijnlijk met AI gemaakt of niet?",
-    "options": [
-      "Waarschijnlijk AI-gegenereerd",
-      "Waarschijnlijk niet AI-gegenereerd"
-    ],
-    "correct_index": 1,
-    "image_url": "/static/question-images/uploads/image-1773668102-9747.png",
-    "image_alt": "Beeld bij de vraag",
-    "explanation": "Hoewel de apen lijken te poseren en het er dus nogal onnatuurlijk uitziet is deze foto echt. (bron: jeugdjournaal.nl)\nDe apen waren natuurlijk niet echt aan het poseren. Ze waren dicht tegen elkaar aangekropen vanwege de kou. Maar dat leverde wel dit schattige plaatje op!",
     "approved": true,
     "rejected": false,
     "used": false
@@ -570,24 +534,6 @@
     "correct_index": 0,
     "image_url": "/static/question-images/generated/broeikas-met-tomatenplanten-1774260714-5075.png",
     "image_alt": "Kleine broeikas met tomatenplanten en tuinhandschoenen",
-    "explanation": "Dit beeld werd met AI gemaakt voor deze automatische beeldmix. Kijk bij zulke foto's extra naar kleine details, texturen, schaduwen en onwaarschijnlijke elementen.",
-    "approved": true,
-    "rejected": false,
-    "used": false
-  },
-  {
-    "id": "image_round_38",
-    "source": "ai",
-    "type": "image_binary",
-    "display_theme": "Beeldronde",
-    "question": "Werd deze foto door AI gegenereerd of niet?",
-    "options": [
-      "Waarschijnlijk AI-gegenereerd",
-      "Waarschijnlijk niet AI-gegenereerd"
-    ],
-    "correct_index": 0,
-    "image_url": "/static/question-images/generated/rommelige-klasbank-1774260733-6635.png",
-    "image_alt": "Rommelige klasbank met schriften, pennen en een drinkfles",
     "explanation": "Dit beeld werd met AI gemaakt voor deze automatische beeldmix. Kijk bij zulke foto's extra naar kleine details, texturen, schaduwen en onwaarschijnlijke elementen.",
     "approved": true,
     "rejected": false,

@@ -11,6 +11,8 @@ import unicodedata
 import base64
 import binascii
 import hashlib
+import textwrap
+import math
 from difflib import SequenceMatcher
 from typing import Dict, List, Optional, Literal, Tuple
 
@@ -23,6 +25,8 @@ DATA_DIR = Path("data")
 CORE_FILE = DATA_DIR / "core_questions.json"
 IMAGE_FILE = DATA_DIR / "image_questions.json"
 CONSENSUS_FILE = DATA_DIR / "consensus_dilemmas.json"
+DISABLED_CONSENSUS_FILE = DATA_DIR / "disabled_consensus_dilemmas.json"
+ALL_TIME_RANKING_FILE = DATA_DIR / "all_time_ranking.json"
 QUESTION_IMAGE_DIR = Path("static") / "question-images"
 UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
 GENERATED_IMAGE_DIR = QUESTION_IMAGE_DIR / "generated"
@@ -119,7 +123,7 @@ THEMES = {
 ETHICAL_AI_DILEMMAS = [
     {
         "id": "ethics_1",
-        "question": "Een leerling laat een AI bijna een volledige boekbespreking schrijven en past daarna alleen enkele zinnen aan. Is het eerlijk om dat werk als volledig eigen werk in te dienen? Waarom wel of niet?",
+        "question": "Een leerling laat AI bijna een volledige boekbespreking schrijven en past daarna alleen enkele zinnen aan. Is het eerlijk om dat werk als volledig eigen werk in te dienen? Waarom wel of niet?",
         "guidance": "Zoek samen een antwoord dat eerlijkheid, leerdoel en eigen inspanning mee afweegt."
     },
     {
@@ -209,6 +213,17 @@ Kwaliteitseisen:
 - vermijd té simpele vragen zoals losse woordbetekenissen zonder context
 - vermijd onzinnige opties zoals "omdat AI slaapt" of "omdat een robot liegt"
 
+Vaste kwaliteitslat voor AI-geletterdheid:
+- gebruik eenvoudige leerlingentaal voor de eerste graad secundair onderwijs
+- maak de vraag kort, concreet en herkenbaar voor leerlingen
+- laat elke vraag aansluiten bij een situatie uit school, apps, zoeken, sociale media, beelden of chatbots
+- raak waar mogelijk een concreet thema: AI herkennen, wat AI doet, kritisch kijken, betrouwbaarheid, privacy, eerlijkheid, AI op school, zelfstandig denken of verantwoord gebruik
+- toon dat AI niet altijd juist is en kritisch gecontroleerd moet worden
+- toon dat AI fouten of vooroordelen kan bevatten
+- wees voorzichtig met privacy en persoonlijke gegevens
+- AI mag helpen, maar mag zelfstandig denken niet vervangen
+- vermijd moeilijke woorden, dubbele vragen en herhaling
+
 Vorm:
 - korte duidelijke vraag
 - 4 antwoordopties
@@ -269,7 +284,10 @@ def parse_coord(coord: str) -> Tuple[str, int]:
 # ----------------------------
 
 def load_core_questions():
-    return load_questions_from_file(CORE_FILE)
+    questions = load_questions_from_file(CORE_FILE)
+    if rebalance_core_question_answer_positions_in_memory(questions):
+        save_core_questions(questions)
+    return questions
 
 
 def load_image_questions():
@@ -285,6 +303,103 @@ def load_questions_from_file(path: Path):
         return []
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_string_list_from_file(path: Path) -> List[str]:
+    if not path.exists():
+        return []
+    with open(path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
+
+    if not isinstance(payload, list):
+        return []
+
+    values: List[str] = []
+    for item in payload:
+        normalized = str(item or "").strip()
+        if normalized and normalized not in values:
+            values.append(normalized)
+    return values
+
+
+def load_all_time_ranking() -> List[AllTimeRankingEntry]:
+    if not ALL_TIME_RANKING_FILE.exists():
+        return []
+
+    try:
+        with open(ALL_TIME_RANKING_FILE, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+
+    if not isinstance(payload, list):
+        return []
+
+    entries: List[AllTimeRankingEntry] = []
+    seen_ids: set[str] = set()
+
+    for item in payload:
+        if not isinstance(item, dict):
+            continue
+
+        entry_id = str(item.get("id") or "").strip()
+        game_id = str(item.get("game_id") or "").strip()
+        if not entry_id or not game_id or entry_id in seen_ids:
+            continue
+
+        raw_names = item.get("player_names")
+        if not isinstance(raw_names, list):
+            raw_names = []
+
+        player_names: List[str] = []
+        for raw_name in raw_names:
+            normalized_name = str(raw_name or "").strip()
+            if normalized_name:
+                player_names.append(normalized_name)
+
+        try:
+            created_at = float(item.get("created_at") or 0.0)
+        except (TypeError, ValueError):
+            created_at = 0.0
+
+        try:
+            diamond_total = max(0, int(item.get("diamond_total") or 0))
+        except (TypeError, ValueError):
+            diamond_total = 0
+
+        escaped_player_count = len(player_names)
+        if escaped_player_count <= 0:
+            continue
+
+        entries.append(AllTimeRankingEntry(
+            id=entry_id,
+            game_id=game_id,
+            created_at=created_at,
+            player_names=player_names,
+            escaped_player_count=escaped_player_count,
+            diamond_total=diamond_total,
+        ))
+        seen_ids.add(entry_id)
+
+    return sort_all_time_ranking(entries)
+
+
+def sort_all_time_ranking(entries: List[AllTimeRankingEntry]) -> List[AllTimeRankingEntry]:
+    return sorted(
+        entries,
+        key=lambda entry: (
+            -entry.diamond_total,
+            -entry.escaped_player_count,
+            -entry.created_at,
+            entry.id,
+        ),
+    )
+
+
+def save_all_time_ranking(entries: List[AllTimeRankingEntry]) -> None:
+    serializable_entries = [entry.model_dump() for entry in sort_all_time_ranking(entries)]
+    with open(ALL_TIME_RANKING_FILE, "w", encoding="utf-8") as f:
+        json.dump(serializable_entries, f, indent=2, ensure_ascii=False)
 
 
 def reset_questions():
@@ -318,6 +433,19 @@ def save_consensus_dilemmas(questions):
 def save_questions_to_file(path: Path, questions):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(questions, f, indent=2, ensure_ascii=False)
+
+
+def save_string_list_to_file(path: Path, values: List[str]) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(values, f, indent=2, ensure_ascii=False)
+
+
+def load_disabled_consensus_ids() -> List[str]:
+    return load_string_list_from_file(DISABLED_CONSENSUS_FILE)
+
+
+def save_disabled_consensus_ids(question_ids: List[str]) -> None:
+    save_string_list_to_file(DISABLED_CONSENSUS_FILE, question_ids)
 
 
 def save_teacher_uploaded_image(data_url: str, filename: str = "") -> str:
@@ -790,7 +918,7 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
     else:
         instruction = (
             question.get("instruction")
-            or "Kies het beste antwoord. Bij een fout krijg je een plaatsingscoordinaat."
+            or "Kies het beste antwoord. Bij een juist antwoord mag je 3 tegels leggen, bij een fout krijg je een plaatsingscoordinaat."
         )
         eyebrow = question.get("eyebrow") or "Meerkeuzevraag"
 
@@ -907,9 +1035,12 @@ def learning_explanation_text(question: dict) -> str:
 
 
 def load_all_consensus_dilemmas() -> List[dict]:
+    disabled_ids = set(load_disabled_consensus_ids())
     built_in = []
     for dilemma in ETHICAL_AI_DILEMMAS:
         entry = dict(dilemma)
+        if entry.get("id") in disabled_ids:
+            continue
         entry["type"] = "consensus_dilemma"
         entry["display_theme"] = entry.get("display_theme") or "Groepsdilemma"
         entry["source"] = entry.get("source") or "system"
@@ -918,6 +1049,8 @@ def load_all_consensus_dilemmas() -> List[dict]:
     custom = []
     for dilemma in load_consensus_dilemmas():
         entry = dict(dilemma)
+        if entry.get("id") in disabled_ids:
+            continue
         entry["type"] = "consensus_dilemma"
         entry["display_theme"] = entry.get("display_theme") or "Groepsdilemma"
         entry["source"] = entry.get("source") or "teacher"
@@ -930,14 +1063,12 @@ def load_removable_questions() -> List[dict]:
     removable: List[dict] = []
 
     for question in load_core_questions():
-        if question.get("source") != "teacher":
-            continue
         removable.append(build_manageable_question_summary(question, "core"))
 
     for question in load_image_questions():
         removable.append(build_manageable_question_summary(question, "image"))
 
-    for dilemma in load_consensus_dilemmas():
+    for dilemma in load_all_consensus_dilemmas():
         removable.append(build_manageable_question_summary(dilemma, "consensus"))
 
     removable.reverse()
@@ -949,8 +1080,6 @@ def delete_removable_question(question_id: str) -> bool:
     for index, question in enumerate(core_questions):
         if question.get("id") != question_id:
             continue
-        if question.get("source") != "teacher":
-            raise HTTPException(403, "Deze vraag kan niet via de app verwijderd worden.")
         core_questions.pop(index)
         save_core_questions(core_questions)
         return True
@@ -969,6 +1098,18 @@ def delete_removable_question(question_id: str) -> bool:
             continue
         consensus_dilemmas.pop(index)
         save_consensus_dilemmas(consensus_dilemmas)
+        return True
+
+    built_in_ids = {
+        str(dilemma.get("id") or "").strip()
+        for dilemma in ETHICAL_AI_DILEMMAS
+        if str(dilemma.get("id") or "").strip()
+    }
+    if question_id in built_in_ids:
+        disabled_ids = load_disabled_consensus_ids()
+        if question_id not in disabled_ids:
+            disabled_ids.append(question_id)
+            save_disabled_consensus_ids(disabled_ids)
         return True
 
     return False
@@ -1011,7 +1152,7 @@ def normalize_question_options(options: List[str]) -> List[str]:
     return normalized
 
 
-def stable_ai_correct_index(question: dict) -> int:
+def stable_question_correct_index(question: dict) -> int:
     stable_key = str(question.get("id") or "").strip() or normalize_text_for_similarity(question.get("question", ""))
     if not stable_key:
         return 0
@@ -1037,29 +1178,25 @@ def move_correct_option_to_index(question: dict, target_index: int) -> bool:
     return True
 
 
-def rebalance_ai_question_answer_positions() -> List[dict]:
-    questions = load_core_questions()
-    if not questions:
-        return []
-
+def rebalance_core_question_answer_positions_in_memory(questions: List[dict]) -> bool:
     changed = False
-
     for question in questions:
-        if question.get("source") != "ai":
+        if question.get("source") not in {"ai", "core"}:
             continue
         if question.get("rejected", False):
             continue
         if str(question.get("type") or "multiple_choice") != "multiple_choice":
             continue
 
-        target_index = stable_ai_correct_index(question)
+        target_index = stable_question_correct_index(question)
         if move_correct_option_to_index(question, target_index):
             changed = True
 
-    if changed:
-        save_core_questions(questions)
+    return changed
 
-    return questions
+
+def rebalance_ai_question_answer_positions() -> List[dict]:
+    return load_core_questions()
 
 
 def require_teacher_password(x_teacher_password: Optional[str]) -> None:
@@ -1116,6 +1253,44 @@ def random_destroyed_coords(gs: "GameState", count: int) -> List[Coord]:
 
     return random.sample(choices, count)
 
+
+def should_trigger_random_dynamite_blast(distributed_count: int) -> bool:
+    if distributed_count < 4:
+        return False
+    if distributed_count >= 6:
+        return True
+
+    # Gives each outcome (4, 5 or 6 distributed sticks) the same overall chance.
+    remaining_trigger_counts = 6 - distributed_count + 1
+    return random.randint(1, remaining_trigger_counts) == 1
+
+
+def two_by_two_block_candidates(anchor_coord: Coord) -> List[List[Coord]]:
+    col, row = parse_coord(anchor_coord)
+    col_index = COLS.index(col)
+    candidates: List[Tuple[int, List[Coord]]] = []
+
+    for col_shift in (0, -1):
+        for row_shift in (0, -1):
+            top_left_col = col_index + col_shift
+            top_left_row = row + row_shift
+            if top_left_col < 0 or top_left_col + 1 >= len(COLS):
+                continue
+            if top_left_row < 1 or top_left_row + 1 > ROWS[-1]:
+                continue
+
+            block = [
+                f"{COLS[top_left_col]}{top_left_row}",
+                f"{COLS[top_left_col + 1]}{top_left_row}",
+                f"{COLS[top_left_col]}{top_left_row + 1}",
+                f"{COLS[top_left_col + 1]}{top_left_row + 1}",
+            ]
+            shift_cost = abs(col_shift) + abs(row_shift)
+            candidates.append((shift_cost, block))
+
+    candidates.sort(key=lambda item: (item[0], item[1][0]))
+    return [block for _, block in candidates]
+
 def manhattan(a: Coord, b: Coord) -> int:
     ac, ar = parse_coord(a)
     bc, br = parse_coord(b)
@@ -1138,6 +1313,36 @@ class Player(BaseModel):
     escaped_at: Optional[float] = None  # epoch seconds
 
 
+class AllTimeRankingEntry(BaseModel):
+    id: str
+    game_id: str
+    created_at: float
+    player_names: List[str] = Field(default_factory=list)
+    escaped_player_count: int = 0
+    diamond_total: int = 0
+
+
+class GroupEvaluationTheme(BaseModel):
+    label: str
+    answered: int = 0
+    correct: int = 0
+
+
+class GroupEvaluationMistake(BaseModel):
+    theme_label: str
+    question: str
+    chosen_option: str = ""
+    correct_option: str = ""
+    explanation: str = ""
+
+
+class GroupEvaluation(BaseModel):
+    total_answered: int = 0
+    total_correct: int = 0
+    themes: Dict[str, GroupEvaluationTheme] = Field(default_factory=dict)
+    mistakes: List[GroupEvaluationMistake] = Field(default_factory=list)
+
+
 class SpawnItem(BaseModel):
     kind: Literal["diamond", "dynamite"]
     coord: Coord
@@ -1154,6 +1359,13 @@ class GameState(BaseModel):
     auto_exit_reveal_at: Optional[float] = None  # time when exit becomes visible automatically (25 min)
     timer_paused: bool = False
     paused_at: Optional[float] = None
+    pause_reasons: List[str] = Field(default_factory=list)
+    distributed_dynamite_count: int = 0
+    last_dynamite_blast_id: int = 0
+    last_dynamite_blast_blocks: List[List[Coord]] = Field(default_factory=list)
+    last_dynamite_blast_board_count: int = 0
+    last_dynamite_blast_player_count: int = 0
+    last_dynamite_blast_summary: str = ""
 
     # Exit
     exit_known: bool = False
@@ -1182,6 +1394,13 @@ class GameState(BaseModel):
     emergency_pressed: bool = False
     emergency_pressed_by: Optional[str] = None
     emergency_pressed_at: Optional[float] = None
+
+    # Ranking
+    all_time_ranking: List[AllTimeRankingEntry] = Field(default_factory=list)
+    latest_all_time_ranking_entry_id: Optional[str] = None
+    final_result_note: Optional[str] = None
+    ranking_recorded: bool = False
+    group_evaluation: GroupEvaluation = Field(default_factory=GroupEvaluation)
 
     # Logging
     event_log: List[str] = Field(default_factory=list)
@@ -1292,7 +1511,7 @@ class ConsensusEvaluationRequest(BaseModel):
 # ----------------------------
 
 app = FastAPI(title="Uit de Steengroeve - Game API (MVP)")
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 
 @app.get("/")
 def serve_index():
@@ -1308,20 +1527,20 @@ CONFIG: Dict[str, int] = {
     "timer_minutes": 30,
     "auto_exit_reveal_minute": 25,
     "emergency_endgame_minutes": 5,
-    "diamond_spawn_min_seconds": 150,
-    "diamond_spawn_max_seconds": 270,
-    "diamond_max_simultaneous": 2,
-    "dynamite_spawn_min_seconds": 210,
-    "dynamite_spawn_max_seconds": 360,
-    "dynamite_max_simultaneous": 3,
+    "diamond_spawn_min_seconds": 120,
+    "diamond_spawn_max_seconds": 210,
+    "diamond_max_simultaneous": 3,
+    "dynamite_spawn_min_seconds": 180,
+    "dynamite_spawn_max_seconds": 300,
+    "dynamite_max_simultaneous": 4,
 }
 DEFAULT_RANDOM_SPAWN_CONFIG = {
-    "diamond_spawn_min_seconds": 150,
-    "diamond_spawn_max_seconds": 270,
-    "diamond_max_simultaneous": 2,
-    "dynamite_spawn_min_seconds": 210,
-    "dynamite_spawn_max_seconds": 360,
-    "dynamite_max_simultaneous": 3,
+    "diamond_spawn_min_seconds": 120,
+    "diamond_spawn_max_seconds": 210,
+    "diamond_max_simultaneous": 3,
+    "dynamite_spawn_min_seconds": 180,
+    "dynamite_spawn_max_seconds": 300,
+    "dynamite_max_simultaneous": 4,
 }
 @app.post("/api/tile/auto_place")
 async def auto_place_tile():
@@ -1342,6 +1561,729 @@ async def auto_place_tile():
 def _log(gs: GameState, msg: str) -> None:
     stamp = time.strftime("%H:%M:%S")
     gs.event_log.append(f"[{stamp}] {msg}")
+
+
+def _collect_item_for_player(gs: GameState, player: Player, item: SpawnItem) -> str:
+    coord = item.coord
+
+    if item.kind == "diamond":
+        player.info_cards += 1
+        _log(gs, f"{player.name} verzamelt DIAMANT op {coord} -> +1 diamant (totaal {player.info_cards}).")
+        return f"Diamant op {coord} toegevoegd aan {player.name} (totaal {player.info_cards})."
+
+    player.dynamite += 1
+    _log(gs, f"{player.name} verzamelt DYNAMIET op {coord} -> +1 dynamiet (totaal {player.dynamite}).")
+    return f"Dynamiet op {coord} toegevoegd aan {player.name} (totaal {player.dynamite})."
+
+
+def _escaped_players(gs: GameState) -> List[Player]:
+    return [player for player in gs.players if player.escaped]
+
+
+def _escaped_player_names(gs: GameState) -> List[str]:
+    return [player.name for player in _escaped_players(gs)]
+
+
+def _escaped_diamond_total(gs: GameState) -> int:
+    return sum(max(0, int(player.info_cards or 0)) for player in _escaped_players(gs))
+
+
+def _ranking_summary_text(names: List[str], diamond_total: int) -> str:
+    if not names:
+        return "Niemand raakte op tijd uit de groeve. Er werd geen rankingresultaat toegevoegd."
+
+    names_text = ", ".join(names)
+    diamonds_text = f"{diamond_total} diamant{'en' if diamond_total != 1 else ''}"
+    if len(names) == 1:
+        return f"{names_text} bereikte de uitgang met {diamonds_text}. (1 ontsnapte speler)"
+
+    player_text = f"{len(names)} ontsnapte spelers"
+    return f"{names_text} bereikten samen de uitgang met {diamonds_text}. ({player_text})"
+
+
+def _sync_ranking_snapshot(gs: GameState) -> None:
+    gs.all_time_ranking = load_all_time_ranking()
+
+
+def _record_all_time_ranking_result(gs: GameState) -> None:
+    if gs.ranking_recorded:
+        if not gs.all_time_ranking:
+            _sync_ranking_snapshot(gs)
+        return
+
+    escaped_players = _escaped_players(gs)
+    if not escaped_players:
+        gs.latest_all_time_ranking_entry_id = None
+        gs.final_result_note = _ranking_summary_text([], 0)
+        gs.ranking_recorded = True
+        _sync_ranking_snapshot(gs)
+        return
+
+    player_names = [player.name for player in escaped_players]
+    diamond_total = _escaped_diamond_total(gs)
+    ranking_entries = load_all_time_ranking()
+    entry = AllTimeRankingEntry(
+        id=gs.game_id,
+        game_id=gs.game_id,
+        created_at=time.time(),
+        player_names=player_names,
+        escaped_player_count=len(player_names),
+        diamond_total=diamond_total,
+    )
+
+    ranking_entries = [existing for existing in ranking_entries if existing.id != entry.id]
+    ranking_entries.append(entry)
+    save_all_time_ranking(ranking_entries)
+
+    gs.latest_all_time_ranking_entry_id = entry.id
+    gs.final_result_note = _ranking_summary_text(player_names, diamond_total)
+    gs.ranking_recorded = True
+    _sync_ranking_snapshot(gs)
+    _log(gs, "All time ranking bijgewerkt: " + gs.final_result_note)
+
+
+EVALUATION_THEME_ORDER = ["werking", "leefwereld", "risicos", "verantwoord", "beeldronde", "algemeen"]
+EVALUATION_THEME_FEEDBACK = {
+    "werking": {
+        "background": "AI zoekt patronen in voorbeelden en maakt daarna een waarschijnlijk antwoord. Dat is nuttig, maar AI begrijpt de wereld niet zoals jullie dat doen.",
+        "strength": "Dit loopt al goed: jullie lijken te zien dat AI niet echt denkt als een mens. Daardoor is de kans kleiner dat jullie een antwoord zomaar geloven omdat het slim klinkt.",
+        "growth": "Let nog extra op het verschil tussen voorspellen, begrijpen en kopieren. Vraag jezelf af: weet AI dit echt, of klinkt het vooral alsof het zeker is?",
+        "risk": "Als je denkt dat AI alles begrijpt, kan een fout antwoord heel betrouwbaar lijken. Dan neem je sneller verkeerde informatie over in een taak of uitleg.",
+    },
+    "leefwereld": {
+        "background": "AI zit in zoekmachines, sociale media, navigatie, vertaalapps, aanbevelingen en chatbots. Vaak bepaalt AI mee wat jullie zien zonder dat dat duidelijk wordt getoond.",
+        "strength": "Dit loopt al goed: jullie herkennen AI in herkenbare situaties. Dat helpt om kritischer te kijken naar apps, zoekresultaten en aanbevelingen.",
+        "growth": "Let nog extra op waarom een app net die video, route, zoekhit of reclame toont. Vraag jezelf af wie voordeel heeft bij wat jij te zien krijgt.",
+        "risk": "Als je AI in je dagelijks leven niet herkent, kan je sneller meegaan in eenzijdige informatie, reclame of inhoud die vooral bedoeld is om je aandacht vast te houden.",
+    },
+    "risicos": {
+        "background": "AI kan fouten maken, iets verzinnen, oude informatie gebruiken of vooroordelen uit data overnemen. Een antwoord kan juist lijken omdat het mooi geschreven is.",
+        "strength": "Dit loopt al goed: jullie zien dat AI niet altijd juist is. Dat is belangrijk bij schoolwerk, nieuws, beelden en advies.",
+        "growth": "Let nog extra op broncontrole. Controleer zeker wanneer een antwoord verrassend, heel stellig, vaag of te mooi om waar te zijn klinkt.",
+        "risk": "Een verkeerd AI-antwoord kan leiden tot foutieve leerstof, verkeerde conclusies, nepnieuws of oneerlijke ideeen over mensen en groepen.",
+    },
+    "verantwoord": {
+        "background": "Verantwoord AI-gebruik betekent dat AI mag helpen, maar dat jullie zelf blijven nadenken, controleren en eerlijk zijn over hulp van AI.",
+        "strength": "Dit loopt al goed: jullie kiezen vaker voor controleren, afspraken volgen en eigen denkwerk bewaren.",
+        "growth": "Let nog extra op privacy, eerlijk vermelden wanneer AI hielp en AI gebruiken als hulp, niet als vervanger van jullie eigen antwoord.",
+        "risk": "Onverantwoord gebruik kan ervoor zorgen dat je persoonlijke gegevens deelt, werk indient dat je niet begrijpt of minder oefent met zelf redeneren.",
+    },
+    "beeldronde": {
+        "background": "AI-beelden en bewerkte beelden kunnen echt lijken. Details zoals handen, tekst, licht, schaduwen en context kunnen helpen, maar geven niet altijd zekerheid.",
+        "strength": "Dit loopt al goed: jullie kijken kritischer naar beelden en zoeken naar aanwijzingen voordat jullie beslissen.",
+        "growth": "Let nog extra op traag kijken, de bron controleren en de context bekijken voordat jullie een beeld geloven of delen.",
+        "risk": "Als je een AI-beeld verkeerd inschat, kan je een nepbeeld delen, iemand onterecht beschuldigen of een gemanipuleerd verhaal geloven.",
+    },
+    "algemeen": {
+        "background": "AI-geletterdheid gaat over herkennen, begrijpen, controleren, privacy, eerlijkheid en zelfstandig denken. Die onderdelen horen samen.",
+        "strength": "Dit loopt al goed: jullie passen verschillende afspraken rond AI al samen toe.",
+        "growth": "Let nog extra op hardop uitleggen waarom een AI-antwoord betrouwbaar, eerlijk en veilig is.",
+        "risk": "Als je maar een deel van AI-geletterdheid toepast, kan het toch misgaan: een antwoord kan fout zijn, privacygevoelig zijn of je eigen denken vervangen.",
+    },
+}
+
+
+def evaluation_theme_key(question: dict) -> str:
+    question_type = str(question.get("type") or "multiple_choice")
+    if question_type == "image_binary":
+        return "beeldronde"
+
+    theme = str(question.get("theme") or "").strip()
+    if theme in THEMES:
+        return theme
+
+    return "algemeen"
+
+
+def evaluation_theme_label(theme_key: str) -> str:
+    if theme_key == "beeldronde":
+        return "Beeldronde: AI-beelden herkennen"
+    if theme_key == "algemeen":
+        return "Algemene AI-geletterdheid"
+    return THEMES.get(theme_key, {}).get("label", theme_key)
+
+
+def record_group_question_result(
+    gs: GameState,
+    question: dict,
+    correct: bool,
+    chosen_index: Optional[int] = None,
+) -> None:
+    theme_key = evaluation_theme_key(question)
+    theme_stats = gs.group_evaluation.themes.get(theme_key)
+    if theme_stats is None:
+        theme_stats = GroupEvaluationTheme(label=evaluation_theme_label(theme_key))
+        gs.group_evaluation.themes[theme_key] = theme_stats
+
+    theme_stats.answered += 1
+    gs.group_evaluation.total_answered += 1
+
+    if correct:
+        theme_stats.correct += 1
+        gs.group_evaluation.total_correct += 1
+        return
+
+    options = list(question.get("options") or [])
+    chosen_option = ""
+    if isinstance(chosen_index, int) and 0 <= chosen_index < len(options):
+        chosen_option = str(options[chosen_index]).strip()
+
+    mistake = GroupEvaluationMistake(
+        theme_label=theme_stats.label,
+        question=str(question.get("question") or "").strip(),
+        chosen_option=chosen_option,
+        correct_option=correct_option_text(question),
+        explanation=learning_explanation_text(question),
+    )
+    gs.group_evaluation.mistakes.append(mistake)
+    gs.group_evaluation.mistakes = gs.group_evaluation.mistakes[-6:]
+
+
+def sorted_group_evaluation_themes(evaluation: GroupEvaluation) -> List[Tuple[str, GroupEvaluationTheme]]:
+    def sort_key(item: Tuple[str, GroupEvaluationTheme]) -> Tuple[int, str]:
+        theme_key = item[0]
+        try:
+            order_index = EVALUATION_THEME_ORDER.index(theme_key)
+        except ValueError:
+            order_index = len(EVALUATION_THEME_ORDER)
+        return order_index, theme_key
+
+    return sorted(evaluation.themes.items(), key=sort_key)
+
+
+def score_percent(correct: int, answered: int) -> int:
+    if answered <= 0:
+        return 0
+    return int(round((correct / answered) * 100))
+
+
+def group_evaluation_report_rows(gs: GameState) -> List[Tuple[str, int, int]]:
+    evaluation = gs.group_evaluation
+    rows: List[Tuple[str, int, int]] = [
+        ("Groepsevaluatie AI-geletterdheid", 18, 10),
+        (
+            "Deze evaluatie vat samen wat tijdens het spel zichtbaar werd rond kritisch, veilig en eerlijk omgaan met AI.",
+            11,
+            8,
+        ),
+    ]
+
+    if evaluation.total_answered <= 0:
+        rows.extend([
+            ("Er zijn nog geen AI-vragen geregistreerd tijdens dit spel.", 12, 8),
+            (
+                "Speel eerst enkele vragen uit verschillende thema's. Bespreek telkens waarom een antwoord klopt, waar twijfel zat en welke controle nodig is.",
+                11,
+                8,
+            ),
+            (
+                "Een goede AI-reflectie gaat niet alleen over juist of fout antwoorden. Het gaat vooral over uitleggen waarom je AI wel of niet vertrouwt.",
+                11,
+                8,
+            ),
+        ])
+        return rows
+
+    strong_themes: List[str] = []
+    growth_themes: List[str] = []
+
+    for theme_key, theme_stats in sorted_group_evaluation_themes(evaluation):
+        if theme_stats.answered <= 0:
+            continue
+        theme_score = score_percent(theme_stats.correct, theme_stats.answered)
+        if theme_score >= 75:
+            strong_themes.append(theme_stats.label)
+        else:
+            growth_themes.append(theme_stats.label)
+
+    rows.append(("Algemene duiding", 14, 6))
+    rows.append((
+        "AI kan heel bruikbaar zijn om uitleg te krijgen, ideeën te ordenen of voorbeelden te zoeken. Toch blijft controle nodig: een AI-antwoord kan overtuigend klinken en toch fout, onvolledig of eenzijdig zijn.",
+        11,
+        7,
+    ))
+    rows.append((
+        "Verkeerde antwoorden zijn niet onschuldig. Ze kunnen leiden tot foutieve leerstof, misverstanden in een taak, het verspreiden van nepnieuws, oneerlijke beelden over groepen mensen of het delen van persoonlijke informatie.",
+        11,
+        10,
+    ))
+
+    rows.append(("Wat al goed loopt", 14, 6))
+    if strong_themes:
+        rows.append(("Deze thema's kwamen sterk naar voren: " + ", ".join(strong_themes) + ".", 11, 7))
+        rows.append((
+            "Ook bij sterke thema's blijft herhaling zinvol. AI verandert snel en leerlingen komen AI vaak tegen buiten de klas, waar er minder begeleiding is.",
+            11,
+            8,
+        ))
+    else:
+        rows.append((
+            "Er kwam nog geen duidelijk sterk thema naar voren. Gebruik dit als startpunt voor een klassikale bespreking: welke stappen helpen om een AI-antwoord betrouwbaar te controleren?",
+            11,
+            8,
+        ))
+
+    rows.append(("Aandachtspunten", 14, 6))
+    if growth_themes:
+        rows.append(("Bespreek vooral verder: " + ", ".join(growth_themes) + ".", 11, 7))
+        rows.append((
+            "Een aandachtspunt betekent niet dat de groep dit niet kan. Het betekent dat leerlingen baat hebben bij extra voorbeelden, hardop redeneren en samen controleren.",
+            11,
+            8,
+        ))
+    else:
+        rows.append((
+            "Er sprong geen duidelijk moeilijk thema uit. Blijf wel oefenen op broncontrole, privacy en zelfstandig denken, want net bij vlotte antwoorden is blind vertrouwen een risico.",
+            11,
+            8,
+        ))
+
+    rows.append(("Analyse per thema", 14, 6))
+    for theme_key, theme_stats in sorted_group_evaluation_themes(evaluation):
+        if theme_stats.answered <= 0:
+            continue
+
+        theme_score = score_percent(theme_stats.correct, theme_stats.answered)
+        feedback = EVALUATION_THEME_FEEDBACK.get(theme_key, EVALUATION_THEME_FEEDBACK["algemeen"])
+        if theme_score >= 75:
+            intro = "Sterk thema"
+            advice = f"{feedback['background']} {feedback['strength']} {feedback['risk']}"
+        elif theme_score >= 50:
+            intro = "Wisselend thema"
+            advice = f"{feedback['background']} {feedback['growth']} {feedback['risk']}"
+        else:
+            intro = "Belangrijk aandachtspunt"
+            advice = f"{feedback['background']} {feedback['growth']} {feedback['risk']}"
+
+        rows.append((
+            f"{intro}: {theme_stats.label}. {advice}",
+            11,
+            9,
+        ))
+
+    rows.append(("Bespreekvragen voor de klas", 14, 6))
+    rows.append((
+        "Kies een thema dat extra aandacht vraagt. Laat de groep uitleggen hoe ze een AI-antwoord zouden controleren, welke bron ze zouden gebruiken en welke informatie ze beter niet met AI delen.",
+        11,
+        7,
+    ))
+    rows.append((
+        "Laat leerlingen ook benoemen waar AI mag helpen en waar eigen denken nodig blijft. Zo wordt AI een hulpmiddel, geen vervanging voor begrijpen.",
+        11,
+        0,
+    ))
+    return rows
+
+
+def student_group_evaluation_report_rows(gs: GameState) -> List[Tuple[str, int, int]]:
+    evaluation = gs.group_evaluation
+    rows: List[Tuple[str, int, int]] = [
+        ("Jullie AI-terugblik", 18, 10),
+        (
+            "Dit verslag helpt jullie zien wat al goed lukt en waar jullie nog extra op moeten letten bij AI.",
+            11,
+            8,
+        ),
+    ]
+
+    if evaluation.total_answered <= 0:
+        rows.extend([
+            ("Er zijn nog geen AI-vragen geregistreerd tijdens dit spel.", 12, 8),
+            (
+                "Speel eerst enkele vragen uit verschillende thema's. Bespreek daarna samen waarom een antwoord klopt, waar twijfel zat en welke controle nodig is.",
+                11,
+                8,
+            ),
+            (
+                "Bij AI gaat het niet alleen over juist of fout antwoorden. Het gaat vooral over uitleggen waarom je AI wel of niet vertrouwt.",
+                11,
+                8,
+            ),
+        ])
+        return rows
+
+    strong_themes: List[str] = []
+    growth_themes: List[str] = []
+
+    for theme_key, theme_stats in sorted_group_evaluation_themes(evaluation):
+        if theme_stats.answered <= 0:
+            continue
+        theme_score = score_percent(theme_stats.correct, theme_stats.answered)
+        if theme_score >= 75:
+            strong_themes.append(theme_stats.label)
+        else:
+            growth_themes.append(theme_stats.label)
+
+    rows.append(("Waarom dit belangrijk is", 14, 6))
+    rows.append((
+        "AI kan jullie helpen om uitleg te krijgen, ideeen te ordenen of voorbeelden te zoeken. Toch blijft controle nodig: een AI-antwoord kan overtuigend klinken en toch fout, onvolledig of eenzijdig zijn.",
+        11,
+        7,
+    ))
+    rows.append((
+        "Verkeerde antwoorden zijn niet onschuldig. Ze kunnen zorgen voor foutieve leerstof, misverstanden in een taak, het verspreiden van nepnieuws, oneerlijke beelden over mensen of het delen van persoonlijke informatie.",
+        11,
+        10,
+    ))
+
+    rows.append(("Wat al goed loopt", 14, 6))
+    if strong_themes:
+        rows.append(("Hier lieten jullie zien dat jullie al sterk staan: " + ", ".join(strong_themes) + ".", 11, 7))
+        rows.append((
+            "Dat betekent niet dat jullie hier nooit meer op moeten letten. Net bij thema's die goed gaan, kan een antwoord te snel vanzelfsprekend lijken.",
+            11,
+            8,
+        ))
+    else:
+        rows.append((
+            "Er kwam nog geen duidelijk sterk thema naar voren. Dat is een goed moment om samen te oefenen: welke stappen helpen om een AI-antwoord betrouwbaar te controleren?",
+            11,
+            8,
+        ))
+
+    rows.append(("Waar jullie op moeten letten", 14, 6))
+    if growth_themes:
+        rows.append(("Deze thema's vragen extra aandacht: " + ", ".join(growth_themes) + ".", 11, 7))
+        rows.append((
+            "Een aandachtspunt betekent niet dat jullie dit niet kunnen. Het betekent dat jullie baat hebben bij extra voorbeelden, hardop redeneren en samen controleren.",
+            11,
+            8,
+        ))
+    else:
+        rows.append((
+            "Er sprong geen duidelijk moeilijk thema uit. Blijf toch oefenen op broncontrole, privacy en zelfstandig denken, want net bij vlotte antwoorden is blind vertrouwen een risico.",
+            11,
+            8,
+        ))
+
+    rows.append(("Analyse per thema", 14, 6))
+    for theme_key, theme_stats in sorted_group_evaluation_themes(evaluation):
+        if theme_stats.answered <= 0:
+            continue
+
+        theme_score = score_percent(theme_stats.correct, theme_stats.answered)
+        feedback = EVALUATION_THEME_FEEDBACK.get(theme_key, EVALUATION_THEME_FEEDBACK["algemeen"])
+        if theme_score >= 75:
+            intro = "Dit ging goed"
+            advice = f"{feedback['background']} {feedback['strength']} {feedback['risk']}"
+        elif theme_score >= 50:
+            intro = "Dit ging wisselend"
+            advice = f"{feedback['background']} {feedback['growth']} {feedback['risk']}"
+        else:
+            intro = "Hier moeten jullie extra op letten"
+            advice = f"{feedback['background']} {feedback['growth']} {feedback['risk']}"
+
+        rows.append((
+            f"{intro}: {theme_stats.label}. {advice}",
+            11,
+            9,
+        ))
+
+    rows.append(("Fouten om van te leren", 14, 6))
+    if evaluation.mistakes:
+        for mistake in evaluation.mistakes[:3]:
+            detail_parts = []
+            if mistake.chosen_option:
+                detail_parts.append(f"Jullie kozen: {mistake.chosen_option}.")
+            if mistake.correct_option:
+                detail_parts.append(f"Sterker was: {mistake.correct_option}.")
+            if mistake.explanation:
+                detail_parts.append(f"Waarom dit telt: {mistake.explanation}")
+
+            detail = " ".join(detail_parts).strip()
+            if not detail:
+                detail = "Gebruik dit foutje als herinnering om AI-antwoorden altijd te controleren."
+
+            rows.append((
+                f"Bij {mistake.theme_label} liep het mis bij: {mistake.question} {detail}",
+                11,
+                8,
+            ))
+    else:
+        rows.append((
+            "Er werden geen foute antwoorden geregistreerd. Dat is mooi, maar blijf opletten: AI kan juist lijken door een nette stijl, niet omdat het antwoord automatisch klopt.",
+            11,
+            8,
+        ))
+
+    rows.append(("Wat jullie kunnen meenemen", 14, 6))
+    rows.append((
+        "Spreek bij een volgend AI-antwoord hardop af: wat willen we controleren, welke bron gebruiken we, welke persoonlijke informatie delen we niet en welk deel moeten we zelf begrijpen?",
+        11,
+        7,
+    ))
+    rows.append((
+        "AI mag helpen, maar jullie blijven verantwoordelijk voor wat jullie geloven, delen en inleveren. Gebruik AI dus als hulpmiddel, niet als vervanging voor begrijpen.",
+        11,
+        0,
+    ))
+    return rows
+
+
+def pdf_text_literal(text: str) -> bytes:
+    escaped = (
+        str(text or "")
+        .replace("\r", " ")
+        .replace("\n", " ")
+        .encode("cp1252", "replace")
+    )
+    escaped = escaped.replace(b"\\", b"\\\\").replace(b"(", b"\\(").replace(b")", b"\\)")
+    return b"(" + escaped + b")"
+
+
+def pdf_number(value: float) -> bytes:
+    return f"{value:.2f}".rstrip("0").rstrip(".").encode("ascii")
+
+
+def pdf_color(color: Tuple[float, float, float]) -> bytes:
+    return b" ".join(pdf_number(channel) for channel in color)
+
+
+def pdf_rect_operation(
+    x: float,
+    y: float,
+    width: float,
+    height: float,
+    color: Tuple[float, float, float],
+    operator: bytes = b"f",
+) -> bytes:
+    color_operator = b"rg" if operator == b"f" else b"RG"
+    return (
+        b"q "
+        + pdf_color(color)
+        + b" "
+        + color_operator
+        + b" "
+        + pdf_number(x)
+        + b" "
+        + pdf_number(y)
+        + b" "
+        + pdf_number(width)
+        + b" "
+        + pdf_number(height)
+        + b" re "
+        + operator
+        + b" Q\n"
+    )
+
+
+def pdf_polygon_operation(points: List[Tuple[float, float]], color: Tuple[float, float, float]) -> bytes:
+    if not points:
+        return b""
+
+    chunks = [b"q ", pdf_color(color), b" rg "]
+    first_x, first_y = points[0]
+    chunks.extend([pdf_number(first_x), b" ", pdf_number(first_y), b" m "])
+
+    for point_x, point_y in points[1:]:
+        chunks.extend([pdf_number(point_x), b" ", pdf_number(point_y), b" l "])
+
+    chunks.append(b"h f Q\n")
+    return b"".join(chunks)
+
+
+def pdf_stone_operation(
+    center_x: float,
+    center_y: float,
+    width: float,
+    height: float,
+    color: Tuple[float, float, float],
+    angle: float = 0.0,
+) -> bytes:
+    base_points = [
+        (-0.48, -0.12),
+        (-0.28, 0.40),
+        (0.12, 0.48),
+        (0.48, 0.20),
+        (0.38, -0.36),
+        (-0.08, -0.50),
+    ]
+    cosine = math.cos(angle)
+    sine = math.sin(angle)
+    points: List[Tuple[float, float]] = []
+
+    for point_x, point_y in base_points:
+        scaled_x = point_x * width
+        scaled_y = point_y * height
+        rotated_x = scaled_x * cosine - scaled_y * sine
+        rotated_y = scaled_x * sine + scaled_y * cosine
+        points.append((center_x + rotated_x, center_y + rotated_y))
+
+    return pdf_polygon_operation(points, color)
+
+
+def pdf_board_edge_background(page_width: int, page_height: int, page_index: int) -> bytes:
+    rng = random.Random(4317 + page_index)
+    operations: List[bytes] = []
+    rock_palette = [
+        (0.47, 0.39, 0.30),
+        (0.56, 0.48, 0.37),
+        (0.64, 0.56, 0.43),
+        (0.39, 0.33, 0.27),
+        (0.70, 0.62, 0.48),
+    ]
+
+    operations.append(pdf_rect_operation(0, 0, page_width, page_height, (0.83, 0.77, 0.64)))
+    operations.append(pdf_rect_operation(0, 0, page_width, page_height, (0.50, 0.41, 0.31)))
+
+    border_zones = [
+        (0, 0, 62, page_height),
+        (page_width - 62, 0, 62, page_height),
+        (0, page_height - 86, page_width, 86),
+        (0, 0, page_width, 70),
+    ]
+
+    for _ in range(170):
+        zone_x, zone_y, zone_w, zone_h = rng.choice(border_zones)
+        stone_x = zone_x + rng.random() * zone_w
+        stone_y = zone_y + rng.random() * zone_h
+        stone_w = rng.uniform(12, 30)
+        stone_h = rng.uniform(9, 24)
+        color = rng.choice(rock_palette)
+        operations.append(pdf_stone_operation(stone_x, stone_y, stone_w, stone_h, color, rng.uniform(0, math.pi)))
+
+    # Wooden beams, crates, cones and gold-like stones echo the board edge without copying the grid.
+    wood = (0.55, 0.32, 0.13)
+    dark_wood = (0.30, 0.19, 0.10)
+    red_crate = (0.72, 0.16, 0.09)
+    gold = (0.92, 0.68, 0.12)
+    cone = (0.88, 0.34, 0.08)
+
+    operations.append(pdf_rect_operation(30, page_height - 55, 72, 7, wood))
+    operations.append(pdf_rect_operation(36, page_height - 72, 6, 32, dark_wood))
+    operations.append(pdf_rect_operation(92, page_height - 72, 6, 32, dark_wood))
+    operations.append(pdf_rect_operation(page_width - 130, 36, 82, 7, wood))
+    operations.append(pdf_rect_operation(page_width - 122, 20, 6, 32, dark_wood))
+    operations.append(pdf_rect_operation(page_width - 58, 20, 6, 32, dark_wood))
+
+    operations.append(pdf_rect_operation(page_width - 112, page_height - 58, 26, 22, red_crate))
+    operations.append(pdf_rect_operation(page_width - 108, page_height - 53, 18, 4, dark_wood))
+    operations.append(pdf_rect_operation(page_width - 106, page_height - 47, 14, 4, dark_wood))
+
+    operations.append(pdf_rect_operation(28, 34, 25, 22, red_crate))
+    operations.append(pdf_rect_operation(33, 39, 15, 4, dark_wood))
+
+    for gold_x, gold_y in ((page_width - 84, 82), (page_width - 65, 84), (page_width - 74, 100), (118, 52), (137, 55)):
+        operations.append(pdf_stone_operation(gold_x, gold_y, 12, 9, gold, rng.uniform(0, math.pi)))
+
+    for cone_x in (92, page_width - 96):
+        operations.append(pdf_polygon_operation([(cone_x - 12, 52), (cone_x, 91), (cone_x + 12, 52)], cone))
+        operations.append(pdf_rect_operation(cone_x - 15, 48, 30, 6, (0.94, 0.86, 0.70)))
+
+    inner_x = 70
+    inner_y = 78
+    inner_width = page_width - inner_x * 2
+    inner_height = page_height - 174
+    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, (0.88, 0.84, 0.73)))
+    operations.append(pdf_rect_operation(inner_x + 7, inner_y + 7, inner_width - 14, inner_height - 14, (0.95, 0.91, 0.80)))
+    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, (0.38, 0.31, 0.23), b"S"))
+
+    return b"".join(operations)
+
+
+def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
+    page_width = 595
+    page_height = 842
+    margin_x = 84
+    top_y = 718
+    bottom_y = 100
+    pages: List[bytes] = []
+    operations: List[bytes] = []
+    y = top_y
+
+    def flush_page() -> None:
+        nonlocal operations, y
+        if operations:
+            pages.append(b"".join(operations))
+            operations = []
+        y = top_y
+
+    for text, font_size, gap_after in rows:
+        wrap_width = 54 if font_size >= 14 else 72
+        wrapped_lines = textwrap.wrap(
+            str(text or ""),
+            width=wrap_width,
+            break_long_words=False,
+            replace_whitespace=True,
+        ) or [""]
+        line_height = max(13, int(font_size * 1.45))
+
+        for line in wrapped_lines:
+            if y < bottom_y:
+                flush_page()
+
+            text_color = (0.31, 0.19, 0.11) if font_size >= 14 else (0.17, 0.14, 0.10)
+            operations.append(
+                b"q "
+                + pdf_color(text_color)
+                + b" rg BT /F1 "
+                + str(font_size).encode("ascii")
+                + b" Tf "
+                + str(margin_x).encode("ascii")
+                + b" "
+                + str(y).encode("ascii")
+                + b" Td "
+                + pdf_text_literal(line)
+                + b" Tj ET Q\n"
+            )
+            y -= line_height
+
+        y -= gap_after
+
+    flush_page()
+    if not pages:
+        pages.append(b"")
+
+    objects: List[Optional[bytes]] = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        None,
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
+    ]
+    page_ids: List[int] = []
+
+    for page_index, stream in enumerate(pages):
+        page_id = len(objects) + 1
+        content_id = page_id + 1
+        page_ids.append(page_id)
+        stream = pdf_board_edge_background(page_width, page_height, page_index) + stream
+        objects.append(
+            (
+                f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {page_width} {page_height}] "
+                f"/Resources << /Font << /F1 3 0 R >> >> /Contents {content_id} 0 R >>"
+            ).encode("ascii")
+        )
+        objects.append(
+            b"<< /Length " + str(len(stream)).encode("ascii") + b" >>\nstream\n" + stream + b"endstream"
+        )
+
+    kids = " ".join(f"{page_id} 0 R" for page_id in page_ids)
+    objects[1] = f"<< /Type /Pages /Kids [{kids}] /Count {len(page_ids)} >>".encode("ascii")
+
+    pdf = b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"
+    offsets = [0]
+
+    for object_index, obj in enumerate(objects, start=1):
+        assert obj is not None
+        offsets.append(len(pdf))
+        pdf += f"{object_index} 0 obj\n".encode("ascii") + obj + b"\nendobj\n"
+
+    xref_offset = len(pdf)
+    pdf += f"xref\n0 {len(objects) + 1}\n".encode("ascii")
+    pdf += b"0000000000 65535 f \n"
+    for offset in offsets[1:]:
+        pdf += f"{offset:010d} 00000 n \n".encode("ascii")
+    pdf += (
+        b"trailer\n"
+        + f"<< /Size {len(objects) + 1} /Root 1 0 R >>\n".encode("ascii")
+        + b"startxref\n"
+        + str(xref_offset).encode("ascii")
+        + b"\n%%EOF\n"
+    )
+    return pdf
+
+
+def build_group_evaluation_pdf(gs: GameState) -> bytes:
+    return build_text_pdf(student_group_evaluation_report_rows(gs))
 
 def _choose_start_coords(names: List[str], min_dist: int, seed: Optional[int]) -> List[Coord]:
     rng = random.Random(seed)
@@ -1387,15 +2329,38 @@ def _shift_timer_value(value: Optional[float], delta_seconds: float) -> Optional
     return value + delta_seconds
 
 
-def _pause_game_clock(gs: GameState, paused_at: Optional[float] = None) -> None:
-    if gs.timer_paused:
+def _pause_game_clock(
+    gs: GameState,
+    reason: str = "manual",
+    paused_at: Optional[float] = None,
+) -> None:
+    normalized_reason = str(reason or "manual").strip().lower() or "manual"
+    if normalized_reason in gs.pause_reasons:
         return
-    gs.timer_paused = True
-    gs.paused_at = paused_at or time.time()
+
+    if not gs.pause_reasons:
+        gs.timer_paused = True
+        gs.paused_at = paused_at or time.time()
+
+    gs.pause_reasons.append(normalized_reason)
 
 
-def _resume_game_clock(gs: GameState, resumed_at: Optional[float] = None) -> float:
+def _resume_game_clock(
+    gs: GameState,
+    reason: str = "manual",
+    resumed_at: Optional[float] = None,
+) -> float:
+    normalized_reason = str(reason or "manual").strip().lower() or "manual"
+    if normalized_reason not in gs.pause_reasons:
+        return 0.0
+
+    gs.pause_reasons = [item for item in gs.pause_reasons if item != normalized_reason]
+    if gs.pause_reasons:
+        return 0.0
+
     if not gs.timer_paused or gs.paused_at is None:
+        gs.timer_paused = False
+        gs.paused_at = None
         return 0.0
 
     resume_time = resumed_at or time.time()
@@ -1407,6 +2372,7 @@ def _resume_game_clock(gs: GameState, resumed_at: Optional[float] = None) -> flo
     gs.next_dynamite_spawn_at = _shift_timer_value(gs.next_dynamite_spawn_at, pause_duration)
     gs.timer_paused = False
     gs.paused_at = None
+    gs.pause_reasons = []
 
     return pause_duration
 
@@ -1421,11 +2387,29 @@ def _explode(gs: GameState, reason: str) -> None:
     if not escaped:
         _log(gs, "Niemand is ontsnapt. Iedereen verliest.")
         gs.phase = "finished"
+        _record_all_time_ranking_result(gs)
         return
     escaped.sort(key=lambda p: (-p.info_cards, p.escaped_at or 10**18))
     winner = escaped[0]
-    _log(gs, f"Winnaar: {winner.name} (infokaarten: {winner.info_cards}).")
+    _log(gs, f"Winnaar: {winner.name} (diamanten: {winner.info_cards}).")
     gs.phase = "finished"
+    _record_all_time_ranking_result(gs)
+
+
+def _finish_immediately_if_all_players_escaped(gs: GameState) -> bool:
+    if not gs.players or not all(player.escaped for player in gs.players):
+        return False
+    if gs.phase not in ("running", "endgame"):
+        return False
+
+    now = time.time()
+    gs.deadline_at = now
+    gs.timer_paused = False
+    gs.paused_at = None
+    gs.pause_reasons = []
+    _log(gs, "Alle spelers zijn buiten. De teller springt naar 0 en de groeve ontploft meteen.")
+    _explode(gs, reason="alle spelers ontsnapt")
+    return True
 
 
 def _schedule_next_spawn(kind: Literal["diamond", "dynamite"], now: Optional[float] = None) -> float:
@@ -1433,6 +2417,122 @@ def _schedule_next_spawn(kind: Literal["diamond", "dynamite"], now: Optional[flo
     min_key = f"{kind}_spawn_min_seconds"
     max_key = f"{kind}_spawn_max_seconds"
     return base_time + random.randint(CONFIG[min_key], CONFIG[max_key])
+
+
+def _choose_dynamite_hole_block(
+    gs: GameState,
+    anchor_coord: Coord,
+    reserved: Optional[set[str]] = None,
+) -> List[Coord]:
+    reserved_coords = set(reserved or set())
+    protected = {player.start_coord for player in gs.players}
+    if gs.exit_known and gs.exit_coord:
+        protected.add(gs.exit_coord)
+
+    candidates = two_by_two_block_candidates(anchor_coord)
+    if not candidates:
+        return [anchor_coord]
+
+    def score(block: List[Coord]) -> Tuple[int, int, int, int]:
+        block_set = set(block)
+        protected_hits = len(block_set & protected)
+        reserved_hits = len(block_set & reserved_coords)
+        existing_hits = len(block_set & set(gs.destroyed_tiles))
+        shift_cost = 0 if block[0] == anchor_coord else 1
+        return (protected_hits, reserved_hits, existing_hits, shift_cost)
+
+    return min(candidates, key=score)
+
+
+def _trigger_dynamite_chain_blast(gs: GameState) -> bool:
+    board_dynamite = [item for item in gs.items if item.kind == "dynamite"]
+    player_dynamite_total = sum(max(0, int(player.dynamite or 0)) for player in gs.players)
+
+    if not board_dynamite and player_dynamite_total <= 0:
+        gs.distributed_dynamite_count = 0
+        return False
+
+    destroyed_blocks: List[List[Coord]] = []
+    reserved_coords: set[str] = set()
+
+    for item in board_dynamite:
+        block = _choose_dynamite_hole_block(gs, item.coord, reserved_coords)
+        destroyed_blocks.append(block)
+        reserved_coords.update(block)
+        for coord in block:
+            if coord not in gs.destroyed_tiles:
+                gs.destroyed_tiles.append(coord)
+
+    blast_coords = {coord for block in destroyed_blocks for coord in block}
+    removed_non_dynamite_items = [
+        item for item in gs.items
+        if item.kind != "dynamite" and item.coord in blast_coords
+    ]
+    gs.items = [
+        item for item in gs.items
+        if item.kind != "dynamite" and item.coord not in blast_coords
+    ]
+
+    affected_players: List[str] = []
+    for player in gs.players:
+        if player.dynamite <= 0:
+            continue
+        affected_players.append(f"{player.name} ({player.dynamite})")
+        player.dynamite = 0
+
+    board_count = len(board_dynamite)
+    player_count = player_dynamite_total
+    hole_count = len(destroyed_blocks)
+
+    summary_parts = []
+    if board_count:
+        if board_count == 1:
+            summary_parts.append("1 dynamietstaaf op het bord ontploft")
+        else:
+            summary_parts.append(f"{board_count} dynamietstaven op het bord ontploffen")
+    if player_count:
+        if player_count == 1:
+            summary_parts.append("1 dynamietstaaf bij een speler moet terug naar de voorraad")
+        else:
+            summary_parts.append(f"{player_count} dynamietstaven bij spelers moeten terug naar de voorraad")
+    if hole_count:
+        if hole_count == 1:
+            summary_parts.append("1 holte van 2 op 2 verschijnt")
+        else:
+            summary_parts.append(f"{hole_count} holtes van 2 op 2 verschijnen")
+
+    summary = ". ".join(summary_parts).strip()
+    if summary:
+        summary += "."
+    else:
+        summary = "Alle dynamiet ontploft tegelijk."
+
+    gs.last_dynamite_blast_id += 1
+    gs.last_dynamite_blast_blocks = destroyed_blocks
+    gs.last_dynamite_blast_board_count = board_count
+    gs.last_dynamite_blast_player_count = player_count
+    gs.last_dynamite_blast_summary = summary
+    gs.distributed_dynamite_count = 0
+
+    _log(gs, f"DYNAMIETKETTING: {summary}")
+    for index, block in enumerate(destroyed_blocks, start=1):
+        _log(gs, f"Holte {index}: {', '.join(block)}.")
+    if affected_players:
+        _log(gs, "Dynamiet terug van spelers: " + ", ".join(affected_players) + ".")
+    if removed_non_dynamite_items:
+        removed_labels = ", ".join(
+            f"{'diamant' if item.kind == 'diamond' else item.kind} op {item.coord}"
+            for item in removed_non_dynamite_items
+        )
+        _log(gs, "Door de holtes verdwijnen ook: " + removed_labels + ".")
+    return True
+
+
+def _register_distributed_dynamite(gs: GameState) -> bool:
+    gs.distributed_dynamite_count += 1
+    if not should_trigger_random_dynamite_blast(gs.distributed_dynamite_count):
+        return False
+    return _trigger_dynamite_chain_blast(gs)
 
 
 def _spawn_random_item(gs: GameState, kind: Literal["diamond", "dynamite"], max_simultaneous: int, now: float) -> bool:
@@ -1445,7 +2545,33 @@ def _spawn_random_item(gs: GameState, kind: Literal["diamond", "dynamite"], max_
 
     label = "Diamant" if kind == "diamond" else "Dynamiet"
     _log(gs, f"ALARM: {label} leggen op {coord}.")
+    if kind == "dynamite":
+        _register_distributed_dynamite(gs)
     return True
+
+
+def _seed_initial_board_items(
+    gs: GameState,
+    *,
+    diamond_count: int = 6,
+    dynamite_count: int = 4,
+    now: Optional[float] = None,
+) -> None:
+    spawned_at = now if now is not None else time.time()
+    occupied = gs.occupied_coords(include_start_coords=True)
+    seeded: Dict[str, List[Coord]] = {"diamond": [], "dynamite": []}
+
+    for kind, count in (("diamond", diamond_count), ("dynamite", dynamite_count)):
+        for _ in range(max(0, count)):
+            coord = random_empty_coord(occupied)
+            occupied.add(coord)
+            gs.items.append(SpawnItem(kind=kind, coord=coord, spawned_at=spawned_at))
+            seeded[kind].append(coord)
+
+    if seeded["diamond"]:
+        _log(gs, "Startverdeling diamanten: " + ", ".join(seeded["diamond"]) + ".")
+    if seeded["dynamite"]:
+        _log(gs, "Startverdeling dynamiet: " + ", ".join(seeded["dynamite"]) + ".")
 
 
 # ----------------------------
@@ -1531,6 +2657,7 @@ async def new_game(req: NewGameRequest):
         next_dynamite_spawn_at=_schedule_next_spawn("dynamite", now),
         players=players,
         turn_index=0,
+        all_time_ranking=load_all_time_ranking(),
     )
     reset_questions()
     LAST_IMAGE_QUESTION = False
@@ -1543,6 +2670,7 @@ async def new_game(req: NewGameRequest):
     }
 
     _log(gs, f"Nieuw spel gestart met {len(players)} spelers. Timer: {req.timer_minutes} min.")
+    _seed_initial_board_items(gs, diamond_count=6, dynamite_count=4, now=now)
     for p in players:
         _log(gs, f"Startcoordinaat {p.name}: {p.start_coord}")
 
@@ -1629,7 +2757,8 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
                             f"Thema: {THEMES[theme]['label']}\n\n"
                             f"Extra richtlijnen voor dit thema:\n{THEME_GENERATION_GUIDANCE[theme]}\n\n"
                             f"{duplicate_instruction}"
-                            "Maak 1 inhoudelijke meerkeuzevraag die leerlingen echt laat nadenken. "
+                            "Maak 1 korte, concrete meerkeuzevraag die leerlingen echt laat nadenken over AI-geletterdheid. "
+                            "Laat de vraag aansluiten bij een herkenbare leerlingensituatie. "
                             "Gebruik gewone taal, maar maak de vraag niet flauw of te simplistisch. "
                             "Geef alleen JSON terug."
                         )
@@ -1680,7 +2809,7 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
                 continue
 
             ai_question["id"] = next_ai_question_id(questions)
-            move_correct_option_to_index(ai_question, stable_ai_correct_index(ai_question))
+            move_correct_option_to_index(ai_question, stable_question_correct_index(ai_question))
             ai_question["explanation"] = learning_explanation_text(ai_question)
             questions.append(ai_question)
             save_core_questions(questions)
@@ -1707,9 +2836,13 @@ async def answer_question(payload: dict):
     question = mark_question_used(question_id)
     if question is not None:
         correct_index = question["correct_index"]
+        is_correct = chosen_index == correct_index
+        async with STATE_LOCK:
+            if STATE is not None:
+                record_group_question_result(STATE, question, is_correct, chosen_index)
         correct_option = correct_option_text(question)
         return {
-            "correct": chosen_index == correct_index,
+            "correct": is_correct,
             "correct_index": correct_index,
             "correct_option": correct_option,
             "correct_label": answer_label_from_index(correct_index),
@@ -1751,7 +2884,7 @@ async def start_consensus_challenge():
             if dilemma.get("id") not in gs.consensus_used_ids
         ]
         dilemma = random.choice(unused_dilemmas or all_dilemmas)
-        _pause_game_clock(gs)
+        _pause_game_clock(gs, reason="consensus")
         gs.consensus_active = True
         gs.consensus_question_id = dilemma["id"]
         gs.consensus_question = dilemma["question"]
@@ -1793,7 +2926,7 @@ async def evaluate_consensus(
         destroyed_tiles: List[Coord] = []
         removed_items: List[SpawnItem] = []
         question_text = gs.consensus_question
-        pause_duration = _resume_game_clock(gs)
+        pause_duration = _resume_game_clock(gs, reason="consensus")
 
         if payload.decision == "approve":
             gs.passage_bonus_tiles += CONSENSUS_PASSAGE_REWARD
@@ -1848,6 +2981,73 @@ async def get_state():
         if STATE is None:
             return None
         return STATE
+
+
+@app.get("/api/ranking", response_model=List[AllTimeRankingEntry])
+async def get_all_time_ranking():
+    return load_all_time_ranking()
+
+
+@app.get("/api/evaluation/pdf")
+async def download_group_evaluation_pdf():
+    async with STATE_LOCK:
+        if STATE is None:
+            raise HTTPException(404, "Geen actief spel.")
+
+        pdf_bytes = build_group_evaluation_pdf(STATE)
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'attachment; filename="groepsevaluatie-ai-geletterdheid.pdf"',
+        },
+    )
+
+
+@app.post("/api/timer/pause", response_model=ActionResponse)
+async def pause_timer():
+    async with STATE_LOCK:
+        if STATE is None:
+            raise HTTPException(404, "Geen actief spel.")
+
+        gs = STATE
+        if gs.phase not in ("running", "endgame"):
+            raise HTTPException(400, "De spelklok kan nu niet gepauzeerd worden.")
+
+        already_manual = "manual" in gs.pause_reasons
+        _pause_game_clock(gs, reason="manual")
+        if already_manual:
+            message = "De spelklok stond al handmatig op pauze."
+        else:
+            _log(gs, "De spelklok wordt handmatig gepauzeerd.")
+            message = "De spelklok is gepauzeerd."
+
+        return ActionResponse(ok=True, message=message, state=gs)
+
+
+@app.post("/api/timer/resume", response_model=ActionResponse)
+async def resume_timer():
+    async with STATE_LOCK:
+        if STATE is None:
+            raise HTTPException(404, "Geen actief spel.")
+
+        gs = STATE
+        if gs.phase not in ("running", "endgame"):
+            raise HTTPException(400, "De spelklok kan nu niet hervat worden.")
+
+        if "manual" not in gs.pause_reasons:
+            raise HTTPException(400, "De handmatige pauze staat momenteel niet aan.")
+
+        pause_duration = _resume_game_clock(gs, reason="manual")
+        if gs.timer_paused:
+            message = "De handmatige pauze is opgeheven, maar een andere spelpauze blijft actief."
+        else:
+            resumed_seconds = int(round(pause_duration))
+            _log(gs, f"De spelklok hervat na een handmatige pauze van {resumed_seconds} seconden.")
+            message = "De spelklok loopt opnieuw."
+
+        return ActionResponse(ok=True, message=message, state=gs)
 
 
 @app.get("/api/teacher/auth-check")
@@ -2202,9 +3402,12 @@ async def next_turn():
 
         cp = gs.current_player()
         if cp is None:
-            _log(gs, "Alle spelers zijn ontsnapt. Spel eindigt.")
-            gs.phase = "finished"
-            return ActionResponse(ok=True, message="Alle spelers ontsnapt. Einde spel.", state=gs)
+            _finish_immediately_if_all_players_escaped(gs)
+            return ActionResponse(
+                ok=True,
+                message="Alle spelers zijn buiten. De teller staat op 0 en de groeve ontploft meteen.",
+                state=gs,
+            )
 
         _log(gs, f"Beurt: {cp.name}")
         return ActionResponse(ok=True, message=f"Aan beurt: {cp.name}", state=gs)
@@ -2228,7 +3431,14 @@ async def spawn_item(req: SpawnRequest):
         coord = random_empty_coord(gs.occupied_coords(include_start_coords=True))
         gs.items.append(SpawnItem(kind=req.kind, coord=coord, spawned_at=time.time()))
         _log(gs, f"{req.kind.upper()} verschijnt op {coord}.")
-        return ActionResponse(ok=True, message=f"{req.kind} op {coord}", state=gs)
+        chain_blast_triggered = False
+        if req.kind == "dynamite":
+            chain_blast_triggered = _register_distributed_dynamite(gs)
+
+        message = f"{req.kind} op {coord}"
+        if chain_blast_triggered:
+            message += " en meteen gevolgd door een dynamietketting."
+        return ActionResponse(ok=True, message=message, state=gs)
 
 
 @app.post("/api/item/remove", response_model=ActionResponse)
@@ -2237,6 +3447,8 @@ async def remove_item(req: RemoveItemRequest):
         if STATE is None:
             raise HTTPException(404, "Geen actief spel.")
         gs = STATE
+        if gs.phase not in ("running", "endgame"):
+            raise HTTPException(400, "Spel is niet actief.")
 
         try:
             parse_coord(req.coord)
@@ -2247,10 +3459,17 @@ async def remove_item(req: RemoveItemRequest):
         if item is None:
             return ActionResponse(ok=False, message="Geen actief item op dit coordinaat.", state=gs)
 
+        player = gs.current_player()
+        if player is None:
+            return ActionResponse(
+                ok=False,
+                message="Er is geen actieve speler aan beurt om dit item aan te koppelen.",
+                state=gs,
+            )
+
         gs.items.remove(item)
-        label = "Diamant" if item.kind == "diamond" else "Dynamiet"
-        _log(gs, f"{label} op {req.coord} verwijderd uit de app-lijst.")
-        return ActionResponse(ok=True, message=f"{label} op {req.coord} verwijderd.", state=gs)
+        message = _collect_item_for_player(gs, player, item)
+        return ActionResponse(ok=True, message=message, state=gs)
 
 
 @app.post("/api/reveal_exit", response_model=ActionResponse)
@@ -2287,6 +3506,8 @@ async def press_emergency(player_id: str):
             )
 
         # Reveal exit + start 5-minute endgame
+        reference_now = gs.paused_at if gs.timer_paused and gs.paused_at else time.time()
+
         gs.emergency_pressed = True
         gs.emergency_pressed_by = player_id
         gs.emergency_pressed_at = time.time()
@@ -2294,7 +3515,7 @@ async def press_emergency(player_id: str):
 
         _reveal_exit(gs, reason=f"groene exitknop door {current_player.name}")
 
-        gs.deadline_at = time.time() + CONFIG["emergency_endgame_minutes"] * 60
+        gs.deadline_at = reference_now + CONFIG["emergency_endgame_minutes"] * 60
         _log(
             gs,
             f"GROENE EXITKNOP ingedrukt door {current_player.name}. "
@@ -2336,12 +3557,7 @@ async def collect_on_tile(player_id: str, coord: Coord):
 
         # Collect all items at coord (usually max 1)
         for it in found:
-            if it.kind == "diamond":
-                player.info_cards += 1
-                _log(gs, f"{player.name} verzamelt DIAMANT op {coord} -> +1 infofiche (totaal {player.info_cards}).")
-            elif it.kind == "dynamite":
-                player.dynamite += 1
-                _log(gs, f"{player.name} verzamelt DYNAMIET op {coord} -> +1 (totaal {player.dynamite}).")
+            _collect_item_for_player(gs, player, it)
             gs.items.remove(it)
 
         return ActionResponse(ok=True, message="Verzameld.", state=gs)
@@ -2379,12 +3595,159 @@ async def player_escape(player_id: str, coord: Optional[Coord] = None):
             _log(gs, f"{player.name} is ONTSNAPT en speelt niet meer mee (handmatig bevestigd op fysiek bord).")
         else:
             _log(gs, f"{player.name} is ONTSNAPT en speelt niet meer mee.")
+
+        if all(current_player.escaped for current_player in gs.players):
+            _finish_immediately_if_all_players_escaped(gs)
+            return ActionResponse(
+                ok=True,
+                message=f"{player.name} ontsnapt. Iedereen is buiten: de groeve ontploft meteen.",
+                state=gs,
+            )
+
         return ActionResponse(ok=True, message=f"{player.name} ontsnapt.", state=gs)
 
 
 # ----------------------------
 # BavoBot Full: Chat endpoint
 # ----------------------------
+
+def _normalize_bot_rule_text(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", str(text or ""))
+    return normalized.encode("ascii", "ignore").decode("ascii").casefold().strip()
+
+
+def _bot_recent_events(gs: GameState, limit: int = 6) -> str:
+    if not gs.event_log:
+        return "- Nog geen recente gebeurtenissen."
+    return "\n".join(f"- {line}" for line in gs.event_log[-limit:])
+
+
+def _bot_active_items_summary(gs: GameState) -> str:
+    diamonds = sorted(item.coord for item in gs.items if item.kind == "diamond")
+    dynamite = sorted(item.coord for item in gs.items if item.kind == "dynamite")
+
+    parts: List[str] = []
+    parts.append("Diamanten: " + (", ".join(diamonds) if diamonds else "geen actieve diamanten"))
+    parts.append("Dynamiet: " + (", ".join(dynamite) if dynamite else "geen actieve dynamietstaven"))
+    return " | ".join(parts)
+
+
+def _bot_rulebook(gs: GameState) -> str:
+    return f"""
+Officiële spelregels van Uit de Steengroeve. Volg deze regels letterlijk en verzin niets erbij.
+
+Algemeen:
+- Doel: verzamel diamanten en raak voor de explosie uit de steengroeve.
+- De app beheert timer, startcoördinaten, vragen, itemalarmen, uitgang en eindresultaat.
+- Pionbeweging en het echte leggen of wegnemen van fysieke tegels gebeuren op het fysieke bord.
+
+Start van het spel:
+- Bij een nieuw spel krijgt elke speler een willekeurig startcoördinaat.
+- Bij de start liggen er al 6 diamanten en 4 dynamietstaven op willekeurige vrije vakken.
+- Daarna kunnen extra diamanten en dynamietstaven later opnieuw verschijnen.
+
+Beurten en vragen:
+- Spelers kiezen meestal een themaknop om een vraag te openen.
+- Bij een gewone meerkeuzevraag geldt: juist antwoord = zelf 3 tegels leggen; fout antwoord = de app geeft 1 verplicht plaatsingscoördinaat.
+- Bij een beeldvraag kies je of een beeld waarschijnlijk AI-gegenereerd is of niet.
+- Na het afronden van een beantwoorde vraag springt de beurt automatisch door naar de volgende speler.
+- De knop 'Volgende speler' is een noodknop om handmatig door te geven als een beurt niet via een vraag eindigt.
+
+Diamanten en dynamiet:
+- Een diamant op een vak verzamelen geeft +1 diamant/infofiche aan die speler.
+- Een dynamietstaaf op een vak verzamelen geeft +1 dynamiet aan die speler.
+- Diamanten en dynamiet op het bord worden door de app als actieve locaties getoond.
+- Nieuwe diamanten verschijnen willekeurig met enkele minuten ertussen; nieuwe dynamietstaven ook.
+
+Dynamietketting:
+- Dynamiet kan onverwacht in een kettingreactie ontploffen.
+- Dat gebeurt willekeurig ergens op de 4e, 5e of 6e verdeelde dynamietstaaf.
+- Dan ontploffen alle dynamietstaven op het bord tegelijk.
+- Ook alle dynamietstaven die spelers al verzameld hebben, moeten dan terug uit het spel.
+- Elke dynamietstaaf die op het bord lag, maakt een holte van 2 op 2 vakjes.
+
+Groene exitknop:
+- Alleen de speler die op dat moment aan beurt is, mag de groene exitknop indrukken.
+- Zodra die knop wordt ingedrukt, wordt de uitgang meteen onthuld.
+- Vanaf dan start de eindfase en springt de explosieteller naar 5 minuten.
+
+Ontsnappen en einde:
+- Een speler kan pas ontsnappen als de uitgang onthuld is.
+- Ontsnapte spelers doen niet meer mee aan volgende beurten.
+- Als iedereen al buiten is, springt de teller naar 0 en ontploft de groeve meteen voor het eindresultaat.
+- Pas na de explosie verschijnt de all time ranking.
+- Voor die ranking tellen alleen diamanten mee van spelers die effectief ontsnapt zijn.
+
+Rode knop / groepsdilemma:
+- De rode knop kan maximaal {CONSENSUS_MAX_USES} keer per spel gebruikt worden.
+- Terwijl het groepsdilemma actief is, staat de spelklok stil.
+- Bij goedkeuring door de leerkracht mag de groep een doorgang van {CONSENSUS_PASSAGE_REWARD} tegels maken.
+- Bij afkeuring ontploffen {CONSENSUS_EXPLOSION_PENALTY} willekeurige tegels definitief.
+
+Pauze:
+- De paarse pauzeknop zet de spelklok tijdelijk stil.
+- Hervatten gebeurt met dezelfde knop.
+
+Vraagselectie:
+- Een themaknop probeert eerst een vraag van dat thema te geven.
+- Soms komt er tussendoor een beeldvraag; dat gebeurt met ongeveer {int(IMAGE_QUESTION_CHANCE * 100)}% kans zolang dat past.
+
+Huidige live spelstatus:
+- Fase: {gs.phase}
+- Resterende tijd: {gs.remaining_seconds() if gs.remaining_seconds() is not None else "onbekend"} seconden
+- Uitgang zichtbaar: {"ja" if gs.exit_known else "nee"}
+- Uitgangcoördinaat: {gs.exit_coord if gs.exit_known else "nog onbekend"}
+- Huidige speler: {gs.current_player().name if gs.current_player() else "geen actieve speler"}
+- Actieve items: {_bot_active_items_summary(gs)}
+- Verwoeste tegels: {len(gs.destroyed_tiles)}
+- Rode knop gebruikt: {gs.consensus_used_count}/{CONSENSUS_MAX_USES}
+- Bonus doorgangstegels klaar: {gs.passage_bonus_tiles}
+
+Recente spelgebeurtenissen:
+{_bot_recent_events(gs)}
+"""
+
+
+def _bot_rule_fallback(gs: GameState, user_message: str) -> Optional[str]:
+    text = _normalize_bot_rule_text(user_message)
+    if not text:
+        return None
+
+    if ("juist" in text or "goed antwoord" in text or "correct" in text) and ("tegel" in text or "tegels" in text):
+        return "Bij een juist antwoord mag je zelf 3 tegels leggen."
+
+    if ("fout" in text or "niet juist" in text or "verkeerd" in text) and ("coord" in text or "tegel" in text):
+        return "Bij een fout antwoord geeft de app 1 verplicht plaatsingscoördinaat. Daar moet de tegel gelegd worden."
+
+    if ("groene" in text or "exitknop" in text or "uitgang" in text) and ("wie" in text or "mag" in text or "druk" in text or "knop" in text):
+        return "Alleen de speler die aan beurt is mag de groene exitknop indrukken. De uitgang verschijnt meteen en de teller springt naar 5 minuten."
+
+    if "consensus" in text or "groepsdilemma" in text or "rode knop" in text or "ethiekknop" in text:
+        return (
+            f"De rode knop kan maximaal {CONSENSUS_MAX_USES} keer per spel. Tijdens het groepsdilemma staat de klok stil. "
+            f"Bij goedkeuring mag de groep een doorgang van {CONSENSUS_PASSAGE_REWARD} tegels maken; "
+            f"bij afkeuring ontploffen {CONSENSUS_EXPLOSION_PENALTY} willekeurige tegels."
+        )
+
+    if "dynamiet" in text and ("ontplof" in text or "ketting" in text or "allemaal" in text):
+        return (
+            "Dynamiet kan onverwacht als kettingreactie ontploffen op een willekeurig moment tussen de 4e en 6e verdeelde dynamietstaaf. "
+            "Dan verdwijnt alle dynamiet op het bord en bij spelers, en elke staaf op het bord maakt een holte van 2 op 2."
+        )
+
+    if ("ranking" in text or "diamant" in text or "einde" in text) and ("meetel" in text or "tellen" in text or "buiten" in text or "ontsnapt" in text):
+        return "Voor de all time ranking tellen alleen diamanten mee van spelers die op tijd ontsnappen. De ranking verschijnt pas na de explosie."
+
+    if ("start" in text or "begin" in text) and ("diamant" in text or "dynamiet" in text):
+        return "Bij de start van een spel liggen er 6 diamanten en 4 dynamietstaven op willekeurige vrije vakken."
+
+    if "pauze" in text and ("klok" in text or "timer" in text):
+        return "De pauzeknop zet de spelklok stil zonder het spel te resetten. Met dezelfde knop kan je de klok weer hervatten."
+
+    if ("iedereen" in text and ("buiten" in text or "ontsnapt" in text)) or ("wanneer" in text and "ranking" in text):
+        return "Als iedereen buiten is, springt de teller naar 0 en ontploft de groeve meteen. Daarna komt het eindresultaat en de all time ranking."
+
+    return None
 
 def _bot_system_prompt(gs: GameState) -> str:
     """
@@ -2404,6 +3767,9 @@ Je blijft thema-neutraal: je verwijst NIET naar AI of technologie, tenzij de spe
 
 Harde regels:
 - Houd antwoorden kort (meestal 1-4 zinnen).
+- Gebruik altijd eerst de officiële spelregels hieronder; die gaan boven je eigen gokwerk.
+- Als de speler een exacte regel of aantal vraagt, geef het exacte antwoord uit de regels.
+- Als iets niet in de regels staat, zeg eerlijk dat de leerkracht of het fysieke bord dat bevestigt.
 - Geef geen 'optimale zet' die het spel oplost; je mag wel opties benoemen.
 - Als een vraag over de regels gaat: geef een duidelijk JA/NEE + 1 zin uitleg.
 - Als iets onduidelijk is omdat het fysieke bord niet in de app zit: zeg wat je nodig hebt (bv. coordinaat) of zeg dat de leerkracht bevestigt.
@@ -2414,6 +3780,9 @@ Huidige spelstatus:
 - Huidige speler: {cp_name}
 - Uitgang: {exit_info}
 - Spelers: {", ".join([p.name + ("(ontsnapt)" if p.escaped else "") for p in gs.players])}
+
+Officiële regels:
+{_bot_rulebook(gs)}
 """
 
 @app.post("/api/chat", response_model=dict)
@@ -2423,21 +3792,27 @@ async def chat(req: ChatRequest):
             raise HTTPException(404, "Geen actief spel.")
         gs = STATE
 
-        # If no OpenAI key/client, return a safe fallback
-        if _client is None:
-            return {"reply": "BavoBot is nog niet gekoppeld. Vraag de leerkracht om hulp of probeer later opnieuw."}
-
         # Minimal context: player inventory if player_id is provided
         player_ctx = ""
         if req.player_id:
             p = next((x for x in gs.players if x.id == req.player_id), None)
             if p:
-                player_ctx = f"\nSpelercontext: {p.name}, infofiches={p.info_cards}, dynamiet={p.dynamite}, ontsnapt={p.escaped}\n"
+                player_ctx = f"\nSpelercontext: {p.name}, diamanten={p.info_cards}, dynamiet={p.dynamite}, ontsnapt={p.escaped}\n"
 
     # Call model outside lock to avoid blocking game loop
     user_msg = req.message.strip()
     if not user_msg:
         raise HTTPException(400, "Bericht mag niet leeg zijn.")
+
+    fallback_reply = _bot_rule_fallback(gs, user_msg)
+    if fallback_reply:
+        async with STATE_LOCK:
+            if STATE is not None:
+                _log(STATE, f"BavoBot regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
+        return {"reply": fallback_reply}
+
+    if _client is None:
+        return {"reply": "BavoBot kent de basisregels, maar de uitgebreide chat is nu niet gekoppeld. Vraag de leerkracht om hulp of probeer later opnieuw."}
 
     sys_prompt = _bot_system_prompt(gs) + player_ctx
 
@@ -2448,7 +3823,7 @@ async def chat(req: ChatRequest):
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": user_msg}
             ],
-            temperature=0.7
+            temperature=0.2
         )
         reply = (resp.choices[0].message.content or "").strip()
         if not reply:
