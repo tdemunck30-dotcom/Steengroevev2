@@ -1513,9 +1513,15 @@ class ConsensusEvaluationRequest(BaseModel):
 app = FastAPI(title="Uit de Steengroeve - Game API (MVP)")
 from fastapi.responses import FileResponse, Response
 
+HTML_HEADERS = {
+    "Cache-Control": "no-store, no-cache, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0",
+}
+
 @app.get("/")
 def serve_index():
-    return FileResponse("static/index.html")
+    return FileResponse("static/index.html", headers=HTML_HEADERS)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 STATE_LOCK = asyncio.Lock()
