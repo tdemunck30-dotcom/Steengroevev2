@@ -309,6 +309,10 @@
             min-height: 0;
         }
 
+        .players-block.collapsed {
+            gap: 10px;
+        }
+
         .dashboard-block.scrollable {
             overflow: visible;
             grid-template-rows: auto auto auto;
@@ -321,9 +325,42 @@
 
         .dashboard-sidebar #playerInputs {
             min-height: 0;
-            max-height: min(180px, 24vh);
+            max-height: min(280px, 36vh);
             overflow-y: auto;
             padding-right: 4px;
+        }
+
+        .player-setup-content {
+            display: grid;
+            gap: 12px;
+        }
+
+        .players-summary {
+            display: grid;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 18px;
+            background: rgba(141, 91, 53, 0.08);
+            border: 1px solid rgba(109, 66, 37, 0.14);
+        }
+
+        .players-summary strong {
+            color: var(--clay-dark);
+            font-size: 0.92rem;
+        }
+
+        .players-summary span {
+            color: var(--stone-soft);
+            line-height: 1.45;
+            font-weight: 700;
+        }
+
+        .players-block-toggle {
+            min-height: 42px;
+            padding: 9px 14px;
+            border-radius: 14px;
+            box-shadow: none;
+            background: linear-gradient(135deg, #8a735f, #695544);
         }
 
         .dashboard-sidebar .action-grid {
@@ -432,6 +469,31 @@
             display: grid;
             grid-template-rows: auto minmax(0, 1fr);
             padding: 22px;
+        }
+
+        .compact-panel {
+            align-self: start;
+        }
+
+        .compact-panel .scrollbox {
+            max-height: 172px;
+            padding: 10px 14px;
+        }
+
+        .compact-panel .list-entry,
+        .compact-panel .log-entry {
+            padding: 10px 2px;
+        }
+
+        .compact-panel .entry-title {
+            font-size: 0.96rem;
+            margin-bottom: 4px;
+        }
+
+        .compact-panel .entry-meta,
+        .compact-panel .log-entry {
+            font-size: 0.88rem;
+            line-height: 1.45;
         }
 
         .dashboard-panel .scrollbox {
@@ -2501,6 +2563,7 @@
 
             .dashboard-sidebar #playerInputs {
                 min-height: 0;
+                max-height: none;
                 overflow: visible;
                 padding-right: 0;
             }
@@ -2543,11 +2606,19 @@
                 width: min(680px, calc(100vw - 36px));
                 padding: 28px 30px;
             }
+
+            .compact-panel {
+                align-self: stretch;
+            }
+
+            .compact-panel .scrollbox {
+                max-height: none;
+            }
         }
 
         @media (max-width: 1460px) {
             .dashboard-sidebar #playerInputs {
-                max-height: min(160px, 22vh);
+                max-height: min(240px, 30vh);
             }
 
             .dashboard-sidebar .button-grid {
@@ -2727,17 +2798,24 @@
         </section>
 
         <section class="panel dashboard-sidebar">
-            <div class="dashboard-block scrollable players-block">
+            <div id="playersBlock" class="dashboard-block scrollable players-block">
                 <div class="section-heading">
                     <span class="eyebrow">Voorbereiding</span>
                     <h2>Spelers</h2>
                     <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
                 </div>
-                <div id="playerInputs" class="player-list"></div>
-                <div class="small-actions">
-                    <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
-                    <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
+                <div id="playersSummary" class="players-summary" hidden>
+                    <strong>Spelers klaar</strong>
+                    <span id="playersSummaryText"></span>
                 </div>
+                <div id="playerSetupContent" class="player-setup-content">
+                    <div id="playerInputs" class="player-list"></div>
+                    <div class="small-actions">
+                        <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
+                        <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
+                    </div>
+                </div>
+                <button id="playersBlockToggle" class="players-block-toggle" type="button" hidden onclick="togglePlayersBlock()">Spelers verbergen</button>
             </div>
 
             <div class="dashboard-block action-controls-block">
@@ -2803,7 +2881,7 @@
             </div>
         </section>
 
-        <section class="panel dashboard-panel dashboard-start">
+        <section class="panel dashboard-panel compact-panel dashboard-start">
             <div class="section-heading">
                 <span class="eyebrow">Bordinfo</span>
                 <h2>Startposities en ontsnapping</h2>
@@ -2821,7 +2899,7 @@
             <div id="itemList" class="scrollbox" aria-live="polite"></div>
         </section>
 
-        <section class="panel dashboard-panel dashboard-log">
+        <section class="panel dashboard-panel compact-panel dashboard-log">
             <div class="section-heading">
                 <span class="eyebrow">Geschiedenis</span>
                 <h2>Spelverloop</h2>
@@ -3258,6 +3336,7 @@
         let lastDynamiteBlastId = 0;
         let lastRankingRevealSignature = "";
         let cachedRankingEntries = [];
+        let playerSetupExpanded = false;
         let playerInputCount = 0;
         let teacherReviewBusy = false;
         let teacherManualBusy = false;
@@ -4992,6 +5071,7 @@
 
             byId("playerInputs").appendChild(createPlayerInput(value));
             syncPlayerLabels();
+            renderPlayersSetup(latestState);
         }
 
         function removePlayerInput() {
@@ -5003,12 +5083,59 @@
 
             container.removeChild(container.lastElementChild);
             syncPlayerLabels();
+            renderPlayersSetup(latestState);
         }
 
         function getPlayerNames() {
             return [...byId("playerInputs").querySelectorAll("input")]
                 .map((input) => input.value.trim())
                 .filter(Boolean);
+        }
+
+        function togglePlayersBlock() {
+            playerSetupExpanded = !playerSetupExpanded;
+            renderPlayersSetup(latestState);
+        }
+
+        function renderPlayersSetup(state) {
+            const block = byId("playersBlock");
+            const summary = byId("playersSummary");
+            const summaryText = byId("playersSummaryText");
+            const content = byId("playerSetupContent");
+            const toggle = byId("playersBlockToggle");
+            const activeGame = Boolean(state && ["running", "endgame", "finished"].includes(state.phase || ""));
+            const playerNames = activeGame
+                ? (Array.isArray(state.players) ? state.players.map((player) => player.name).filter(Boolean) : [])
+                : getPlayerNames();
+
+            if (!activeGame) {
+                playerSetupExpanded = false;
+                block.classList.remove("collapsed");
+                summary.hidden = true;
+                content.hidden = false;
+                toggle.hidden = true;
+                return;
+            }
+
+            const namesText = playerNames.length ? playerNames.join(", ") : "Nog geen spelers geladen.";
+            summaryText.textContent = playerNames.length === 1
+                ? namesText + " is ingesteld voor dit spel."
+                : namesText + " zijn ingesteld voor dit spel.";
+
+            toggle.hidden = false;
+
+            if (playerSetupExpanded) {
+                block.classList.remove("collapsed");
+                summary.hidden = false;
+                content.hidden = false;
+                toggle.textContent = "Spelers verbergen";
+                return;
+            }
+
+            block.classList.add("collapsed");
+            summary.hidden = false;
+            content.hidden = true;
+            toggle.textContent = "Spelers tonen";
         }
 
         function itemKey(item) {
@@ -5300,7 +5427,7 @@
                 return;
             }
 
-            entries.forEach((line) => {
+            entries.slice(-2).forEach((line) => {
                 const entry = document.createElement("div");
                 entry.className = "log-entry";
                 entry.textContent = line;
@@ -5402,6 +5529,8 @@
                 entry.appendChild(row);
                 list.appendChild(entry);
             });
+
+            list.scrollTop = list.scrollHeight;
         }
 
         function formatRankingTimestamp(value) {
@@ -5737,6 +5866,7 @@
                 renderPauseButton(null);
                 renderTurnSpotlight(null);
                 renderGroupEvaluationDownload(null);
+                renderPlayersSetup(null);
                 return;
             }
 
@@ -5793,6 +5923,7 @@
             renderExitButton(state);
             renderPauseButton(state);
             renderGroupEvaluationDownload(state);
+            renderPlayersSetup(state);
 
             const explosionEntry = [...(state.event_log || [])]
                 .reverse()
@@ -5860,6 +5991,7 @@
                     })
                 });
 
+                playerSetupExpanded = false;
                 renderState(data.state);
                 setStatusMessage(data.message);
             } catch (error) {
@@ -6114,6 +6246,7 @@
             updateTeacherManualType();
             setTeacherMode("review", {scroll: false});
             renderEventLog([]);
+            renderPlayersSetup(null);
             refreshState();
             setInterval(refreshState, 1000);
         });
