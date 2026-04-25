@@ -364,8 +364,8 @@
         }
 
         .dashboard-sidebar .action-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
         .dashboard-sidebar .button-grid {
@@ -374,9 +374,9 @@
         }
 
         .dashboard-sidebar .action-button {
-            min-height: 84px;
-            padding: 12px 14px;
-            border-radius: 20px;
+            min-height: 74px;
+            padding: 10px 12px;
+            border-radius: 18px;
         }
 
         .dashboard-sidebar button.theme {
@@ -386,7 +386,8 @@
         }
 
         .dashboard-sidebar .button-title {
-            font-size: 0.96rem;
+            font-size: 0.9rem;
+            line-height: 1.2;
         }
 
         .dashboard-sidebar .button-grid .button-title {
@@ -401,8 +402,8 @@
         .dashboard-sidebar .action-grid .button-subtitle {
             display: block;
             margin-top: 4px;
-            font-size: 0.76rem;
-            line-height: 1.28;
+            font-size: 0.72rem;
+            line-height: 1.24;
             color: rgba(255, 247, 239, 0.86);
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -429,12 +430,12 @@
         }
 
         .action-controls-block .action-grid {
-            grid-template-columns: 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
         }
 
         .action-controls-block .action-button {
-            min-height: 76px;
+            min-height: 74px;
         }
 
         .consensus-block {
