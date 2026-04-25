@@ -450,30 +450,33 @@
         .consensus-status {
             display: grid;
             gap: 10px;
-            padding: 14px 16px;
+            padding: 16px 18px;
             border-radius: 20px;
-            background: rgba(124, 48, 36, 0.08);
-            border: 1px solid rgba(155, 56, 41, 0.16);
+            background: rgba(169, 83, 56, 0.12);
+            border: 1px solid rgba(155, 56, 41, 0.22);
         }
 
         .consensus-status strong {
-            color: #7d2418;
-            font-size: 0.98rem;
+            color: #6d2419;
+            font-size: 1rem;
+            font-weight: 900;
         }
 
         .consensus-status span {
-            color: var(--stone-soft);
-            line-height: 1.45;
-            font-weight: 700;
+            color: #4f392c;
+            line-height: 1.55;
+            font-weight: 800;
         }
 
         .consensus-status .entry-meta {
             justify-content: flex-start;
             min-height: 0;
-            padding: 0;
-            background: transparent;
-            border: 0;
-            color: #8d6a50;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: rgba(255, 249, 242, 0.88);
+            border: 1px solid rgba(155, 56, 41, 0.14);
+            color: #6f513c;
+            line-height: 1.5;
         }
 
         .dashboard-panel {
@@ -1686,6 +1689,22 @@
 
         .consensus-outcome {
             min-height: 0;
+            border-style: solid;
+            line-height: 1.55;
+            font-size: 1rem;
+            color: #4f392c;
+        }
+
+        .consensus-outcome[data-state="info"] {
+            background: rgba(255, 249, 240, 0.98);
+            border-color: rgba(109, 66, 37, 0.22);
+            color: #4f392c;
+        }
+
+        .consensus-outcome[data-state="error"] {
+            background: rgba(255, 241, 236, 0.98);
+            border-color: rgba(150, 59, 37, 0.28);
+            color: #6f2319;
         }
 
         .teacher-refresh {
@@ -4736,7 +4755,11 @@
         function setConsensusOutcome(text = "", isError = false) {
             const outcome = byId("consensusOutcome");
             outcome.textContent = text;
-            outcome.style.color = isError ? "#ffd0c8" : "#eadfce";
+            if (!text) {
+                delete outcome.dataset.state;
+                return;
+            }
+            outcome.dataset.state = isError ? "error" : "info";
         }
 
         function showConsensusOverlay(source) {
