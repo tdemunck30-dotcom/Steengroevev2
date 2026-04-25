@@ -3467,6 +3467,9 @@
         let teacherPassword = "";
         let consensusBusy = false;
         let timerControlBusy = false;
+        let stateRefreshBusy = false;
+        let stateRefreshQueued = false;
+        const STATE_REFRESH_INTERVAL_MS = 2500;
         let teacherMode = "review";
 
         function byId(id) {
@@ -6087,12 +6090,26 @@
         }
 
         async function refreshState() {
+            if (stateRefreshBusy) {
+                stateRefreshQueued = true;
+                return;
+            }
+
+            stateRefreshBusy = true;
             try {
                 const data = await fetchJson("/api/state");
                 renderState(data);
             } catch (error) {
                 renderState(null);
                 setStatusMessage(error.message);
+            } finally {
+                stateRefreshBusy = false;
+                if (stateRefreshQueued) {
+                    stateRefreshQueued = false;
+                    setTimeout(() => {
+                        refreshState();
+                    }, 0);
+                }
             }
         }
 
@@ -6372,7 +6389,9 @@
             renderEventLog([]);
             renderPlayersSetup(null);
             refreshState();
-            setInterval(refreshState, 1000);
+            setInterval(() => {
+                refreshState();
+            }, STATE_REFRESH_INTERVAL_MS);
         });
     </script>
 </body>

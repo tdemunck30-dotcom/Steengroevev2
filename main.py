@@ -176,6 +176,7 @@ ETHICAL_AI_DILEMMAS = [
 CONSENSUS_PASSAGE_REWARD = 5
 CONSENSUS_EXPLOSION_PENALTY = 3
 CONSENSUS_MAX_USES = 3
+MAX_EVENT_LOG_ENTRIES = 120
 # Optional: load .env if present
 try:
     from dotenv import load_dotenv
@@ -1671,6 +1672,8 @@ async def auto_place_tile():
 def _log(gs: GameState, msg: str) -> None:
     stamp = time.strftime("%H:%M:%S")
     gs.event_log.append(f"[{stamp}] {msg}")
+    if len(gs.event_log) > MAX_EVENT_LOG_ENTRIES:
+        gs.event_log = gs.event_log[-MAX_EVENT_LOG_ENTRIES:]
 
 
 def _collect_item_for_player(gs: GameState, player: Player, item: SpawnItem) -> str:
