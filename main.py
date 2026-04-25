@@ -163,12 +163,13 @@ except Exception:
     pass
 
 TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD", "double diamond").strip()
+OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or "").strip()
 
 # OpenAI client (BavoBot Full)
 # Works with the "openai" python package (new style client).
 try:
     from openai import OpenAI, APIConnectionError, APIStatusError, BadRequestError
-    _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    _client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
     QUESTION_GENERATION_MODEL = os.getenv("OPENAI_QUESTION_MODEL", "gpt-4.1-mini")
     IMAGE_GENERATION_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5").strip() or "gpt-image-1.5"
     IMAGE_ANALYSIS_MODEL = os.getenv("OPENAI_IMAGE_ANALYSIS_MODEL", QUESTION_GENERATION_MODEL).strip() or QUESTION_GENERATION_MODEL
@@ -3622,13 +3623,16 @@ def _normalize_bot_rule_text(text: str) -> str:
     return normalized.encode("ascii", "ignore").decode("ascii").casefold().strip()
 
 
-def _bot_recent_events(gs: GameState, limit: int = 6) -> str:
-    if not gs.event_log:
+def _bot_recent_events(gs: Optional[GameState], limit: int = 6) -> str:
+    if not gs or not gs.event_log:
         return "- Nog geen recente gebeurtenissen."
     return "\n".join(f"- {line}" for line in gs.event_log[-limit:])
 
 
-def _bot_active_items_summary(gs: GameState) -> str:
+def _bot_active_items_summary(gs: Optional[GameState]) -> str:
+    if not gs:
+        return "Diamanten: nog geen actief spel | Dynamiet: nog geen actief spel"
+
     diamonds = sorted(item.coord for item in gs.items if item.kind == "diamond")
     dynamite = sorted(item.coord for item in gs.items if item.kind == "dynamite")
 
@@ -3638,7 +3642,16 @@ def _bot_active_items_summary(gs: GameState) -> str:
     return " | ".join(parts)
 
 
-def _bot_rulebook(gs: GameState) -> str:
+def _bot_rulebook(gs: Optional[GameState]) -> str:
+    remaining_seconds = gs.remaining_seconds() if gs and gs.remaining_seconds() is not None else "onbekend"
+    current_player_name = gs.current_player().name if gs and gs.current_player() else "geen actieve speler"
+    phase = gs.phase if gs else "nog geen actief spel"
+    exit_known = "ja" if gs and gs.exit_known else "nee"
+    exit_coord = gs.exit_coord if gs and gs.exit_known else "nog onbekend"
+    destroyed_tiles = len(gs.destroyed_tiles) if gs else 0
+    consensus_used = gs.consensus_used_count if gs else 0
+    passage_bonus = gs.passage_bonus_tiles if gs else 0
+
     return f"""
 Officiële spelregels van Uit de Steengroeve. Volg deze regels letterlijk en verzin niets erbij.
 
@@ -3714,7 +3727,7 @@ Recente spelgebeurtenissen:
 """
 
 
-def _bot_rule_fallback(gs: GameState, user_message: str) -> Optional[str]:
+def _bot_rule_fallback(gs: Optional[GameState], user_message: str) -> Optional[str]:
     text = _normalize_bot_rule_text(user_message)
     if not text:
         return None
@@ -3794,13 +3807,11 @@ Officiële regels:
 @app.post("/api/chat", response_model=dict)
 async def chat(req: ChatRequest):
     async with STATE_LOCK:
-        if STATE is None:
-            raise HTTPException(404, "Geen actief spel.")
         gs = STATE
 
         # Minimal context: player inventory if player_id is provided
         player_ctx = ""
-        if req.player_id:
+        if gs is not None and req.player_id:
             p = next((x for x in gs.players if x.id == req.player_id), None)
             if p:
                 player_ctx = f"\nSpelercontext: {p.name}, diamanten={p.info_cards}, dynamiet={p.dynamite}, ontsnapt={p.escaped}\n"
@@ -3817,8 +3828,22 @@ async def chat(req: ChatRequest):
                 _log(STATE, f"BavoBot regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
         return {"reply": fallback_reply}
 
+    if gs is None:
+        return {
+            "reply": (
+                "BavoBot helpt ook al voor de start met basisregels. "
+                "Vraag bijvoorbeeld wie op de groene exitknop mag drukken, wat dynamiet doet, "
+                "hoe de pauzeknop werkt of wanneer de ranking verschijnt."
+            )
+        }
+
     if _client is None:
-        return {"reply": "BavoBot kent de basisregels, maar de uitgebreide chat is nu niet gekoppeld. Vraag de leerkracht om hulp of probeer later opnieuw."}
+        return {
+            "reply": (
+                "BavoBot kan nu de basisregels uitleggen, maar de uitgebreide chat staat hier niet aan. "
+                "Stel je vraag zo concreet mogelijk over een spelregel."
+            )
+        }
 
     sys_prompt = _bot_system_prompt(gs) + player_ctx
 
