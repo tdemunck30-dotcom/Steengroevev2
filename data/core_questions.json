@@ -675,21 +675,6 @@
     "used": false
   },
   {
-    "id": "core_risicos_7",
-    "theme": "risicos",
-    "source": "core",
-    "question": "Wat betekent bias bij AI?",
-    "options": [
-      "AI kan bevooroordeelde resultaten geven",
-      "AI werkt sneller",
-      "AI maakt altijd fouten",
-      "AI heeft geen data nodig"
-    ],
-    "correct_index": 0,
-    "explanation": "Bias betekent dat een systeem scheef of oneerlijk kan reageren, vaak omdat de trainingsdata niet evenwichtig was.",
-    "used": false
-  },
-  {
     "id": "core_risicos_8",
     "theme": "risicos",
     "source": "core",
@@ -777,21 +762,6 @@
     ],
     "correct_index": 1,
     "explanation": "Een deepfake is nepmedia die met AI gemaakt of aangepast is zodat ze heel echt lijkt.",
-    "used": false
-  },
-  {
-    "id": "core_risicos_14",
-    "theme": "risicos",
-    "source": "core",
-    "question": "Wat is een risico van AI op sociale media?",
-    "options": [
-      "Je ziet minder inhoud",
-      "Je batterij laadt sneller",
-      "Je blijft in een filterbubbel",
-      "Je krijgt geen meldingen"
-    ],
-    "correct_index": 2,
-    "explanation": "Als een platform vooral toont wat past bij je eerdere voorkeuren, krijg je minder snel andere standpunten of nieuwe informatie te zien.",
     "used": false
   },
   {
@@ -985,21 +955,6 @@
     "used": false
   },
   {
-    "id": "core_verantwoord_8",
-    "theme": "verantwoord",
-    "source": "core",
-    "question": "Waarom is het belangrijk om AI-bronnen te controleren?",
-    "options": [
-      "Omdat AI altijd juist is",
-      "Omdat AI verplicht is",
-      "Omdat AI fouten kan maken",
-      "Omdat AI snel werkt"
-    ],
-    "correct_index": 2,
-    "explanation": "AI kan foutieve of verzonnen informatie geven. Daarom is broncontrole belangrijk, zeker bij schoolwerk.",
-    "used": false
-  },
-  {
     "id": "core_verantwoord_9",
     "theme": "verantwoord",
     "source": "core",
@@ -1060,36 +1015,6 @@
     "used": false
   },
   {
-    "id": "core_verantwoord_13",
-    "theme": "verantwoord",
-    "source": "core",
-    "question": "Waarom is het belangrijk om AI niet blind te vertrouwen?",
-    "options": [
-      "Omdat AI fouten kan maken",
-      "Omdat AI altijd traag is",
-      "Omdat AI geen data gebruikt",
-      "Omdat AI verboden is"
-    ],
-    "correct_index": 0,
-    "explanation": "Blind vertrouwen is riskant, omdat AI soms overtuigend klinkt zonder dat het antwoord juist is.",
-    "used": false
-  },
-  {
-    "id": "core_verantwoord_14",
-    "theme": "verantwoord",
-    "source": "core",
-    "question": "Wat is een goede houding tegenover AI op school?",
-    "options": [
-      "Alles laten doen door AI",
-      "AI niet gebruiken",
-      "AI gebruiken om te ondersteunen",
-      "AI altijd volgen"
-    ],
-    "correct_index": 2,
-    "explanation": "Op school gebruik je AI best als steun bij leren en nadenken, niet als vervanging van je eigen werk.",
-    "used": false
-  },
-  {
     "id": "core_verantwoord_15",
     "theme": "verantwoord",
     "source": "core",
@@ -1132,21 +1057,6 @@
     ],
     "correct_index": 0,
     "explanation": "Als AI al het denkwerk overneemt, oefen je zelf minder. Eigen nadenken blijft nodig om echt te leren.",
-    "used": false
-  },
-  {
-    "id": "core_verantwoord_18",
-    "theme": "verantwoord",
-    "source": "core",
-    "question": "Wat is een slimme manier om AI te gebruiken?",
-    "options": [
-      "Als vervanging van je werk",
-      "Zonder controleren",
-      "Als hulp om ideeën te krijgen",
-      "Alleen voor plezier"
-    ],
-    "correct_index": 2,
-    "explanation": "AI kan nuttig zijn om ideeën, structuur of inspiratie te geven, zolang je zelf blijft kiezen en controleren.",
     "used": false
   },
   {
@@ -1318,22 +1228,6 @@
     "correct_index": 0,
     "id": "ai_9",
     "theme": "werking",
-    "source": "ai",
-    "approved": true,
-    "rejected": false,
-    "used": false
-  },
-  {
-    "question": "Je gebruikt een AI-tekstgenerator om een spreekbeurt te maken. Wat is de beste manier om eerlijk te blijven?",
-    "options": [
-      "Je controleert de informatie en schrijft zelf een deel erbij, zodat het klopt",
-      "Je gebruikt de tekst zoals die is en zegt dat jij het zelf hebt geschreven",
-      "Je laat de AI alles doen en verandert niets, zodat je tijd bespaart",
-      "Je kopieert de tekst en verandert alleen wat woorden zodat het anders lijkt"
-    ],
-    "correct_index": 0,
-    "id": "ai_10",
-    "theme": "verantwoord",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1593,22 +1487,6 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": false
-  },
-  {
-    "question": "AI leert om foto’s van katten te herkennen door veel voorbeelden te zien. Waarom is het belangrijk dat die voorbeelden heel verschillend zijn?",
-    "options": [
-      "Zodat de AI kan leren om katten in verschillende situaties en vormen te herkennen",
-      "Zodat de AI sneller kan werken en minder geheugen gebruikt",
-      "Zodat de AI alleen de meest schattige katten kiest",
-      "Zodat de AI kan onthouden welke katten het vaakst voorkomen"
-    ],
-    "correct_index": 0,
-    "id": "ai_27",
-    "theme": "werking",
-    "source": "ai",
-    "approved": false,
-    "rejected": true,
     "used": false
   },
   {

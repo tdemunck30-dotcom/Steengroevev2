@@ -286,13 +286,21 @@ def parse_coord(coord: str) -> Tuple[str, int]:
 
 def load_core_questions():
     questions = load_questions_from_file(CORE_FILE)
-    if rebalance_core_question_answer_positions_in_memory(questions):
-        save_core_questions(questions)
-    return questions
+    cleaned_questions, removed_ids = dedupe_core_question_bank(questions)
+    changed = bool(removed_ids)
+    if rebalance_core_question_answer_positions_in_memory(cleaned_questions):
+        changed = True
+    if changed:
+        save_core_questions(cleaned_questions)
+    return cleaned_questions
 
 
 def load_image_questions():
-    return load_questions_from_file(IMAGE_FILE)
+    questions = load_questions_from_file(IMAGE_FILE)
+    cleaned_questions, removed_ids = dedupe_image_question_bank(questions)
+    if removed_ids:
+        save_image_questions(cleaned_questions)
+    return cleaned_questions
 
 
 def load_consensus_dilemmas():
@@ -848,6 +856,55 @@ def find_similar_question(candidate: dict, existing_questions: List[dict]) -> Op
             return existing
 
     return None
+
+
+def normalize_image_question_key(question: dict) -> str:
+    return normalize_text_for_similarity(question.get("image_url", ""))
+
+
+def find_duplicate_image_question(candidate: dict, existing_questions: List[dict]) -> Optional[dict]:
+    candidate_key = normalize_image_question_key(candidate)
+    if not candidate_key:
+        return None
+
+    for existing in existing_questions:
+        existing_type = str(existing.get("type") or "multiple_choice")
+        if existing_type != "image_binary":
+            continue
+        if normalize_image_question_key(existing) == candidate_key:
+            return existing
+
+    return None
+
+
+def dedupe_core_question_bank(questions: List[dict]) -> tuple[List[dict], List[str]]:
+    kept_questions: List[dict] = []
+    removed_ids: List[str] = []
+
+    for question in questions:
+        if find_similar_question(question, kept_questions) is not None:
+            question_id = str(question.get("id") or "").strip()
+            if question_id:
+                removed_ids.append(question_id)
+            continue
+        kept_questions.append(question)
+
+    return kept_questions, removed_ids
+
+
+def dedupe_image_question_bank(questions: List[dict]) -> tuple[List[dict], List[str]]:
+    kept_questions: List[dict] = []
+    removed_ids: List[str] = []
+
+    for question in questions:
+        if find_duplicate_image_question(question, kept_questions) is not None:
+            question_id = str(question.get("id") or "").strip()
+            if question_id:
+                removed_ids.append(question_id)
+            continue
+        kept_questions.append(question)
+
+    return kept_questions, removed_ids
 
 
 def build_generation_avoid_list(questions: List[dict], theme: str, rejected_variants: List[str], limit: int = 10) -> str:
@@ -3134,6 +3191,20 @@ async def review_question(payload: QuestionReviewRequest, x_teacher_password: Op
         question["approved"] = True
         question["rejected"] = False
 
+        duplicate_match = find_similar_question(
+            question,
+            [
+                existing
+                for existing in questions
+                if existing.get("id") != payload.id and not existing.get("rejected", False)
+            ],
+        )
+        if duplicate_match is not None:
+            raise HTTPException(
+                409,
+                f"Deze vraag staat al bijna hetzelfde in de lijst: {duplicate_match.get('question', 'bestaande vraag')}",
+            )
+
         save_core_questions(questions)
         return {"ok": True, "message": "Vraag goedgekeurd en opgeslagen."}
 
@@ -3239,21 +3310,12 @@ async def generate_teacher_image_set(
             )
 
         for ai_question in selected_local_ai_questions:
-            copied_ai_question = build_auto_image_question(
-                working_questions,
-                correct_index=0,
-                image_url=str(ai_question.get("image_url") or "").strip(),
-                image_alt=str(ai_question.get("image_alt") or "").strip() or "AI-beeld in de automatische beeldmix",
-                explanation=learning_explanation_text(ai_question),
-                source=str(ai_question.get("source") or "auto"),
-            )
-            working_questions.append(copied_ai_question)
-            new_questions.append(copied_ai_question)
-            preview_questions.append(copied_ai_question)
+            preview_questions.append(build_auto_image_preview_item(ai_question, "bestaand"))
             fallback_ai_count += 1
 
-    existing_image_questions.extend(new_questions)
-    save_image_questions(existing_image_questions)
+    if new_questions:
+        existing_image_questions.extend(new_questions)
+        save_image_questions(existing_image_questions)
 
     ai_total = generated_ai_count + fallback_ai_count
     ai_suffix = "AI-beeld" if ai_total == 1 else "AI-beelden"
@@ -3261,17 +3323,17 @@ async def generate_teacher_image_set(
     if generated_ai_count and fallback_ai_count:
         generation_note = (
             f" {generated_ai_count} {('AI-beeld' if generated_ai_count == 1 else 'AI-beelden')} "
-            "zijn nieuw gegenereerd; de rest komt uit de lokale beeldpool."
+            "zijn nieuw gegenereerd; de rest komt uit de bestaande beeldpool."
         )
     elif generated_ai_count:
         generation_note = " Alle AI-beelden zijn nieuw gegenereerd via OpenAI."
     elif fallback_ai_count:
-        generation_note = " De AI-beelden voor deze mix komen uit de bestaande lokale beeldpool."
+        generation_note = " De AI-beelden voor deze mix komen uit de bestaande beeldpool en zijn niet opnieuw opgeslagen."
 
     return {
         "ok": True,
         "message": (
-            f"Automatische beeldmix opgeslagen: 1 bestaande echte foto en {len(new_questions)} nieuwe {ai_suffix}."
+            f"Automatische beeldmix klaar: 1 bestaande echte foto en {ai_total} {ai_suffix}."
             f"{generation_note}"
         ),
         "real_count": real_count,
@@ -3281,8 +3343,8 @@ async def generate_teacher_image_set(
         "questions": preview_questions,
         "saved_count": len(new_questions),
         "preview_message": (
-            f"De mix hieronder gebruikt 1 bestaande echte foto en {len(new_questions)} nieuwe {ai_suffix.lower()}."
-            " Alleen de nieuwe AI-vragen worden extra toegevoegd onder 'Vragen verwijderen'."
+            f"De mix hieronder gebruikt 1 bestaande echte foto en {ai_total} {ai_suffix.lower()}."
+            " Alleen echt nieuwe AI-vragen worden extra toegevoegd onder 'Vragen verwijderen'."
         ),
     }
 
@@ -3332,6 +3394,13 @@ async def create_teacher_question(
             raise HTTPException(400, "Kies bij een beeldvraag of het beeld AI-gegenereerd is of niet.")
 
         image_questions = load_image_questions()
+        duplicate_image = find_duplicate_image_question(
+            {"type": "image_binary", "image_url": image_url},
+            image_questions,
+        )
+        if duplicate_image is not None:
+            raise HTTPException(409, "Dit beeld staat al in de lijst. Kies een andere afbeelding.")
+
         teacher_question = {
             "id": next_prefixed_question_id(image_questions, "image_round_"),
             "source": "teacher",
@@ -3382,6 +3451,16 @@ async def create_teacher_question(
         "rejected": False,
         "used": False,
     }
+
+    duplicate_question = find_similar_question(
+        teacher_question,
+        [question for question in questions if not question.get("rejected", False)],
+    )
+    if duplicate_question is not None:
+        raise HTTPException(
+            409,
+            f"Deze vraag lijkt al te bestaan: {duplicate_question.get('question', 'bestaande vraag')}",
+        )
 
     questions.append(teacher_question)
     save_core_questions(questions)
