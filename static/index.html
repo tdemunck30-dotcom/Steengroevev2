@@ -402,9 +402,11 @@
         .dashboard-sidebar .action-grid .button-subtitle {
             display: block;
             margin-top: 4px;
-            font-size: 0.72rem;
-            line-height: 1.24;
-            color: rgba(255, 247, 239, 0.86);
+            font-size: 0.76rem;
+            line-height: 1.3;
+            color: rgba(255, 252, 248, 0.97);
+            font-weight: 700;
+            text-shadow: 0 1px 1px rgba(26, 26, 26, 0.18);
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -456,9 +458,11 @@
 
         .action-controls-block .button-subtitle {
             margin-top: 4px;
-            font-size: 0.7rem;
-            line-height: 1.24;
-            color: rgba(252, 247, 242, 0.88);
+            font-size: 0.76rem;
+            line-height: 1.3;
+            color: rgba(255, 252, 248, 0.97);
+            font-weight: 700;
+            text-shadow: 0 1px 1px rgba(26, 26, 26, 0.18);
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -2938,19 +2942,19 @@
                 <div class="action-grid">
                     <button class="action-button primary-action" onclick="newGame()">
                         <span class="button-title">Nieuw spel</span>
-                        <span class="button-subtitle">Reset de timer, deel startposities uit en begin opnieuw.</span>
+                        <span class="button-subtitle">Reset timer en startposities en begin opnieuw.</span>
                     </button>
                     <button class="action-button secondary-action" onclick="nextTurn()">
                         <span class="button-title">Volgende speler</span>
-                        <span class="button-subtitle">Noodknop om handmatig door te springen als een beurt niet via een vraag eindigt.</span>
+                        <span class="button-subtitle">Spring handmatig door als een beurt niet via een vraag eindigt.</span>
                     </button>
                     <button id="exitButton" class="action-button exit-action" type="button" onclick="pressExitButton()">
                         <span id="exitButtonTitle" class="button-title">Groene exitknop</span>
-                        <span id="exitButtonSubtitle" class="button-subtitle">Alleen de speler aan beurt mag drukken. De uitgang verschijnt en de timer springt naar 5 minuten.</span>
+                        <span id="exitButtonSubtitle" class="button-subtitle">Alleen speler aan beurt. Uitgang verschijnt en teller springt naar 5 minuten.</span>
                     </button>
                     <button id="pauseTimerButton" class="action-button pause-action" type="button" onclick="toggleTimerPause()">
                         <span id="pauseTimerTitle" class="button-title">Pauze klok</span>
-                        <span id="pauseTimerSubtitle" class="button-subtitle">Zet de spelklok tijdelijk stil zonder het spel te resetten.</span>
+                        <span id="pauseTimerSubtitle" class="button-subtitle">Zet de spelklok tijdelijk stil zonder te resetten.</span>
                     </button>
                 </div>
             </div>
