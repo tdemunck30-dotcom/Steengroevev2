@@ -1100,7 +1100,7 @@
             background: linear-gradient(135deg, #b5412c, #842d1e);
         }
 
-        .theme.verantwoord {
+        .theme.kansen {
             background: linear-gradient(135deg, #c47d1f, #996015);
         }
 
@@ -2974,12 +2974,12 @@
                         <span class="button-subtitle">Voorbeelden uit school, media en dagelijkse situaties.</span>
                     </button>
                     <button class="theme risicos" onclick="loadQuestion('risicos')">
-                        <span class="button-title">Risico's en valkuilen</span>
-                        <span class="button-subtitle">Herken fouten, misleiding en onbetrouwbare AI-antwoorden.</span>
+                        <span class="button-title">Risico's en verantwoord omgaan met AI</span>
+                        <span class="button-subtitle">Herken fouten en maak eerlijke, veilige en bewuste keuzes.</span>
                     </button>
-                    <button class="theme verantwoord" onclick="loadQuestion('verantwoord')">
-                        <span class="button-title">Verantwoord gebruik</span>
-                        <span class="button-subtitle">Denk na over eerlijk gebruik, keuzes en goede afspraken.</span>
+                    <button class="theme kansen" onclick="loadQuestion('kansen')">
+                        <span class="button-title">Voordelen en kansen</span>
+                        <span class="button-subtitle">Ontdek waar AI echt kan helpen bij leren, zoeken en creëren.</span>
                     </button>
                 </div>
             </div>
@@ -3239,8 +3239,8 @@
                     <div class="teacher-generate-actions">
                         <button class="teacher-generate-button theme werking" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('werking')">Hoe werkt AI?</button>
                         <button class="teacher-generate-button theme leefwereld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('leefwereld')">AI in jouw leefwereld</button>
-                        <button class="teacher-generate-button theme risicos" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('risicos')">Risico's en valkuilen</button>
-                        <button class="teacher-generate-button theme verantwoord" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('verantwoord')">Verantwoord gebruik</button>
+                        <button class="teacher-generate-button theme risicos" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('risicos')">Risico's en verantwoord omgaan met AI</button>
+                        <button class="teacher-generate-button theme kansen" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kansen')">Voordelen en kansen</button>
                     </div>
                 </div>
                 <div class="teacher-generate-bar">
@@ -3302,8 +3302,8 @@
                         <select id="teacherManualTheme">
                             <option value="werking">Hoe werkt AI?</option>
                             <option value="leefwereld">AI in jouw leefwereld</option>
-                            <option value="risicos">Risico's en valkuilen</option>
-                            <option value="verantwoord">Verantwoord gebruik</option>
+                            <option value="risicos">Risico's en verantwoord omgaan met AI</option>
+                            <option value="kansen">Voordelen en kansen</option>
                         </select>
                     </div>
                     <div class="teacher-inline-field">
@@ -3433,8 +3433,9 @@
         const themeLabels = {
             werking: "Hoe werkt AI?",
             leefwereld: "AI in jouw leefwereld",
-            risicos: "Risico's en valkuilen",
-            verantwoord: "Verantwoord gebruik"
+            risicos: "Risico's en verantwoord omgaan met AI",
+            kansen: "Voordelen en kansen",
+            verantwoord: "Risico's en verantwoord omgaan met AI"
         };
         const answerLetters = ["A", "B", "C", "D"];
 

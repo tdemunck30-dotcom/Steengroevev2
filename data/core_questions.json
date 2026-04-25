@@ -11,7 +11,7 @@
       "Omdat AI zelfstandig nadenkt"
     ],
     "correct_index": 2,
-    "used": true
+    "used": false
   },
   {
     "id": "core_werking_2",
@@ -310,7 +310,7 @@
   },
   {
     "id": "core_leefwereld_2",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "core",
     "question": "Hoe kan AI helpen bij huiswerk?",
     "options": [
@@ -324,7 +324,7 @@
   },
   {
     "id": "core_leefwereld_3",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "core",
     "question": "Waarom gebruikt een navigatie-app AI?",
     "options": [
@@ -546,7 +546,7 @@
   },
   {
     "id": "core_leefwereld_18",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "core",
     "question": "Waarom gebruiken bedrijven AI in apps?",
     "options": [
@@ -856,7 +856,7 @@
   },
   {
     "id": "core_verantwoord_1",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat is verantwoord AI-gebruik?",
     "options": [
@@ -870,7 +870,7 @@
   },
   {
     "id": "core_verantwoord_2",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat doe je als AI een gemene tekst maakt?",
     "options": [
@@ -884,7 +884,7 @@
   },
   {
     "id": "core_verantwoord_3",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Waarom is het soms eerlijk om te zeggen dat je AI gebruikte?",
     "options": [
@@ -898,7 +898,7 @@
   },
   {
     "id": "core_verantwoord_4",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat is een goede klasafspraak over AI?",
     "options": [
@@ -912,7 +912,7 @@
   },
   {
     "id": "core_verantwoord_5",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Hoe gebruik je AI respectvol?",
     "options": [
@@ -926,7 +926,7 @@
   },
   {
     "id": "core_verantwoord_6",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat betekent verantwoord omgaan met AI?",
     "options": [
@@ -941,7 +941,7 @@
   },
   {
     "id": "core_verantwoord_7",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat moet je doen als je AI gebruikt voor schoolwerk?",
     "options": [
@@ -956,7 +956,7 @@
   },
   {
     "id": "core_verantwoord_9",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat is een goede manier om AI te gebruiken?",
     "options": [
@@ -971,7 +971,7 @@
   },
   {
     "id": "core_verantwoord_10",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat doe je best met persoonlijke informatie?",
     "options": [
@@ -986,7 +986,7 @@
   },
   {
     "id": "core_verantwoord_11",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat betekent kritisch denken bij AI-gebruik?",
     "options": [
@@ -1001,7 +1001,7 @@
   },
   {
     "id": "core_verantwoord_12",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat moet je doen als AI iets zegt dat fout lijkt?",
     "options": [
@@ -1016,7 +1016,7 @@
   },
   {
     "id": "core_verantwoord_15",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat betekent transparant zijn bij AI-gebruik?",
     "options": [
@@ -1031,7 +1031,7 @@
   },
   {
     "id": "core_verantwoord_16",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat doe je als AI een antwoord geeft dat je niet begrijpt?",
     "options": [
@@ -1046,7 +1046,7 @@
   },
   {
     "id": "core_verantwoord_17",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Waarom is eigen nadenken belangrijk bij AI?",
     "options": [
@@ -1061,7 +1061,7 @@
   },
   {
     "id": "core_verantwoord_19",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat is belangrijk bij het delen van AI-gegenereerde inhoud?",
     "options": [
@@ -1076,7 +1076,7 @@
   },
   {
     "id": "core_verantwoord_20",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "core",
     "question": "Wat is een voorbeeld van verantwoord AI-gebruik?",
     "options": [
@@ -1131,7 +1131,7 @@
     ],
     "correct_index": 0,
     "id": "ai_3",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1147,7 +1147,7 @@
     ],
     "correct_index": 0,
     "id": "ai_4",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1163,7 +1163,7 @@
     ],
     "correct_index": 2,
     "id": "ai_5",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1259,7 +1259,7 @@
     ],
     "correct_index": 0,
     "id": "ai_12",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1275,7 +1275,7 @@
     ],
     "correct_index": 3,
     "id": "ai_13",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1371,7 +1371,7 @@
     ],
     "correct_index": 0,
     "id": "ai_19",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1617,7 +1617,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI in chatbots helpt om snel relevante informatie te vinden en begrijpelijke antwoorden te geven, maar het heeft geen echte emoties en maakt soms fouten. Daarom blijft het belangrijk dat jij zelf kritisch blijft en leert over het onderwerp.",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1753,7 +1753,7 @@
     ],
     "correct_index": 2,
     "explanation": "Het is belangrijk om AI-advies niet zomaar klakkeloos over te nemen, maar zelf te controleren of het klopt. Zo gebruik je AI op een verantwoorde manier en leer je zelf ook beter.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1787,7 +1787,7 @@
     ],
     "correct_index": 0,
     "explanation": "AI kan fouten of onduidelijkheden bevatten, omdat het niet altijd de juiste of actuele informatie gebruikt. Daarom is het belangrijk om de tekst zelf te controleren zodat je zeker weet dat je werk klopt en je het begrijpt.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1906,7 +1906,7 @@
     ],
     "correct_index": 0,
     "explanation": "Een chatbot gebruikt vragen om beter te begrijpen wat jij bedoelt, zodat het advies of de antwoorden beter passen bij jouw situatie.",
-    "theme": "leefwereld",
+    "theme": "kansen",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1944,7 +1944,7 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": true,
+    "used": false,
     "id": "ai_54"
   },
   {
@@ -1957,7 +1957,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI kan soms fouten maken of dingen anders uitleggen. Door de uitleg te vergelijken met betrouwbare bronnen, controleer je of de informatie klopt en leer je beter kritisch omgaan met AI.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1974,7 +1974,7 @@
     ],
     "correct_index": 1,
     "explanation": "Het is belangrijk om persoonlijke informatie van anderen te beschermen. Daarom moet je de tekst aanpassen zodat die informatie niet zichtbaar is, zodat je privacy respecteert en verantwoord omgaat met AI-gebruik.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -2008,7 +2008,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI kan soms fouten maken of verkeerde informatie geven. Het is daarom belangrijk om belangrijke feiten zelf te controleren in betrouwbare bronnen voordat je ze gebruikt.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -2097,7 +2097,7 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": true,
+    "used": false,
     "id": "ai_63"
   },
   {
@@ -2127,7 +2127,7 @@
     ],
     "correct_index": 3,
     "explanation": "De beste keuze is om AI als hulpmiddel te gebruiken, maar zelf te controleren of de informatie klopt en de tekst eerlijk te maken. Zo blijf je slim én eerlijk werken, en leer je zelf ook meer.",
-    "theme": "verantwoord",
+    "theme": "risicos",
     "source": "ai",
     "approved": true,
     "rejected": false,

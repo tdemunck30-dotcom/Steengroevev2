@@ -13,6 +13,7 @@ import binascii
 import hashlib
 import textwrap
 import math
+import io
 from difflib import SequenceMatcher
 from typing import Dict, List, Optional, Literal, Tuple
 
@@ -20,6 +21,11 @@ from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 import json
 from pathlib import Path
+
+try:
+    from PIL import Image
+except Exception:
+    Image = None
 
 DATA_DIR = Path("data")
 CORE_FILE = DATA_DIR / "core_questions.json"
@@ -30,6 +36,8 @@ ALL_TIME_RANKING_FILE = DATA_DIR / "all_time_ranking.json"
 QUESTION_IMAGE_DIR = Path("static") / "question-images"
 UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
 GENERATED_IMAGE_DIR = QUESTION_IMAGE_DIR / "generated"
+PDF_ASSET_DIR = Path("static") / "pdf-assets"
+GROUP_EVALUATION_BACKGROUND_FILE = PDF_ASSET_DIR / "group-evaluation-background.png"
 IMAGE_QUESTION_CHANCE = 0.3
 AI_GENERATION_MAX_ATTEMPTS = 4
 MAX_TEACHER_IMAGE_BYTES = 8 * 1024 * 1024
@@ -112,13 +120,26 @@ THEMES = {
         "color": "#2ECC71"
     },
     "risicos": {
-        "label": "Risico's en valkuilen",
+        "label": "Risico's en verantwoord omgaan met AI",
         "color": "#E74C3C"
     },
-    "verantwoord": {
-        "label": "Verantwoord gebruik",
+    "kansen": {
+        "label": "Voordelen en kansen",
         "color": "#F39C12"
     }
+}
+THEME_ALIASES = {
+    "verantwoord": "risicos",
+}
+KANSEN_THEME_SOURCE_IDS = {
+    "core_leefwereld_2",
+    "core_leefwereld_3",
+    "core_leefwereld_18",
+    "ai_3",
+    "ai_5",
+    "ai_19",
+    "ai_35",
+    "ai_52",
 }
 ETHICAL_AI_DILEMMAS = [
     {
@@ -185,11 +206,13 @@ Focus op situaties uit school, sociale media, zoeken, navigatie, aanbevelingen, 
 Laat leerlingen nadenken waar AI wel of niet nuttig is in het dagelijks leven.
 """.strip(),
         "risicos": """
-Focus op bias, hallucinaties, nepbeelden, privacy, verkeerde conclusies en blind vertrouwen in AI.
+Focus op bias, hallucinaties, nepbeelden, privacy, verkeerde conclusies, eerlijk gebruik en blind vertrouwen in AI.
+Laat leerlingen nadenken over veilig, eerlijk en verantwoordelijk omgaan met AI.
 Maak afleiders geloofwaardig, niet flauw of absurd.
 """.strip(),
-        "verantwoord": """
-Focus op eerlijk gebruik, controleren van informatie, brongebruik, transparantie, privacy en afspraken in de klas.
+        "kansen": """
+Focus op voordelen van AI in school, creativiteit, zoeken, plannen, ondersteuning, toegankelijkheid en dagelijkse toepassingen.
+Laat leerlingen nadenken waar AI echt kan helpen of tijd kan besparen, zonder de vraag promotioneel te maken.
 Laat de vraag gaan over goede keuzes, niet alleen over losse regeltjes.
 """.strip(),
     }
@@ -284,10 +307,33 @@ def parse_coord(coord: str) -> Tuple[str, int]:
 # Helpers: Question system
 # ----------------------------
 
+def normalize_theme_key(theme: object) -> str:
+    raw_theme = str(theme or "").strip()
+    mapped_theme = THEME_ALIASES.get(raw_theme, raw_theme)
+    return mapped_theme
+
+
+def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
+    changed = False
+
+    for question in questions:
+        normalized_theme = normalize_theme_key(question.get("theme"))
+        question_id = str(question.get("id") or "").strip()
+
+        if question_id in KANSEN_THEME_SOURCE_IDS:
+            normalized_theme = "kansen"
+
+        if normalized_theme and question.get("theme") != normalized_theme:
+            question["theme"] = normalized_theme
+            changed = True
+
+    return changed
+
 def load_core_questions():
     questions = load_questions_from_file(CORE_FILE)
+    changed = migrate_core_question_themes_in_memory(questions)
     cleaned_questions, removed_ids = dedupe_core_question_bank(questions)
-    changed = bool(removed_ids)
+    changed = changed or bool(removed_ids)
     if rebalance_core_question_answer_positions_in_memory(cleaned_questions):
         changed = True
     if changed:
@@ -775,8 +821,8 @@ QUESTION_EXPLANATION_FALLBACKS = {
 THEME_EXPLANATION_FALLBACKS = {
     "werking": "In dit thema gaat het om hoe AI werkt: modellen leren uit voorbeelden, volgen instructies en herkennen patronen in data. Ze denken niet zelfstandig zoals mensen.",
     "leefwereld": "In het dagelijks leven zit AI vaak in apps en tools die aanbevelen, zoeken, voorspellen of automatisch helpen. Het is dus belangrijk om zulke toepassingen te herkennen.",
-    "risicos": "Dit laat zien waarom je AI niet blind mag vertrouwen: systemen kunnen zich vergissen, bevooroordeeld zijn of nepinhoud overtuigend laten lijken.",
-    "verantwoord": "Verantwoord AI-gebruik betekent dat je controleert, eerlijk blijft over hulp van AI en zelf blijft nadenken over privacy, betrouwbaarheid en gevolgen.",
+    "risicos": "In dit thema gaat het om risico's herkennen en tegelijk verantwoord omgaan met AI: controleren, eerlijk blijven, privacy bewaken en niet blind vertrouwen.",
+    "kansen": "In dit thema gaat het om waar AI echt kan helpen: sneller zoeken, plannen, uitleg krijgen, creatief werken of ondersteuning krijgen in herkenbare situaties.",
 }
 
 
@@ -1536,7 +1582,7 @@ class QuestionReviewRequest(BaseModel):
 
 class TeacherQuestionCreateRequest(BaseModel):
     question_type: Literal["multiple_choice", "image_binary", "consensus_dilemma"] = "multiple_choice"
-    theme: Optional[Literal["werking", "leefwereld", "risicos", "verantwoord"]] = None
+    theme: Optional[Literal["werking", "leefwereld", "risicos", "kansen", "verantwoord"]] = None
     question: str
     options: Optional[List[str]] = None
     correct_index: int
@@ -1706,7 +1752,7 @@ def _record_all_time_ranking_result(gs: GameState) -> None:
     _log(gs, "All time ranking bijgewerkt: " + gs.final_result_note)
 
 
-EVALUATION_THEME_ORDER = ["werking", "leefwereld", "risicos", "verantwoord", "beeldronde", "algemeen"]
+EVALUATION_THEME_ORDER = ["werking", "leefwereld", "kansen", "risicos", "beeldronde", "algemeen"]
 EVALUATION_THEME_FEEDBACK = {
     "werking": {
         "background": "AI zoekt patronen in voorbeelden en maakt daarna een waarschijnlijk antwoord. Dat is nuttig, maar AI begrijpt de wereld niet zoals jullie dat doen.",
@@ -1720,17 +1766,17 @@ EVALUATION_THEME_FEEDBACK = {
         "growth": "Let nog extra op waarom een app net die video, route, zoekhit of reclame toont. Vraag jezelf af wie voordeel heeft bij wat jij te zien krijgt.",
         "risk": "Als je AI in je dagelijks leven niet herkent, kan je sneller meegaan in eenzijdige informatie, reclame of inhoud die vooral bedoeld is om je aandacht vast te houden.",
     },
-    "risicos": {
-        "background": "AI kan fouten maken, iets verzinnen, oude informatie gebruiken of vooroordelen uit data overnemen. Een antwoord kan juist lijken omdat het mooi geschreven is.",
-        "strength": "Dit loopt al goed: jullie zien dat AI niet altijd juist is. Dat is belangrijk bij schoolwerk, nieuws, beelden en advies.",
-        "growth": "Let nog extra op broncontrole. Controleer zeker wanneer een antwoord verrassend, heel stellig, vaag of te mooi om waar te zijn klinkt.",
-        "risk": "Een verkeerd AI-antwoord kan leiden tot foutieve leerstof, verkeerde conclusies, nepnieuws of oneerlijke ideeen over mensen en groepen.",
+    "kansen": {
+        "background": "AI kan helpen bij zoeken, plannen, uitleg geven, vertalen, creatief werken en persoonlijke ondersteuning. Zulke kansen werken het best als je tegelijk kritisch blijft denken.",
+        "strength": "Dit loopt al goed: jullie zien waar AI echt nuttig kan zijn. Daardoor kunnen jullie AI sneller als hulpmiddel inzetten zonder er meteen afhankelijk van te worden.",
+        "growth": "Let nog extra op wanneer AI echt iets toevoegt en wanneer je beter zelf denkt of extra bronnen gebruikt. Een handige tool is nog niet automatisch de beste keuze.",
+        "risk": "Als je alleen de voordelen ziet, kan je te snel vergeten dat AI ook fouten maakt of je te afhankelijk kan maken. Kansen werken pas echt goed als je bewust blijft kiezen.",
     },
-    "verantwoord": {
-        "background": "Verantwoord AI-gebruik betekent dat AI mag helpen, maar dat jullie zelf blijven nadenken, controleren en eerlijk zijn over hulp van AI.",
-        "strength": "Dit loopt al goed: jullie kiezen vaker voor controleren, afspraken volgen en eigen denkwerk bewaren.",
-        "growth": "Let nog extra op privacy, eerlijk vermelden wanneer AI hielp en AI gebruiken als hulp, niet als vervanger van jullie eigen antwoord.",
-        "risk": "Onverantwoord gebruik kan ervoor zorgen dat je persoonlijke gegevens deelt, werk indient dat je niet begrijpt of minder oefent met zelf redeneren.",
+    "risicos": {
+        "background": "AI kan fouten maken, iets verzinnen, oude informatie gebruiken of vooroordelen uit data overnemen. Daarom horen risico herkennen en verantwoord handelen altijd samen.",
+        "strength": "Dit loopt al goed: jullie zien sneller waar het mis kan gaan en kiezen vaker voor controleren, eerlijk blijven en privacy bewaken.",
+        "growth": "Let nog extra op broncontrole, transparant zijn over hulp van AI en niet te snel vertrouwen op een antwoord dat heel zeker of handig klinkt.",
+        "risk": "Als je risico's onderschat of slordig met AI omgaat, kan dat leiden tot foutieve leerstof, nepnieuws, oneerlijke keuzes, privacyproblemen of werk dat je niet echt begrijpt.",
     },
     "beeldronde": {
         "background": "AI-beelden en bewerkte beelden kunnen echt lijken. Details zoals handen, tekst, licht, schaduwen en context kunnen helpen, maar geven niet altijd zekerheid.",
@@ -1752,7 +1798,7 @@ def evaluation_theme_key(question: dict) -> str:
     if question_type == "image_binary":
         return "beeldronde"
 
-    theme = str(question.get("theme") or "").strip()
+    theme = normalize_theme_key(question.get("theme"))
     if theme in THEMES:
         return theme
 
@@ -2146,6 +2192,159 @@ def pdf_polygon_operation(points: List[Tuple[float, float]], color: Tuple[float,
     return b"".join(chunks)
 
 
+def pdf_regular_polygon_points(
+    center_x: float,
+    center_y: float,
+    radius: float,
+    sides: int = 10,
+    rotation: float = 0.0,
+) -> List[Tuple[float, float]]:
+    points: List[Tuple[float, float]] = []
+    total_sides = max(3, int(sides))
+    for index in range(total_sides):
+        angle = rotation + (math.tau * index / total_sides)
+        points.append((center_x + math.cos(angle) * radius, center_y + math.sin(angle) * radius))
+    return points
+
+
+def pdf_circle_operation(
+    center_x: float,
+    center_y: float,
+    radius: float,
+    color: Tuple[float, float, float],
+    sides: int = 12,
+) -> bytes:
+    return pdf_polygon_operation(
+        pdf_regular_polygon_points(center_x, center_y, radius, sides=sides, rotation=math.pi / sides),
+        color,
+    )
+
+
+def pdf_cloud_operation(x: float, y: float, scale: float = 1.0) -> bytes:
+    cloud = (0.95, 0.97, 0.99)
+    ops = [
+        pdf_circle_operation(x, y, 12 * scale, cloud),
+        pdf_circle_operation(x + 12 * scale, y + 7 * scale, 16 * scale, cloud),
+        pdf_circle_operation(x + 29 * scale, y + 4 * scale, 14 * scale, cloud),
+        pdf_circle_operation(x + 42 * scale, y + 8 * scale, 12 * scale, cloud),
+        pdf_rect_operation(x - 6 * scale, y - 10 * scale, 56 * scale, 18 * scale, cloud),
+    ]
+    return b"".join(ops)
+
+
+def pdf_crate_operation(x: float, y: float, scale: float = 1.0) -> bytes:
+    width = 24 * scale
+    height = 20 * scale
+    crate = (0.78, 0.23, 0.11)
+    lid = (0.60, 0.15, 0.08)
+    wood = (0.40, 0.20, 0.10)
+    ops = [
+        pdf_rect_operation(x, y, width, height, crate),
+        pdf_rect_operation(x + 2 * scale, y + height - 5 * scale, width - 4 * scale, 3 * scale, lid),
+        pdf_rect_operation(x + 4 * scale, y + 3 * scale, width - 8 * scale, 2 * scale, wood),
+        pdf_rect_operation(x + width * 0.5 - scale, y + 3 * scale, 2 * scale, height - 6 * scale, wood),
+    ]
+    return b"".join(ops)
+
+
+def pdf_ladder_operation(x: float, y: float, scale: float = 1.0) -> bytes:
+    wood = (0.72, 0.51, 0.16)
+    dark = (0.47, 0.31, 0.11)
+    height = 38 * scale
+    width = 18 * scale
+    ops = [
+        pdf_rect_operation(x, y, 3 * scale, height, dark),
+        pdf_rect_operation(x + width, y, 3 * scale, height, dark),
+    ]
+    for rung in range(4):
+        rung_y = y + (6 + rung * 9) * scale
+        ops.append(pdf_rect_operation(x + 2 * scale, rung_y, width, 2.5 * scale, wood))
+    return b"".join(ops)
+
+
+def pdf_worker_operation(x: float, y: float, scale: float = 1.0, facing: int = 1) -> bytes:
+    body = (0.15, 0.40, 0.82)
+    shirt = (0.20, 0.52, 0.93)
+    skin = (0.97, 0.81, 0.63)
+    helmet = (0.98, 0.74, 0.16)
+    boots = (0.25, 0.16, 0.10)
+    belt = (0.33, 0.19, 0.10)
+    tool = (0.33, 0.24, 0.18)
+    shadow = (0.71, 0.61, 0.48)
+    sign = 1 if facing >= 0 else -1
+    ops = [pdf_circle_operation(x + 9 * scale, y + 2 * scale, 9 * scale, shadow, 10)]
+
+    ops.extend([
+        pdf_rect_operation(x + 6 * scale, y + 8 * scale, 5 * scale, 14 * scale, body),
+        pdf_rect_operation(x + 12 * scale, y + 8 * scale, 5 * scale, 14 * scale, body),
+        pdf_rect_operation(x + 4 * scale, y + 22 * scale, 15 * scale, 14 * scale, shirt),
+        pdf_rect_operation(x + 5 * scale, y + 20 * scale, 13 * scale, 3 * scale, belt),
+        pdf_rect_operation(x + 5 * scale, y + 6 * scale, 6 * scale, 4 * scale, boots),
+        pdf_rect_operation(x + 12 * scale, y + 6 * scale, 6 * scale, 4 * scale, boots),
+        pdf_circle_operation(x + 11 * scale, y + 43 * scale, 7 * scale, skin, 12),
+        pdf_rect_operation(x + 4 * scale, y + 46 * scale, 14 * scale, 3 * scale, helmet),
+        pdf_circle_operation(x + 11 * scale, y + 48 * scale, 8 * scale, helmet, 10),
+        pdf_rect_operation(x + (18 if sign > 0 else 0) * scale, y + 24 * scale, 6 * scale, 4 * scale, shirt),
+        pdf_rect_operation(x + (sign > 0 and 23 or -5) * scale, y + 24 * scale, 10 * scale, 2 * scale, tool),
+    ])
+
+    return b"".join(ops)
+
+
+def pdf_excavator_operation(x: float, y: float, scale: float = 1.0) -> bytes:
+    blue = (0.12, 0.47, 0.82)
+    yellow = (0.96, 0.75, 0.14)
+    dark = (0.20, 0.18, 0.18)
+    ops = [
+        pdf_rect_operation(x + 10 * scale, y + 10 * scale, 34 * scale, 16 * scale, blue),
+        pdf_rect_operation(x + 16 * scale, y + 16 * scale, 14 * scale, 10 * scale, yellow),
+        pdf_rect_operation(x + 28 * scale, y + 10 * scale, 16 * scale, 18 * scale, yellow),
+        pdf_circle_operation(x + 18 * scale, y + 8 * scale, 6 * scale, dark),
+        pdf_circle_operation(x + 40 * scale, y + 8 * scale, 6 * scale, dark),
+        pdf_rect_operation(x + 48 * scale, y + 26 * scale, 16 * scale, 4 * scale, yellow),
+        pdf_rect_operation(x + 60 * scale, y + 22 * scale, 4 * scale, 10 * scale, yellow),
+        pdf_polygon_operation(
+            [(x + 63 * scale, y + 20 * scale), (x + 74 * scale, y + 16 * scale), (x + 67 * scale, y + 10 * scale)],
+            yellow,
+        ),
+    ]
+    return b"".join(ops)
+
+
+def load_pdf_background_image(path: Path) -> Optional[dict]:
+    if Image is None or not path.exists():
+        return None
+
+    try:
+        with Image.open(path) as image:
+            rgb_image = image.convert("RGB")
+            buffer = io.BytesIO()
+            rgb_image.save(buffer, format="JPEG", quality=88, optimize=True)
+            return {
+                "width": rgb_image.width,
+                "height": rgb_image.height,
+                "data": buffer.getvalue(),
+            }
+    except Exception:
+        return None
+
+
+def pdf_image_draw_operation(name: str, x: float, y: float, width: float, height: float) -> bytes:
+    return (
+        b"q "
+        + pdf_number(width)
+        + b" 0 0 "
+        + pdf_number(height)
+        + b" "
+        + pdf_number(x)
+        + b" "
+        + pdf_number(y)
+        + b" cm /"
+        + name.encode("ascii")
+        + b" Do Q\n"
+    )
+
+
 def pdf_stone_operation(
     center_x: float,
     center_y: float,
@@ -2184,20 +2383,27 @@ def pdf_board_edge_background(page_width: int, page_height: int, page_index: int
         (0.56, 0.48, 0.37),
         (0.64, 0.56, 0.43),
         (0.39, 0.33, 0.27),
-        (0.70, 0.62, 0.48),
+        (0.74, 0.66, 0.53),
     ]
+    sky = (0.66, 0.82, 0.98)
+    horizon = (0.80, 0.73, 0.60)
+    sand = (0.93, 0.87, 0.76)
+    inner_paper = (0.97, 0.92, 0.84)
+    inner_shadow = (0.90, 0.84, 0.73)
+    border_edge = (0.40, 0.32, 0.24)
 
-    operations.append(pdf_rect_operation(0, 0, page_width, page_height, (0.83, 0.77, 0.64)))
-    operations.append(pdf_rect_operation(0, 0, page_width, page_height, (0.50, 0.41, 0.31)))
+    operations.append(pdf_rect_operation(0, 0, page_width, page_height, sand))
+    operations.append(pdf_rect_operation(0, page_height - 78, page_width, 78, sky))
+    operations.append(pdf_rect_operation(0, page_height - 112, page_width, 34, horizon))
 
     border_zones = [
-        (0, 0, 62, page_height),
-        (page_width - 62, 0, 62, page_height),
-        (0, page_height - 86, page_width, 86),
-        (0, 0, page_width, 70),
+        (0, 0, 74, page_height),
+        (page_width - 74, 0, 74, page_height),
+        (0, page_height - 118, page_width, 118),
+        (0, 0, page_width, 88),
     ]
 
-    for _ in range(170):
+    for _ in range(220):
         zone_x, zone_y, zone_w, zone_h = rng.choice(border_zones)
         stone_x = zone_x + rng.random() * zone_w
         stone_y = zone_y + rng.random() * zone_h
@@ -2206,41 +2412,57 @@ def pdf_board_edge_background(page_width: int, page_height: int, page_index: int
         color = rng.choice(rock_palette)
         operations.append(pdf_stone_operation(stone_x, stone_y, stone_w, stone_h, color, rng.uniform(0, math.pi)))
 
-    # Wooden beams, crates, cones and gold-like stones echo the board edge without copying the grid.
-    wood = (0.55, 0.32, 0.13)
-    dark_wood = (0.30, 0.19, 0.10)
-    red_crate = (0.72, 0.16, 0.09)
-    gold = (0.92, 0.68, 0.12)
-    cone = (0.88, 0.34, 0.08)
+    for cloud_x, cloud_y, cloud_scale in (
+        (44, page_height - 30, 0.9),
+        (138, page_height - 24, 0.7),
+        (246, page_height - 28, 0.85),
+        (370, page_height - 22, 0.95),
+        (480, page_height - 30, 0.75),
+    ):
+        operations.append(pdf_cloud_operation(cloud_x, cloud_y, cloud_scale))
 
-    operations.append(pdf_rect_operation(30, page_height - 55, 72, 7, wood))
-    operations.append(pdf_rect_operation(36, page_height - 72, 6, 32, dark_wood))
-    operations.append(pdf_rect_operation(92, page_height - 72, 6, 32, dark_wood))
-    operations.append(pdf_rect_operation(page_width - 130, 36, 82, 7, wood))
-    operations.append(pdf_rect_operation(page_width - 122, 20, 6, 32, dark_wood))
-    operations.append(pdf_rect_operation(page_width - 58, 20, 6, 32, dark_wood))
+    cone = (0.92, 0.46, 0.14)
+    for cone_x in (118, 178, 238, 462, 522):
+        operations.append(pdf_polygon_operation([(cone_x - 9, 34), (cone_x, 62), (cone_x + 9, 34)], cone))
+        operations.append(pdf_rect_operation(cone_x - 12, 30, 24, 5, (0.95, 0.90, 0.80)))
 
-    operations.append(pdf_rect_operation(page_width - 112, page_height - 58, 26, 22, red_crate))
-    operations.append(pdf_rect_operation(page_width - 108, page_height - 53, 18, 4, dark_wood))
-    operations.append(pdf_rect_operation(page_width - 106, page_height - 47, 14, 4, dark_wood))
+    for crate_x, crate_y, crate_scale in (
+        (144, page_height - 66, 1.05),
+        (188, page_height - 72, 0.9),
+        (336, page_height - 62, 1.0),
+        (34, 150, 1.0),
+        (page_width - 66, 214, 1.05),
+        (page_width - 58, 112, 0.95),
+    ):
+        operations.append(pdf_crate_operation(crate_x, crate_y, crate_scale))
 
-    operations.append(pdf_rect_operation(28, 34, 25, 22, red_crate))
-    operations.append(pdf_rect_operation(33, 39, 15, 4, dark_wood))
+    operations.append(pdf_ladder_operation(68, page_height - 74, 1.15))
+    operations.append(pdf_ladder_operation(34, 346, 1.1))
+    operations.append(pdf_excavator_operation(page_width - 190, 24, 1.2))
 
-    for gold_x, gold_y in ((page_width - 84, 82), (page_width - 65, 84), (page_width - 74, 100), (118, 52), (137, 55)):
-        operations.append(pdf_stone_operation(gold_x, gold_y, 12, 9, gold, rng.uniform(0, math.pi)))
+    for worker_x, worker_y, worker_scale, facing in (
+        (16, page_height - 84, 0.92, 1),
+        (108, page_height - 80, 0.90, 1),
+        (206, page_height - 82, 0.88, 1),
+        (316, page_height - 80, 0.88, -1),
+        (452, page_height - 82, 0.92, -1),
+        (14, 540, 0.95, 1),
+        (18, 432, 0.95, -1),
+        (22, 248, 0.95, 1),
+        (page_width - 44, 580, 0.95, -1),
+        (page_width - 42, 486, 0.95, -1),
+        (page_width - 40, 176, 0.95, -1),
+        (page_width - 120, 10, 0.95, 1),
+    ):
+        operations.append(pdf_worker_operation(worker_x, worker_y, worker_scale, facing))
 
-    for cone_x in (92, page_width - 96):
-        operations.append(pdf_polygon_operation([(cone_x - 12, 52), (cone_x, 91), (cone_x + 12, 52)], cone))
-        operations.append(pdf_rect_operation(cone_x - 15, 48, 30, 6, (0.94, 0.86, 0.70)))
-
-    inner_x = 70
-    inner_y = 78
+    inner_x = 76
+    inner_y = 84
     inner_width = page_width - inner_x * 2
-    inner_height = page_height - 174
-    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, (0.88, 0.84, 0.73)))
-    operations.append(pdf_rect_operation(inner_x + 7, inner_y + 7, inner_width - 14, inner_height - 14, (0.95, 0.91, 0.80)))
-    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, (0.38, 0.31, 0.23), b"S"))
+    inner_height = page_height - 184
+    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, inner_shadow))
+    operations.append(pdf_rect_operation(inner_x + 8, inner_y + 8, inner_width - 16, inner_height - 16, inner_paper))
+    operations.append(pdf_rect_operation(inner_x, inner_y, inner_width, inner_height, border_edge, b"S"))
 
     return b"".join(operations)
 
@@ -2298,6 +2520,7 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
     if not pages:
         pages.append(b"")
 
+    background_image = load_pdf_background_image(GROUP_EVALUATION_BACKGROUND_FILE)
     objects: List[Optional[bytes]] = [
         b"<< /Type /Catalog /Pages 2 0 R >>",
         None,
@@ -2305,15 +2528,39 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
     ]
     page_ids: List[int] = []
 
+    background_object_id: Optional[int] = None
+    if background_image is not None:
+        background_object_id = len(objects) + 1
+        image_stream = background_image["data"]
+        objects.append(
+            (
+                b"<< /Type /XObject /Subtype /Image /Width "
+                + str(background_image["width"]).encode("ascii")
+                + b" /Height "
+                + str(background_image["height"]).encode("ascii")
+                + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "
+                + str(len(image_stream)).encode("ascii")
+                + b" >>\nstream\n"
+                + image_stream
+                + b"\nendstream"
+            )
+        )
+
     for page_index, stream in enumerate(pages):
         page_id = len(objects) + 1
         content_id = page_id + 1
         page_ids.append(page_id)
-        stream = pdf_board_edge_background(page_width, page_height, page_index) + stream
+        if background_object_id is not None:
+            stream = pdf_image_draw_operation("BG", 0, 0, page_width, page_height) + stream
+            page_resources = f"/Font << /F1 3 0 R >> /XObject << /BG {background_object_id} 0 R >>"
+        else:
+            stream = pdf_board_edge_background(page_width, page_height, page_index) + stream
+            page_resources = "/Font << /F1 3 0 R >>"
+
         objects.append(
             (
                 f"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {page_width} {page_height}] "
-                f"/Resources << /Font << /F1 3 0 R >> >> /Contents {content_id} 0 R >>"
+                f"/Resources << {page_resources} >> /Contents {content_id} 0 R >>"
             ).encode("ascii")
         )
         objects.append(
@@ -2746,7 +2993,7 @@ async def new_game(req: NewGameRequest):
 @app.post("/api/question/next")
 async def next_question(payload: dict):
     global LAST_IMAGE_QUESTION
-    theme_key = payload.get("theme")
+    theme_key = normalize_theme_key(payload.get("theme"))
 
     if theme_key not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
@@ -2785,6 +3032,8 @@ async def next_question(payload: dict):
 @app.post("/api/question/generate")
 async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = Header(None)):
     require_teacher_password(x_teacher_password)
+
+    theme = normalize_theme_key(theme)
 
     if theme not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
@@ -3355,6 +3604,7 @@ async def create_teacher_question(
     x_teacher_password: Optional[str] = Header(None),
 ):
     require_teacher_password(x_teacher_password)
+    theme_key = normalize_theme_key(payload.theme)
 
     normalized_question = payload.question.strip()
     if not normalized_question:
@@ -3428,6 +3678,8 @@ async def create_teacher_question(
 
     if payload.theme is None:
         raise HTTPException(400, "Kies eerst een thema voor deze meerkeuzevraag.")
+    if theme_key not in THEMES:
+        raise HTTPException(400, "Ongeldig thema.")
 
     if payload.options is None:
         raise HTTPException(400, "Voeg vier antwoordopties toe voor deze meerkeuzevraag.")
@@ -3442,7 +3694,7 @@ async def create_teacher_question(
     questions = load_core_questions()
     teacher_question = {
         "id": next_teacher_question_id(questions),
-        "theme": payload.theme,
+        "theme": theme_key,
         "source": "teacher",
         "question": normalized_question,
         "options": normalized_options,
