@@ -3469,6 +3469,7 @@
         let timerControlBusy = false;
         let stateRefreshBusy = false;
         let stateRefreshQueued = false;
+        const TIMER_TICK_INTERVAL_MS = 250;
         const STATE_REFRESH_INTERVAL_MS = 2500;
         let teacherMode = "review";
 
@@ -5873,6 +5874,29 @@
             return player ? player.name : "Iedereen ontsnapt";
         }
 
+        function getRemainingTimerSeconds(state) {
+            if (!state || !state.deadline_at) {
+                return null;
+            }
+
+            const referenceTime = state.timer_paused && state.paused_at
+                ? state.paused_at
+                : Date.now() / 1000;
+            return Math.max(0, Math.ceil(state.deadline_at - referenceTime));
+        }
+
+        function updateTimerDisplay() {
+            const remaining = getRemainingTimerSeconds(latestState);
+            if (remaining === null) {
+                byId("timerDisplay").textContent = "--:--";
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            byId("timerDisplay").textContent = minutes + ":" + String(seconds).padStart(2, "0");
+        }
+
         function renderTurnSpotlight(state) {
             const spotlightName = byId("turnSpotlightName");
             const spotlightNote = byId("turnSpotlightNote");
@@ -6023,17 +6047,7 @@
                 });
             }
 
-            if (state.deadline_at) {
-                const referenceTime = state.timer_paused && state.paused_at
-                    ? state.paused_at
-                    : Date.now() / 1000;
-                const remaining = Math.max(0, Math.floor(state.deadline_at - referenceTime));
-                const minutes = Math.floor(remaining / 60);
-                const seconds = remaining % 60;
-                byId("timerDisplay").textContent = minutes + ":" + String(seconds).padStart(2, "0");
-            } else {
-                byId("timerDisplay").textContent = "--:--";
-            }
+            updateTimerDisplay();
 
             byId("phaseDisplay").textContent = state.timer_paused
                 ? (state.phase || "-") + " · gepauzeerd"
@@ -6389,6 +6403,9 @@
             renderEventLog([]);
             renderPlayersSetup(null);
             refreshState();
+            setInterval(() => {
+                updateTimerDisplay();
+            }, TIMER_TICK_INTERVAL_MS);
             setInterval(() => {
                 refreshState();
             }, STATE_REFRESH_INTERVAL_MS);

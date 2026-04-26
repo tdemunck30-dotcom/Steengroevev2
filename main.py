@@ -15,7 +15,7 @@ import textwrap
 import math
 import io
 from difflib import SequenceMatcher
-from typing import Dict, List, Optional, Literal, Tuple
+from typing import Any, Dict, List, Optional, Literal, Tuple
 
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -177,6 +177,8 @@ CONSENSUS_PASSAGE_REWARD = 5
 CONSENSUS_EXPLOSION_PENALTY = 3
 CONSENSUS_MAX_USES = 3
 MAX_EVENT_LOG_ENTRIES = 120
+JSON_LIST_CACHE: Dict[str, Dict[str, Any]] = {}
+PROCESSED_QUESTION_CACHE: Dict[str, Dict[str, Any]] = {}
 # Optional: load .env if present
 try:
     from dotenv import load_dotenv
@@ -314,6 +316,29 @@ def normalize_theme_key(theme: object) -> str:
     return mapped_theme
 
 
+def processed_question_cache_key(path: Path) -> str:
+    return f"processed::{cache_key_for_path(path)}"
+
+
+def load_processed_question_cache(path: Path) -> Optional[List[dict]]:
+    cache_entry = PROCESSED_QUESTION_CACHE.get(processed_question_cache_key(path))
+    if not cache_entry:
+        return None
+
+    if cache_entry.get("mtime_ns") != file_mtime_ns(path):
+        return None
+
+    questions = cache_entry.get("questions")
+    return questions if isinstance(questions, list) else None
+
+
+def store_processed_question_cache(path: Path, questions: List[dict]) -> None:
+    PROCESSED_QUESTION_CACHE[processed_question_cache_key(path)] = {
+        "mtime_ns": file_mtime_ns(path),
+        "questions": questions,
+    }
+
+
 def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
     changed = False
 
@@ -331,6 +356,10 @@ def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
     return changed
 
 def load_core_questions():
+    cached_questions = load_processed_question_cache(CORE_FILE)
+    if cached_questions is not None:
+        return cached_questions
+
     questions = load_questions_from_file(CORE_FILE)
     changed = migrate_core_question_themes_in_memory(questions)
     cleaned_questions, removed_ids = dedupe_core_question_bank(questions)
@@ -339,14 +368,22 @@ def load_core_questions():
         changed = True
     if changed:
         save_core_questions(cleaned_questions)
+        return cleaned_questions
+    store_processed_question_cache(CORE_FILE, cleaned_questions)
     return cleaned_questions
 
 
 def load_image_questions():
+    cached_questions = load_processed_question_cache(IMAGE_FILE)
+    if cached_questions is not None:
+        return cached_questions
+
     questions = load_questions_from_file(IMAGE_FILE)
     cleaned_questions, removed_ids = dedupe_image_question_bank(questions)
     if removed_ids:
         save_image_questions(cleaned_questions)
+        return cleaned_questions
+    store_processed_question_cache(IMAGE_FILE, cleaned_questions)
     return cleaned_questions
 
 
@@ -355,20 +392,63 @@ def load_consensus_dilemmas():
 
 
 def load_questions_from_file(path: Path):
+    return load_json_list_from_file(path)
+
+
+def cache_key_for_path(path: Path) -> str:
+    try:
+        return str(path.resolve())
+    except OSError:
+        return str(path)
+
+
+def file_mtime_ns(path: Path) -> Optional[int]:
+    try:
+        return path.stat().st_mtime_ns
+    except OSError:
+        return None
+
+
+def load_json_list_from_file(path: Path) -> List[Any]:
+    cache_key = cache_key_for_path(path)
+    mtime_ns = file_mtime_ns(path)
+    cached = JSON_LIST_CACHE.get(cache_key)
+
+    if cached and cached.get("mtime_ns") == mtime_ns:
+        payload = cached.get("payload")
+        return payload if isinstance(payload, list) else []
+
     if not path.exists():
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        payload: List[Any] = []
+    else:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                payload = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            payload = []
+
+    if not isinstance(payload, list):
+        payload = []
+
+    JSON_LIST_CACHE[cache_key] = {
+        "mtime_ns": mtime_ns,
+        "payload": payload,
+    }
+    return payload
+
+
+def save_json_list_to_file(path: Path, payload: List[Any]) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, ensure_ascii=False)
+
+    JSON_LIST_CACHE[cache_key_for_path(path)] = {
+        "mtime_ns": file_mtime_ns(path),
+        "payload": payload,
+    }
 
 
 def load_string_list_from_file(path: Path) -> List[str]:
-    if not path.exists():
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        payload = json.load(f)
-
-    if not isinstance(payload, list):
-        return []
+    payload = load_json_list_from_file(path)
 
     values: List[str] = []
     for item in payload:
@@ -476,10 +556,12 @@ def reset_questions():
 
 def save_core_questions(questions):
     save_questions_to_file(CORE_FILE, questions)
+    store_processed_question_cache(CORE_FILE, questions)
 
 
 def save_image_questions(questions):
     save_questions_to_file(IMAGE_FILE, questions)
+    store_processed_question_cache(IMAGE_FILE, questions)
 
 
 def save_consensus_dilemmas(questions):
@@ -487,13 +569,11 @@ def save_consensus_dilemmas(questions):
 
 
 def save_questions_to_file(path: Path, questions):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(questions, f, indent=2, ensure_ascii=False)
+    save_json_list_to_file(path, questions)
 
 
 def save_string_list_to_file(path: Path, values: List[str]) -> None:
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(values, f, indent=2, ensure_ascii=False)
+    save_json_list_to_file(path, values)
 
 
 def load_disabled_consensus_ids() -> List[str]:
@@ -2892,8 +2972,17 @@ def _seed_initial_board_items(
 # Background loop
 # ----------------------------
 
+def preload_runtime_caches() -> None:
+    load_core_questions()
+    load_image_questions()
+    load_consensus_dilemmas()
+    load_disabled_consensus_ids()
+    load_all_time_ranking()
+
+
 @app.on_event("startup")
 async def startup_loop():
+    preload_runtime_caches()
     asyncio.create_task(game_loop())
 
 async def game_loop():
