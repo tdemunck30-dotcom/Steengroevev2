@@ -312,29 +312,31 @@
     "id": "core_leefwereld_2",
     "theme": "kansen",
     "source": "core",
-    "question": "Hoe kan AI helpen bij huiswerk?",
+    "question": "Je wil AI gebruiken om een moeilijke tekst voor Nederlands beter te begrijpen. Welke prompt helpt het meest?",
     "options": [
-      "Door alles blind over te nemen",
-      "Door toetsen te lekken",
-      "Door uitleg en voorbeelden te geven",
-      "Door je boek te vervangen"
+      "Leg deze tekst uit.",
+      "Vat deze tekst samen.",
+      "Leg deze tekst in 5 duidelijke zinnen uit voor een leerling van 2A en geef ook 2 moeilijke woorden met een simpele uitleg.",
+      "Maak mijn taak over deze tekst."
     ],
     "correct_index": 2,
-    "used": false
+    "used": false,
+    "explanation": "De beste prompt zegt duidelijk wat AI moet doen, voor wie het antwoord bedoeld is en in welke vorm je het wilt. Daardoor krijg je veel bruikbaardere hulp."
   },
   {
     "id": "core_leefwereld_3",
     "theme": "kansen",
     "source": "core",
-    "question": "Waarom gebruikt een navigatie-app AI?",
+    "question": "Je wil met AI oefenvragen maken voor een toets over breuken. Welke prompt is het sterkst?",
     "options": [
-      "Om routes en files te voorspellen",
-      "Om benzine te maken",
-      "Om de straat te verbreden",
-      "Om verkeerslichten te schilderen"
+      "Geef 5 meerkeuzevragen over breuken voor het 1e middelbaar, van makkelijk naar moeilijk, en zet het juiste antwoord telkens apart onder de vraag.",
+      "Maak iets over breuken.",
+      "Los breuken voor mij op.",
+      "Schrijf alles wat je weet over wiskunde."
     ],
     "correct_index": 0,
-    "used": false
+    "used": false,
+    "explanation": "Een sterke prompt noemt het onderwerp, het niveau, het aantal vragen en hoe het antwoord eruit moet zien. Zo gebruik je AI doelgericht als oefenhulp."
   },
   {
     "id": "core_leefwereld_4",
@@ -548,15 +550,15 @@
     "id": "core_leefwereld_18",
     "theme": "kansen",
     "source": "core",
-    "question": "Waarom gebruiken bedrijven AI in apps?",
+    "question": "Een leerling gebruikt deze prompt: 'Schrijf iets over de Romeinen.' Wat is het grootste probleem met die prompt?",
     "options": [
-      "Om apps trager te maken",
-      "Om minder data te gebruiken",
-      "Om gebruikers langer actief te houden",
-      "Om minder geld te verdienen"
+      "De prompt is te beleefd, daardoor werkt AI minder goed.",
+      "De prompt bevat te veel informatie tegelijk.",
+      "De prompt is te vaag: doel, lengte en soort antwoord ontbreken.",
+      "De prompt mag geen historisch onderwerp bevatten."
     ],
     "correct_index": 2,
-    "explanation": "Bedrijven gebruiken AI vaak om inhoud, reclame of functies zo af te stemmen dat gebruikers langer blijven kijken of klikken.",
+    "explanation": "Een vage prompt geeft AI te weinig richting. Als je zegt wat je precies nodig hebt, krijg je sneller een antwoord dat bruikbaar is voor jouw taak.",
     "used": false
   },
   {
@@ -1122,12 +1124,12 @@
     "used": false
   },
   {
-    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine. Waarom helpt AI daarbij meestal beter dan een gewone lijst met websites?",
+    "question": "Je wilt hulp bij een spreekbeurt over vulkanen, maar je wil niet dat AI de hele taak overneemt. Welke prompt past daar het best bij?",
     "options": [
-      "AI kan de belangrijkste informatie sneller vinden en op een begrijpelijke manier laten zien",
-      "AI kiest willekeurig websites zodat je meer verschillende meningen krijgt",
-      "AI zorgt dat je alleen websites ziet die door je vrienden zijn bezocht",
-      "AI vervangt alle websites door een samenvatting die door mensen is geschreven"
+      "Geef 3 mogelijke deelonderwerpen voor een spreekbeurt over vulkanen en leg bij elk in 1 zin uit waarom het interessant is.",
+      "Maak mijn spreekbeurt over vulkanen helemaal af.",
+      "Schrijf een lange tekst over vulkanen.",
+      "Vertel alles wat je weet over aardrijkskunde."
     ],
     "correct_index": 0,
     "id": "ai_3",
@@ -1135,7 +1137,8 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "explanation": "Hier gebruik je AI als denkhelper: je vraagt om idee?n en structuur, niet om een afgewerkte taak. Dat is een sterke en leerzame manier om AI in te zetten."
   },
   {
     "question": "Je gebruikt een AI-tekstgenerator om een verslag te maken. Wat is de beste manier om eerlijk te blijven?",
@@ -1154,12 +1157,12 @@
     "used": false
   },
   {
-    "question": "Je zoekt informatie voor een spreekbeurt op internet. Waarom kan een AI-zoekmachine handiger zijn dan een gewone lijst met websites?",
+    "question": "Je kreeg van AI een antwoord dat te algemeen is. Welke vervolgprompt maakt de kans het grootst op een beter antwoord?",
     "options": [
-      "AI-zoekmachines tonen alleen websites die je al eerder hebt bezocht",
-      "AI-zoekmachines geven willekeurig resultaten zonder volgorde",
-      "AI-zoekmachines kunnen de belangrijkste informatie sneller vinden en samenvatten",
-      "AI-zoekmachines laten alleen video's zien in plaats van teksten"
+      "Doe beter.",
+      "Schrijf het opnieuw maar korter.",
+      "Geef een antwoord in 4 korte bullets, met een voorbeeld uit het dagelijks leven van een leerling.",
+      "Waarom ben je slecht in antwoorden geven?"
     ],
     "correct_index": 2,
     "id": "ai_5",
@@ -1167,7 +1170,8 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "explanation": "Een goede vervolgprompt zegt wat er ontbrak en hoe het antwoord eruit moet zien. Door vorm en context toe te voegen, stuur je AI veel beter bij."
   },
   {
     "question": "Waarom is het gevaarlijk om blind te vertrouwen op antwoorden van AI, ook als die antwoorden heel zeker klinken?",
@@ -1362,12 +1366,12 @@
     "used": false
   },
   {
-    "question": "Je zoekt informatie voor een werkstuk en gebruikt een zoekmachine met AI. Waarom kan AI je helpen om betere resultaten te vinden dan wanneer je alleen een woord intypt?",
+    "question": "Je wil dat AI feedback geeft op je inleiding voor een werkstuk. Welke prompt is het best?",
     "options": [
-      "AI begrijpt de betekenis van je vraag en zoekt naar relevante informatie",
-      "AI kiest willekeurig websites uit zonder te letten op inhoud",
-      "AI laat alleen de populairste websites zien, ongeacht het onderwerp",
-      "AI toont alleen afbeeldingen en geen tekst over je onderwerp"
+      "Geef 2 sterke punten en 2 concrete verbeterpunten bij deze inleiding, zonder de tekst volledig over te nemen.",
+      "Verbeter dit.",
+      "Herschrijf dit helemaal voor mij.",
+      "Zeg of dit goed is."
     ],
     "correct_index": 0,
     "id": "ai_19",
@@ -1375,7 +1379,8 @@
     "source": "ai",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "explanation": "Deze prompt vraagt om gerichte feedback in plaats van een kant-en-klare vervanging. Zo helpt AI je om zelf beter te schrijven."
   },
   {
     "question": "AI krijgt duizenden foto’s van katten en honden te zien. Daarna kan het nieuwe foto’s goed herkennen. Wat heeft AI vooral geleerd?",
@@ -1608,15 +1613,15 @@
     "id": "ai_34"
   },
   {
-    "question": "Je praat met een chatbot op een website over een lastig onderwerp. Waarom kan het handig zijn dat deze chatbot AI gebruikt?",
+    "question": "Een klasgenoot typt als prompt: 'Maak een presentatie over klimaatverandering.' Welke verbetering helpt het meest?",
     "options": [
-      "De chatbot voelt precies aan hoe jij je voelt en kan echte emoties tonen",
-      "De chatbot kan snel veel informatie begrijpen en antwoorden geven die passen bij jouw vraag",
-      "De chatbot voorkomt dat je zelf nog iets hoeft te leren over het onderwerp",
-      "De chatbot kan zonder fouten altijd het juiste antwoord geven op elke vraag"
+      "Maak een presentatie over klimaatverandering.",
+      "Maak 6 dia-idee?n voor een presentatie over klimaatverandering voor 2A, met per dia een korte titel en 2 kernwoorden.",
+      "Maak een mooie presentatie.",
+      "Vertel iets interessants."
     ],
     "correct_index": 1,
-    "explanation": "AI in chatbots helpt om snel relevante informatie te vinden en begrijpelijke antwoorden te geven, maar het heeft geen echte emoties en maakt soms fouten. Daarom blijft het belangrijk dat jij zelf kritisch blijft en leert over het onderwerp.",
+    "explanation": "De verbeterde prompt noemt onderwerp, doelgroep, aantal dia?s en gewenste opbouw. Daardoor wordt AI veel nuttiger als voorbereidingstool.",
     "theme": "kansen",
     "source": "ai",
     "approved": true,
@@ -1897,15 +1902,15 @@
     "id": "ai_51"
   },
   {
-    "question": "Je chat met een chatbot over het maken van een schaatswedstrijd op school. Waarom kan het handig zijn dat de chatbot vragen stelt over hoeveel deelnemers er zijn?",
+    "question": "Je wil met AI een planning maken voor een klasactiviteit. Waarom is deze prompt sterker: 'Stel 3 haalbare planningen voor een klasquiz op, voor 50 minuten, met taken voor 4 groepjes'?",
     "options": [
-      "De chatbot probeert zo precies te begrijpen wat jij wilt voor een beter advies.",
-      "De chatbot wil alleen meer woorden gebruiken om langer te blijven praten.",
-      "De chatbot vraagt dit om te controleren of jij wel alles weet over schaatsen.",
-      "De chatbot doet dit om sneller te weten wanneer het gesprek stopt."
+      "Omdat de prompt duidelijk zegt wat het doel, de tijd en de situatie zijn.",
+      "Omdat AI alleen werkt als je een getal in je prompt zet.",
+      "Omdat lange prompts altijd beter zijn dan korte prompts.",
+      "Omdat AI dan zeker geen fouten meer kan maken."
     ],
     "correct_index": 0,
-    "explanation": "Een chatbot gebruikt vragen om beter te begrijpen wat jij bedoelt, zodat het advies of de antwoorden beter passen bij jouw situatie.",
+    "explanation": "Een sterke prompt geeft genoeg context: wat je wil, hoeveel tijd er is en voor welke situatie het bedoeld is. Dat maakt de hulp van AI concreter en bruikbaarder.",
     "theme": "kansen",
     "source": "ai",
     "approved": true,
