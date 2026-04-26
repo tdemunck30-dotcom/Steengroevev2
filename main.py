@@ -4177,6 +4177,14 @@ def _bot_rule_fallback(gs: Optional[GameState], user_message: str) -> Optional[s
             "Dan verdwijnt alle dynamiet op het bord en bij spelers, en elke staaf op het bord maakt een holte van 2 op 2."
         )
 
+    if "dynamiet" in text:
+        return (
+            "Als je dynamiet op een vak verzamelt, krijgt die speler 1 dynamiet. Later kan er een kettingreactie komen waarbij alle dynamiet tegelijk ontploft."
+        )
+
+    if "diamant" in text:
+        return "Een diamant op een vak verzamelen geeft 1 diamant of infofiche aan die speler."
+
     if ("ranking" in text or "diamant" in text or "einde" in text) and ("meetel" in text or "tellen" in text or "buiten" in text or "ontsnapt" in text):
         return "Voor de all time ranking tellen alleen diamanten mee van spelers die op tijd ontsnappen. De ranking verschijnt pas na de explosie."
 
@@ -4190,6 +4198,69 @@ def _bot_rule_fallback(gs: Optional[GameState], user_message: str) -> Optional[s
         return "Als iedereen buiten is, springt de teller naar 0 en ontploft de groeve meteen. Daarna komt het eindresultaat en de all time ranking."
 
     return None
+
+
+def _bot_theme_fallback(user_message: str) -> Optional[str]:
+    text = _normalize_bot_rule_text(user_message)
+    if not text:
+        return None
+
+    if "prompt" in text:
+        if any(keyword in text for keyword in ("goed", "goede", "beste", "sterk", "sterke", "verbeter")):
+            return (
+                "Een sterke prompt zegt duidelijk wat je wil, voor wie het antwoord bedoeld is en in welke vorm je het wilt. "
+                "Hoe concreter je vraag, hoe bruikbaarder het antwoord van AI meestal wordt."
+            )
+        return QUESTION_EXPLANATION_FALLBACKS["core_werking_4"]
+
+    if "bias" in text or "bevooroordeeld" in text or "vooroordeel" in text:
+        return QUESTION_EXPLANATION_FALLBACKS["core_risicos_1"]
+
+    if "privacy" in text or "persoonlijke gegevens" in text or ("gegevens" in text and "delen" in text):
+        return QUESTION_EXPLANATION_FALLBACKS["core_risicos_4"]
+
+    if "hallucin" in text or "verzinn" in text or ("control" in text and "ai" in text):
+        return QUESTION_EXPLANATION_FALLBACKS["core_risicos_2"]
+
+    if ("bron" in text and "control" in text) or ("betrouwbare bron" in text):
+        return QUESTION_EXPLANATION_FALLBACKS["core_risicos_5"]
+
+    if "chatbot" in text:
+        return (
+            "Een chatbot kan snel uitleg of ideeën geven, maar je blijft best zelf nadenken en belangrijke info controleren. "
+            "Gebruik zo'n antwoord dus als hulp, niet als automatische waarheid."
+        )
+
+    if ("beeld" in text or "foto" in text or "afbeelding" in text) and ("ai" in text or "nep" in text):
+        return (
+            "Bij een AI-beeld kijk je best naar rare details, context en bron. "
+            "Een beeld kan echt lijken en toch gegenereerd of gemanipuleerd zijn."
+        )
+
+    if "kansen" in text or ("waar" in text and "helpen" in text and "ai" in text):
+        return THEME_EXPLANATION_FALLBACKS["kansen"]
+
+    if "leefwereld" in text or "dagelijks leven" in text or ("app" in text and "ai" in text):
+        return THEME_EXPLANATION_FALLBACKS["leefwereld"]
+
+    if "risico" in text or "verantwoord" in text or ("veilig" in text and "ai" in text):
+        return THEME_EXPLANATION_FALLBACKS["risicos"]
+
+    if ("hoe werkt" in text and "ai" in text) or ("werkt ai" in text) or "thema werking" in text:
+        return THEME_EXPLANATION_FALLBACKS["werking"]
+
+    return None
+
+
+def _bot_local_fallback(gs: Optional[GameState], user_message: str) -> Optional[str]:
+    return _bot_rule_fallback(gs, user_message) or _bot_theme_fallback(user_message)
+
+
+def _bot_intro_reply() -> str:
+    return (
+        "BavoBot helpt al voor de start. Je kan iets vragen over spelregels, prompts, bias, privacy, broncontrole, "
+        "chatbots of beeldvragen."
+    )
 
 def _bot_system_prompt(gs: GameState) -> str:
     """
@@ -4244,7 +4315,7 @@ async def chat(req: ChatRequest):
     if not user_msg:
         raise HTTPException(400, "Bericht mag niet leeg zijn.")
 
-    fallback_reply = _bot_rule_fallback(gs, user_msg)
+    fallback_reply = _bot_local_fallback(gs, user_msg)
     if fallback_reply:
         async with STATE_LOCK:
             if STATE is not None:
@@ -4252,19 +4323,12 @@ async def chat(req: ChatRequest):
         return {"reply": fallback_reply}
 
     if gs is None:
-        return {
-            "reply": (
-                "BavoBot helpt ook al voor de start met basisregels. "
-                "Vraag bijvoorbeeld wie op de groene exitknop mag drukken, wat dynamiet doet, "
-                "hoe de pauzeknop werkt of wanneer de ranking verschijnt."
-            )
-        }
+        return {"reply": _bot_intro_reply()}
 
     if _client is None:
         return {
             "reply": (
-                "BavoBot kan nu de basisregels uitleggen, maar de uitgebreide chat staat hier niet aan. "
-                "Stel je vraag zo concreet mogelijk over een spelregel."
+                "BavoBot geeft nu snelle lokale hulp. Vraag zo concreet mogelijk naar een spelregel of een AI-thema zoals prompts, bias, privacy of broncontrole."
             )
         }
 
@@ -4277,7 +4341,8 @@ async def chat(req: ChatRequest):
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": user_msg}
             ],
-            temperature=0.2
+            temperature=0.2,
+            timeout=8.0,
         )
         reply = (resp.choices[0].message.content or "").strip()
         if not reply:
@@ -4289,4 +4354,9 @@ async def chat(req: ChatRequest):
                 _log(STATE, f"BavoBot antwoordt op '{user_msg[:40]}...': {reply[:60]}...")
         return {"reply": reply}
     except Exception:
-        return {"reply": "Oeps, er ging iets mis. Probeer je vraag nog eens korter of vraag de leerkracht even."}
+        return {
+            "reply": (
+                _bot_theme_fallback(user_msg)
+                or "Ik geraak nu niet aan de uitgebreide chat. Vraag gerust concreet naar een spelregel, prompt, bias, privacy of broncontrole."
+            )
+        }
