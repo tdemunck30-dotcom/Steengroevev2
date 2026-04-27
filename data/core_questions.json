@@ -593,7 +593,7 @@
   },
   {
     "id": "core_risicos_1",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat betekent bias in AI?",
     "options": [
@@ -607,7 +607,7 @@
   },
   {
     "id": "core_risicos_2",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom moet je AI-antwoorden controleren?",
     "options": [
@@ -621,7 +621,7 @@
   },
   {
     "id": "core_risicos_3",
-    "theme": "risicos",
+    "theme": "beeld",
     "source": "core",
     "question": "Wat kan een risico zijn van een AI-foto?",
     "options": [
@@ -635,7 +635,7 @@
   },
   {
     "id": "core_risicos_4",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom let je op privacy bij AI?",
     "options": [
@@ -649,7 +649,7 @@
   },
   {
     "id": "core_risicos_5",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat doe je best bij vreemd AI-advies?",
     "options": [
@@ -663,7 +663,7 @@
   },
   {
     "id": "core_risicos_6",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een risico van AI-antwoorden?",
     "options": [
@@ -678,7 +678,7 @@
   },
   {
     "id": "core_risicos_8",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom kan AI soms verkeerde informatie geven?",
     "options": [
@@ -693,7 +693,7 @@
   },
   {
     "id": "core_risicos_9",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een gevaar van AI gebruiken voor schooltaken?",
     "options": [
@@ -708,7 +708,7 @@
   },
   {
     "id": "core_risicos_10",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat kan er gebeuren als je AI blind vertrouwt?",
     "options": [
@@ -723,7 +723,7 @@
   },
   {
     "id": "core_risicos_11",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een risico bij gezichtsherkenning?",
     "options": [
@@ -738,7 +738,7 @@
   },
   {
     "id": "core_risicos_12",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom is privacy een aandachtspunt bij AI?",
     "options": [
@@ -753,7 +753,7 @@
   },
   {
     "id": "core_risicos_13",
-    "theme": "risicos",
+    "theme": "beeld",
     "source": "core",
     "question": "Wat betekent deepfake?",
     "options": [
@@ -768,7 +768,7 @@
   },
   {
     "id": "core_risicos_15",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom moet je kritisch nadenken bij AI-gebruik?",
     "options": [
@@ -783,7 +783,7 @@
   },
   {
     "id": "core_risicos_16",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat kan er gebeuren met je gegevens online?",
     "options": [
@@ -798,7 +798,7 @@
   },
   {
     "id": "core_risicos_17",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een risico van automatische aanbevelingen?",
     "options": [
@@ -813,7 +813,7 @@
   },
   {
     "id": "core_risicos_18",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom is het belangrijk om AI te controleren?",
     "options": [
@@ -828,7 +828,7 @@
   },
   {
     "id": "core_risicos_19",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat kan een gevolg zijn van verkeerde AI-data?",
     "options": [
@@ -843,7 +843,7 @@
   },
   {
     "id": "core_risicos_20",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een goede houding tegenover AI?",
     "options": [
@@ -858,7 +858,7 @@
   },
   {
     "id": "core_verantwoord_1",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is verantwoord AI-gebruik?",
     "options": [
@@ -872,7 +872,7 @@
   },
   {
     "id": "core_verantwoord_2",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat doe je als AI een gemene tekst maakt?",
     "options": [
@@ -886,7 +886,7 @@
   },
   {
     "id": "core_verantwoord_3",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom is het soms eerlijk om te zeggen dat je AI gebruikte?",
     "options": [
@@ -900,7 +900,7 @@
   },
   {
     "id": "core_verantwoord_4",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een goede klasafspraak over AI?",
     "options": [
@@ -914,7 +914,7 @@
   },
   {
     "id": "core_verantwoord_5",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Hoe gebruik je AI respectvol?",
     "options": [
@@ -928,7 +928,7 @@
   },
   {
     "id": "core_verantwoord_6",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat betekent verantwoord omgaan met AI?",
     "options": [
@@ -943,7 +943,7 @@
   },
   {
     "id": "core_verantwoord_7",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat moet je doen als je AI gebruikt voor schoolwerk?",
     "options": [
@@ -958,7 +958,7 @@
   },
   {
     "id": "core_verantwoord_9",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een goede manier om AI te gebruiken?",
     "options": [
@@ -973,7 +973,7 @@
   },
   {
     "id": "core_verantwoord_10",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat doe je best met persoonlijke informatie?",
     "options": [
@@ -988,7 +988,7 @@
   },
   {
     "id": "core_verantwoord_11",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat betekent kritisch denken bij AI-gebruik?",
     "options": [
@@ -1003,7 +1003,7 @@
   },
   {
     "id": "core_verantwoord_12",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat moet je doen als AI iets zegt dat fout lijkt?",
     "options": [
@@ -1018,7 +1018,7 @@
   },
   {
     "id": "core_verantwoord_15",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat betekent transparant zijn bij AI-gebruik?",
     "options": [
@@ -1033,7 +1033,7 @@
   },
   {
     "id": "core_verantwoord_16",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat doe je als AI een antwoord geeft dat je niet begrijpt?",
     "options": [
@@ -1048,7 +1048,7 @@
   },
   {
     "id": "core_verantwoord_17",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Waarom is eigen nadenken belangrijk bij AI?",
     "options": [
@@ -1063,7 +1063,7 @@
   },
   {
     "id": "core_verantwoord_19",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is belangrijk bij het delen van AI-gegenereerde inhoud?",
     "options": [
@@ -1078,7 +1078,7 @@
   },
   {
     "id": "core_verantwoord_20",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "core",
     "question": "Wat is een voorbeeld van verantwoord AI-gebruik?",
     "options": [
@@ -1150,7 +1150,7 @@
     ],
     "correct_index": 0,
     "id": "ai_4",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1183,7 +1183,7 @@
     ],
     "correct_index": 0,
     "id": "ai_6",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1263,7 +1263,7 @@
     ],
     "correct_index": 0,
     "id": "ai_12",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1279,7 +1279,7 @@
     ],
     "correct_index": 3,
     "id": "ai_13",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1343,7 +1343,7 @@
     ],
     "correct_index": 0,
     "id": "ai_17",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1408,7 +1408,7 @@
     ],
     "correct_index": 3,
     "id": "ai_21",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1424,7 +1424,7 @@
     ],
     "correct_index": 2,
     "id": "ai_22",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1440,7 +1440,7 @@
     ],
     "correct_index": 2,
     "id": "ai_23",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1707,7 +1707,7 @@
     ],
     "correct_index": 2,
     "explanation": "AI kan bevooroordeeld zijn omdat de data waarin het getraind is vooral die categorie bevat, waardoor de aanbevelingen steeds hetzelfde lijken. Dit heet bias en kan zorgen dat je niet een breed aanbod krijgt.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1724,7 +1724,7 @@
     ],
     "correct_index": 3,
     "explanation": "AI kan soms informatie verzinnen of fouten maken, ook als het zeker klinkt. Daarom is het belangrijk om altijd extra bronnen te controleren, vooral als je iets niet ergens anders kunt vinden.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1741,7 +1741,7 @@
     ],
     "correct_index": 2,
     "explanation": "Als AI steeds dezelfde soort antwoorden geeft, kan dit wijzen op bias: een vooroordeel of eenzijdige manier van denken. Dit kan ervoor zorgen dat belangrijke informatie ontbreekt of verkeerd wordt voorgesteld.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1758,7 +1758,7 @@
     ],
     "correct_index": 2,
     "explanation": "Het is belangrijk om AI-advies niet zomaar klakkeloos over te nemen, maar zelf te controleren of het klopt. Zo gebruik je AI op een verantwoorde manier en leer je zelf ook beter.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1792,7 +1792,7 @@
     ],
     "correct_index": 0,
     "explanation": "AI kan fouten of onduidelijkheden bevatten, omdat het niet altijd de juiste of actuele informatie gebruikt. Daarom is het belangrijk om de tekst zelf te controleren zodat je zeker weet dat je werk klopt en je het begrijpt.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1809,7 +1809,7 @@
     ],
     "correct_index": 1,
     "explanation": "Als AI vooral is getraind met voorbeelden uit één groep, kan het vooroordelen krijgen en verkeerde conclusies trekken voor andere groepen. Dit noemen we bias, en het kan leiden tot oneerlijke beslissingen.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1877,7 +1877,7 @@
     ],
     "correct_index": 2,
     "explanation": "AI-systemen kunnen vooringenomen zijn omdat ze getraind zijn op bestaande gegevens die bijvoorbeeld bepaalde groepen bevoordelen of benadelen. Daardoor kan AI onbedoeld 'bias' vertonen, wat kan leiden tot oneerlijke keuzes.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1928,7 +1928,7 @@
     ],
     "correct_index": 0,
     "explanation": "AI baseert zijn advies op de informatie waarmee het getraind is. Als die voorbeelden vooral komedies bevatten, denkt AI dat dit het beste bij jou past. Dit heet bias, en kan ervoor zorgen dat AI eenzijdige of verkeerde adviezen geeft.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1962,7 +1962,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI kan soms fouten maken of dingen anders uitleggen. Door de uitleg te vergelijken met betrouwbare bronnen, controleer je of de informatie klopt en leer je beter kritisch omgaan met AI.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -1979,7 +1979,7 @@
     ],
     "correct_index": 1,
     "explanation": "Het is belangrijk om persoonlijke informatie van anderen te beschermen. Daarom moet je de tekst aanpassen zodat die informatie niet zichtbaar is, zodat je privacy respecteert en verantwoord omgaat met AI-gebruik.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -2013,7 +2013,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI kan soms fouten maken of verkeerde informatie geven. Het is daarom belangrijk om belangrijke feiten zelf te controleren in betrouwbare bronnen voordat je ze gebruikt.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -2115,7 +2115,7 @@
     ],
     "correct_index": 1,
     "explanation": "AI kan fouten maken in teksten, dus het is belangrijk om zelf te controleren of de feiten kloppen voordat je ze gebruikt.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,
@@ -2132,7 +2132,7 @@
     ],
     "correct_index": 3,
     "explanation": "De beste keuze is om AI als hulpmiddel te gebruiken, maar zelf te controleren of de informatie klopt en de tekst eerlijk te maken. Zo blijf je slim én eerlijk werken, en leer je zelf ook meer.",
-    "theme": "risicos",
+    "theme": "kritisch",
     "source": "ai",
     "approved": true,
     "rejected": false,

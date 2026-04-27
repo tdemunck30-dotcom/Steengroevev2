@@ -3,7 +3,7 @@
     "id": "image_round_5",
     "source": "teacher",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -15,13 +15,14 @@
     "explanation": "Op de foto is heel duidelijk Donald Trump te zien. De kans dat die poseert in de kledij van een bisschop of paus is zeer klein.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_6",
     "source": "teacher",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd de foto gegenereerd door AI of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -33,13 +34,14 @@
     "explanation": "De positie van het hand lijkt een beetje vreemd. Ook met de vingers klopt er iets niet.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_7",
     "source": "teacher",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto gegenereerd met AI of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -51,13 +53,14 @@
     "explanation": "De woorden afgebeeld op het bord en het glas lijken nergens op te slaan. Dit komt vaak voor bij AI-gegenereerde foto's.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_8",
     "source": "teacher",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Is deze foto AI-gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -69,13 +72,14 @@
     "explanation": "Hoewel de apen lijken te poseren en het er dus nogal onnatuurlijk uitziet is deze foto echt. (bron: jeugdjournaal.nl)\nDe apen waren natuurlijk niet echt aan het poseren. Ze waren dicht tegen elkaar aangekropen vanwege de kou. Maar dat leverde wel dit schattige plaatje op!",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_9",
     "source": "teacher",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto gegenereerd door AI of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -87,13 +91,14 @@
     "explanation": "De derde persoon van links op de onderste rij heeft een snorretje. Het isq belangrijk om op kleine details te letten om echte van valse foto's van elkaar te onderscheiden.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_35",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Is dit beeld AI-gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -105,13 +110,14 @@
     "explanation": "Dit beeld werd met AI gemaakt voor deze automatische beeldmix. Kijk bij zulke foto's extra naar kleine details, texturen, schaduwen en onwaarschijnlijke elementen.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_37",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -123,13 +129,14 @@
     "explanation": "Dit beeld werd met AI gemaakt voor deze automatische beeldmix. Kijk bij zulke foto's extra naar kleine details, texturen, schaduwen en onwaarschijnlijke elementen.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_56",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -141,13 +148,14 @@
     "explanation": "Let op de waterdruppels die rond de hond vliegen; ze lijken niet helemaal natuurlijk verdeeld en sommige druppels zijn wazig of onduidelijk. Ook kunnen de mensen op de achtergrond wat vaag of onnatuurlijk lijken, wat kan wijzen op AI.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_58",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Kijk goed: is deze foto waarschijnlijk met AI gemaakt of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -159,13 +167,14 @@
     "explanation": "Let op de handen van de persoon: ze lijken niet helemaal natuurlijk gevormd en de vingers kunnen vreemd lijken. Ook kunnen de tomaten en bladeren soms te perfect of juist onregelmatig zijn, wat kan wijzen op AI.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_59",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -177,13 +186,14 @@
     "explanation": "De kat en de planten zien er heel natuurlijk uit, maar let op de schaduwen en de details van de vacht; als die te egaal of onnatuurlijk lijken, kan het een AI-beeld zijn. Ook kunnen de randen van de kat soms wazig of onregelmatig zijn, wat een aanwijzing is.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_60",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Is dit beeld AI-gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -195,13 +205,14 @@
     "explanation": "De pannenkoeken en bessen zien er erg perfect en glad uit, bijna te mooi om echt te zijn. Let ook op de schaduwen en de poedersuiker, die kunnen soms onnatuurlijk lijken of niet helemaal kloppen met het licht.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_61",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -213,13 +224,14 @@
     "explanation": "Let op of de pennen en schriften er soms onnatuurlijk uitzien, zoals onduidelijke letters of rare vormen. Ook kunnen de schaduwen en lichtreflecties op de drinkfles en het etui niet helemaal kloppen.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_62",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Kijk goed: is deze foto waarschijnlijk met AI gemaakt of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -231,13 +243,14 @@
     "explanation": "Let op of er rare vormen of onlogische details zijn, zoals paraplu's die niet goed passen of fruit dat er onnatuurlijk uitziet. Ook kunnen reflecties in het natte straatoppervlak soms vreemd of onscherp zijn, wat kan wijzen op een AI-beeld.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_63",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Is dit beeld AI-gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -249,13 +262,14 @@
     "explanation": "Let op of de tekst in het schrift logisch en leesbaar is, want AI maakt soms letters en woorden die niet kloppen. Ook kunnen pennen en andere voorwerpen rare vormen of onduidelijke details hebben die niet helemaal natuurlijk lijken.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   },
   {
     "id": "image_round_64",
     "source": "ai",
     "type": "image_binary",
-    "display_theme": "Beeldronde",
+    "display_theme": "AI-foto's herkennen",
     "question": "Werd deze foto door AI gegenereerd of niet?",
     "options": [
       "Waarschijnlijk AI-gegenereerd",
@@ -267,6 +281,7 @@
     "explanation": "De pannenkoeken en bessen zien er heel echt uit, maar als je goed kijkt, zie je dat de poedersuiker soms onnatuurlijk verspreid is en sommige bessen een beetje te perfect en gelijkmatig van vorm zijn. Ook kunnen kleine details zoals de schaduwen en de texturen van het fruit soms niet helemaal kloppen.",
     "approved": true,
     "rejected": false,
-    "used": false
+    "used": false,
+    "theme": "beeld"
   }
 ]

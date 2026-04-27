@@ -38,7 +38,6 @@ UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
 GENERATED_IMAGE_DIR = QUESTION_IMAGE_DIR / "generated"
 PDF_ASSET_DIR = Path("static") / "pdf-assets"
 GROUP_EVALUATION_BACKGROUND_FILE = PDF_ASSET_DIR / "group-evaluation-background.png"
-IMAGE_QUESTION_CHANCE = 0.3
 AI_GENERATION_MAX_ATTEMPTS = 4
 MAX_TEACHER_IMAGE_BYTES = 8 * 1024 * 1024
 AUTO_IMAGE_SET_MIN_COUNT = 2
@@ -119,17 +118,23 @@ THEMES = {
         "label": "AI in jouw leefwereld",
         "color": "#2ECC71"
     },
-    "risicos": {
-        "label": "Risico's en verantwoord omgaan met AI",
+    "kritisch": {
+        "label": "Kritisch, veilig en verantwoord",
         "color": "#E74C3C"
     },
     "kansen": {
         "label": "Voordelen en kansen",
         "color": "#F39C12"
+    },
+    "beeld": {
+        "label": "AI-foto's herkennen",
+        "color": "#5B7C99"
     }
 }
 THEME_ALIASES = {
-    "verantwoord": "risicos",
+    "verantwoord": "kritisch",
+    "risicos": "kritisch",
+    "beeldronde": "beeld",
 }
 KANSEN_THEME_SOURCE_IDS = {
     "core_leefwereld_2",
@@ -140,6 +145,10 @@ KANSEN_THEME_SOURCE_IDS = {
     "ai_19",
     "ai_35",
     "ai_52",
+}
+BEELD_THEME_SOURCE_IDS = {
+    "core_risicos_3",
+    "core_risicos_13",
 }
 ETHICAL_AI_DILEMMAS = [
     {
@@ -205,18 +214,23 @@ Focus op hoe AI werkt: data, patronen, voorspellen, trainen, prompten, voorbeeld
 Maak liever een denkvraag of korte praktijksituatie dan een losse definitiesvraag.
 """.strip(),
         "leefwereld": """
-Focus op situaties uit school, sociale media, zoeken, navigatie, aanbevelingen, beeld of chatbots.
+Focus op situaties uit school, sociale media, zoeken, navigatie, aanbevelingen of chatbots.
 Laat leerlingen nadenken waar AI wel of niet nuttig is in het dagelijks leven.
 """.strip(),
-        "risicos": """
-Focus op bias, hallucinaties, nepbeelden, privacy, verkeerde conclusies, eerlijk gebruik en blind vertrouwen in AI.
-Laat leerlingen nadenken over veilig, eerlijk en verantwoordelijk omgaan met AI.
+        "kritisch": """
+Focus op betrouwbaarheid van AI-output, hallucinaties, bias, privacy, eerlijk schoolgebruik, transparantie en blind vertrouwen in AI.
+Laat leerlingen nadenken over kritisch, veilig en verantwoordelijk omgaan met AI.
 Maak afleiders geloofwaardig, niet flauw of absurd.
 """.strip(),
         "kansen": """
 Focus op voordelen van AI in school, creativiteit, zoeken, plannen, ondersteuning, toegankelijkheid en dagelijkse toepassingen.
 Laat leerlingen nadenken waar AI echt kan helpen of tijd kan besparen, zonder de vraag promotioneel te maken.
 Laat de vraag gaan over goede keuzes, niet alleen over losse regeltjes.
+""".strip(),
+        "beeld": """
+Focus op AI-foto's herkennen, deepfakes, gemanipuleerde beelden, broncontrole, context en zichtbare details die twijfel kunnen oproepen.
+Laat leerlingen traag kijken en redeneren waarom een beeld betrouwbaar lijkt of net niet.
+Gebruik liefst een herkenbare situatie of beeldbeschrijving, niet alleen een losse definitie.
 """.strip(),
     }
     SYSTEM_PROMPT = """
@@ -348,9 +362,31 @@ def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
 
         if question_id in KANSEN_THEME_SOURCE_IDS:
             normalized_theme = "kansen"
+        elif question_id in BEELD_THEME_SOURCE_IDS:
+            normalized_theme = "beeld"
 
         if normalized_theme and question.get("theme") != normalized_theme:
             question["theme"] = normalized_theme
+            changed = True
+
+    return changed
+
+
+def migrate_image_question_metadata_in_memory(questions: List[dict]) -> bool:
+    changed = False
+    image_theme_label = THEMES["beeld"]["label"]
+
+    for question in questions:
+        question_type = str(question.get("type") or "image_binary")
+        if question_type != "image_binary":
+            continue
+
+        if question.get("theme") != "beeld":
+            question["theme"] = "beeld"
+            changed = True
+
+        if question.get("display_theme") != image_theme_label:
+            question["display_theme"] = image_theme_label
             changed = True
 
     return changed
@@ -379,8 +415,10 @@ def load_image_questions():
         return cached_questions
 
     questions = load_questions_from_file(IMAGE_FILE)
+    changed = migrate_image_question_metadata_in_memory(questions)
     cleaned_questions, removed_ids = dedupe_image_question_bank(questions)
-    if removed_ids:
+    changed = changed or bool(removed_ids)
+    if changed:
         save_image_questions(cleaned_questions)
         return cleaned_questions
     store_processed_question_cache(IMAGE_FILE, cleaned_questions)
@@ -817,7 +855,8 @@ def build_auto_image_question(
         "id": next_prefixed_question_id(existing_questions, "image_round_"),
         "source": source,
         "type": "image_binary",
-        "display_theme": "Beeldronde",
+        "theme": "beeld",
+        "display_theme": THEMES["beeld"]["label"],
         "question": random.choice(AUTO_IMAGE_QUESTION_VARIANTS),
         "options": list(IMAGE_BINARY_OPTIONS),
         "correct_index": correct_index,
@@ -902,8 +941,12 @@ QUESTION_EXPLANATION_FALLBACKS = {
 THEME_EXPLANATION_FALLBACKS = {
     "werking": "In dit thema gaat het om hoe AI werkt: modellen leren uit voorbeelden, volgen instructies en herkennen patronen in data. Ze denken niet zelfstandig zoals mensen.",
     "leefwereld": "In het dagelijks leven zit AI vaak in apps en tools die aanbevelen, zoeken, voorspellen of automatisch helpen. Het is dus belangrijk om zulke toepassingen te herkennen.",
-    "risicos": "In dit thema gaat het om risico's herkennen en tegelijk verantwoord omgaan met AI: controleren, eerlijk blijven, privacy bewaken en niet blind vertrouwen.",
+    "kritisch": "In dit thema gaat het om AI kritisch beoordelen: controleren, privacy bewaken, eerlijk blijven, veilig handelen en niet blind vertrouwen op output die slim klinkt.",
     "kansen": "In dit thema gaat het om waar AI echt kan helpen: sneller zoeken, plannen, uitleg krijgen, creatief werken of ondersteuning krijgen in herkenbare situaties.",
+    "beeld": "In dit thema gaat het om AI-foto's herkennen: traag kijken, details controleren, bron en context meenemen en niet te snel geloven dat een beeld echt is.",
+    "risicos": "In dit thema gaat het om AI kritisch beoordelen: controleren, privacy bewaken, eerlijk blijven, veilig handelen en niet blind vertrouwen op output die slim klinkt.",
+    "verantwoord": "In dit thema gaat het om AI kritisch beoordelen: controleren, privacy bewaken, eerlijk blijven, veilig handelen en niet blind vertrouwen op output die slim klinkt.",
+    "beeldronde": "In dit thema gaat het om AI-foto's herkennen: traag kijken, details controleren, bron en context meenemen en niet te snel geloven dat een beeld echt is.",
 }
 
 
@@ -1100,6 +1143,7 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
             or "Kijk goed naar het beeld en kies of het waarschijnlijk door AI gemaakt is of niet."
         )
         eyebrow = question.get("eyebrow") or "Beeldvraag"
+        fallback_theme_label = THEMES["beeld"]["label"]
     else:
         instruction = (
             question.get("instruction")
@@ -1135,7 +1179,7 @@ def build_manageable_question_summary(
     theme_key = str(question.get("theme") or "")
 
     if question_type == "image_binary":
-        fallback_theme_label = "Beeldronde"
+        fallback_theme_label = THEMES["beeld"]["label"]
     elif question_type == "consensus_dilemma":
         fallback_theme_label = "Groepsdilemma"
     else:
@@ -1663,7 +1707,7 @@ class QuestionReviewRequest(BaseModel):
 
 class TeacherQuestionCreateRequest(BaseModel):
     question_type: Literal["multiple_choice", "image_binary", "consensus_dilemma"] = "multiple_choice"
-    theme: Optional[Literal["werking", "leefwereld", "risicos", "kansen", "verantwoord"]] = None
+    theme: Optional[str] = None
     question: str
     options: Optional[List[str]] = None
     correct_index: int
@@ -1711,7 +1755,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 STATE_LOCK = asyncio.Lock()
 STATE: Optional[GameState] = None
-LAST_IMAGE_QUESTION = False
 
 # Global config for current game (stored for the loop)
 CONFIG: Dict[str, int] = {
@@ -1835,7 +1878,7 @@ def _record_all_time_ranking_result(gs: GameState) -> None:
     _log(gs, "All time ranking bijgewerkt: " + gs.final_result_note)
 
 
-EVALUATION_THEME_ORDER = ["werking", "leefwereld", "kansen", "risicos", "beeldronde", "algemeen"]
+EVALUATION_THEME_ORDER = ["werking", "leefwereld", "kritisch", "kansen", "beeld", "algemeen"]
 EVALUATION_THEME_FEEDBACK = {
     "werking": {
         "background": "AI zoekt patronen in voorbeelden en maakt daarna een waarschijnlijk antwoord. Dat is nuttig, maar AI begrijpt de wereld niet zoals jullie dat doen.",
@@ -1855,17 +1898,17 @@ EVALUATION_THEME_FEEDBACK = {
         "growth": "Let nog extra op wanneer AI echt iets toevoegt en wanneer je beter zelf denkt of extra bronnen gebruikt. Een handige tool is nog niet automatisch de beste keuze.",
         "risk": "Als je alleen de voordelen ziet, kan je te snel vergeten dat AI ook fouten maakt of je te afhankelijk kan maken. Kansen werken pas echt goed als je bewust blijft kiezen.",
     },
-    "risicos": {
-        "background": "AI kan fouten maken, iets verzinnen, oude informatie gebruiken of vooroordelen uit data overnemen. Daarom horen risico herkennen en verantwoord handelen altijd samen.",
-        "strength": "Dit loopt al goed: jullie zien sneller waar het mis kan gaan en kiezen vaker voor controleren, eerlijk blijven en privacy bewaken.",
-        "growth": "Let nog extra op broncontrole, transparant zijn over hulp van AI en niet te snel vertrouwen op een antwoord dat heel zeker of handig klinkt.",
-        "risk": "Als je risico's onderschat of slordig met AI omgaat, kan dat leiden tot foutieve leerstof, nepnieuws, oneerlijke keuzes, privacyproblemen of werk dat je niet echt begrijpt.",
+    "kritisch": {
+        "background": "AI kan fouten maken, iets verzinnen, oude informatie gebruiken of vooroordelen uit data overnemen. Daarom horen kritisch kijken, veilig handelen en verantwoord gebruik altijd samen.",
+        "strength": "Dit loopt al goed: jullie zien sneller waar het mis kan gaan en kiezen vaker voor controleren, eerlijk blijven, privacy bewaken en duidelijk zeggen hoe AI hielp.",
+        "growth": "Let nog extra op broncontrole, transparant zijn over hulp van AI, privacy en niet te snel vertrouwen op een antwoord dat heel zeker of handig klinkt.",
+        "risk": "Als je AI niet kritisch genoeg gebruikt, kan dat leiden tot foutieve leerstof, nepnieuws, privacyproblemen, oneerlijke keuzes of werk dat je niet echt begrijpt.",
     },
-    "beeldronde": {
-        "background": "AI-beelden en bewerkte beelden kunnen echt lijken. Details zoals handen, tekst, licht, schaduwen en context kunnen helpen, maar geven niet altijd zekerheid.",
-        "strength": "Dit loopt al goed: jullie kijken kritischer naar beelden en zoeken naar aanwijzingen voordat jullie beslissen.",
-        "growth": "Let nog extra op traag kijken, de bron controleren en de context bekijken voordat jullie een beeld geloven of delen.",
-        "risk": "Als je een AI-beeld verkeerd inschat, kan je een nepbeeld delen, iemand onterecht beschuldigen of een gemanipuleerd verhaal geloven.",
+    "beeld": {
+        "background": "AI-foto's en bewerkte beelden kunnen echt lijken. Details zoals handen, tekst, licht, schaduwen, verhoudingen en context kunnen helpen, maar geven niet altijd zekerheid.",
+        "strength": "Dit loopt al goed: jullie kijken kritischer naar beelden en zoeken naar aanwijzingen voordat jullie beslissen of iets echt lijkt.",
+        "growth": "Let nog extra op traag kijken, broncontrole en context. Bespreek ook waarom een beeld twijfel oproept in plaats van alleen snel te gokken.",
+        "risk": "Als je een AI-foto verkeerd inschat, kan je een nepbeeld delen, iemand onterecht beschuldigen of een gemanipuleerd verhaal geloven.",
     },
     "algemeen": {
         "background": "AI-geletterdheid gaat over herkennen, begrijpen, controleren, privacy, eerlijkheid en zelfstandig denken. Die onderdelen horen samen.",
@@ -1879,7 +1922,7 @@ EVALUATION_THEME_FEEDBACK = {
 def evaluation_theme_key(question: dict) -> str:
     question_type = str(question.get("type") or "multiple_choice")
     if question_type == "image_binary":
-        return "beeldronde"
+        return "beeld"
 
     theme = normalize_theme_key(question.get("theme"))
     if theme in THEMES:
@@ -1889,8 +1932,6 @@ def evaluation_theme_key(question: dict) -> str:
 
 
 def evaluation_theme_label(theme_key: str) -> str:
-    if theme_key == "beeldronde":
-        return "Beeldronde: AI-beelden herkennen"
     if theme_key == "algemeen":
         return "Algemene AI-geletterdheid"
     return THEMES.get(theme_key, {}).get("label", theme_key)
@@ -1955,7 +1996,7 @@ def group_evaluation_report_rows(gs: GameState) -> List[Tuple[str, int, int]]:
     rows: List[Tuple[str, int, int]] = [
         ("Groepsevaluatie AI-geletterdheid", 18, 10),
         (
-            "Deze evaluatie vat samen wat tijdens het spel zichtbaar werd rond kritisch, veilig en eerlijk omgaan met AI.",
+            "Deze evaluatie vat samen wat tijdens het spel zichtbaar werd rond kritisch, veilig en verantwoord omgaan met AI.",
             11,
             8,
         ),
@@ -3034,7 +3075,7 @@ async def game_loop():
 
 @app.post("/api/new", response_model=ActionResponse)
 async def new_game(req: NewGameRequest):
-    global STATE, CONFIG, LAST_IMAGE_QUESTION
+    global STATE, CONFIG
     if req.seed is not None:
         random.seed(req.seed)
 
@@ -3063,8 +3104,6 @@ async def new_game(req: NewGameRequest):
         all_time_ranking=load_all_time_ranking(),
     )
     reset_questions()
-    LAST_IMAGE_QUESTION = False
-
     CONFIG = {
         "timer_minutes": req.timer_minutes,
         "auto_exit_reveal_minute": req.auto_exit_reveal_minute,
@@ -3084,7 +3123,6 @@ async def new_game(req: NewGameRequest):
 
 @app.post("/api/question/next")
 async def next_question(payload: dict):
-    global LAST_IMAGE_QUESTION
     theme_key = normalize_theme_key(payload.get("theme"))
 
     if theme_key not in THEMES:
@@ -3097,30 +3135,23 @@ async def next_question(payload: dict):
         and not q.get("used", False)
         and q.get("approved", True)
     ]
-    available_image_questions = [
-        q for q in load_image_questions()
-        if not q.get("used", False)
-        and q.get("approved", True)
-    ]
-
     selected_question = None
-
-    if (
-        available_image_questions
-        and not LAST_IMAGE_QUESTION
-        and random.random() < IMAGE_QUESTION_CHANCE
-    ):
-        selected_question = random.choice(available_image_questions)
+    if theme_key == "beeld":
+        available_image_questions = [
+            q for q in load_image_questions()
+            if not q.get("used", False)
+            and q.get("approved", True)
+        ]
+        combined_questions = available_questions + available_image_questions
+        if combined_questions:
+            selected_question = random.choice(combined_questions)
     elif available_questions:
         selected_question = random.choice(available_questions)
-    elif available_image_questions:
-        selected_question = random.choice(available_image_questions)
 
     if selected_question:
-        LAST_IMAGE_QUESTION = selected_question.get("type") == "image_binary"
         return build_question_payload(selected_question, theme_key)
 
-    return {"message": "Geen beschikbare vragen meer voor dit thema of de beeldrondes."}
+    return {"message": "Geen beschikbare vragen meer voor dit thema."}
 @app.post("/api/question/generate")
 async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = Header(None)):
     require_teacher_password(x_teacher_password)
@@ -3747,7 +3778,8 @@ async def create_teacher_question(
             "id": next_prefixed_question_id(image_questions, "image_round_"),
             "source": "teacher",
             "type": "image_binary",
-            "display_theme": "Beeldronde",
+            "theme": "beeld",
+            "display_theme": THEMES["beeld"]["label"],
             "question": normalized_question,
             "options": list(IMAGE_BINARY_OPTIONS),
             "correct_index": payload.correct_index,
@@ -4132,7 +4164,7 @@ Pauze:
 
 Vraagselectie:
 - Een themaknop probeert eerst een vraag van dat thema te geven.
-- Soms komt er tussendoor een beeldvraag; dat gebeurt met ongeveer {int(IMAGE_QUESTION_CHANCE * 100)}% kans zolang dat past.
+- De themaknop 'AI-foto's herkennen' geeft beeldvragen en vragen over deepfakes, broncontrole en visuele aanwijzingen.
 
 Huidige live spelstatus:
 - Fase: {gs.phase}
@@ -4231,11 +4263,8 @@ def _bot_theme_fallback(user_message: str) -> Optional[str]:
             "Gebruik zo'n antwoord dus als hulp, niet als automatische waarheid."
         )
 
-    if ("beeld" in text or "foto" in text or "afbeelding" in text) and ("ai" in text or "nep" in text):
-        return (
-            "Bij een AI-beeld kijk je best naar rare details, context en bron. "
-            "Een beeld kan echt lijken en toch gegenereerd of gemanipuleerd zijn."
-        )
+    if "deepfake" in text or (("beeld" in text or "foto" in text or "afbeelding" in text) and ("ai" in text or "nep" in text)):
+        return THEME_EXPLANATION_FALLBACKS["beeld"]
 
     if "kansen" in text or ("waar" in text and "helpen" in text and "ai" in text):
         return THEME_EXPLANATION_FALLBACKS["kansen"]
@@ -4243,8 +4272,11 @@ def _bot_theme_fallback(user_message: str) -> Optional[str]:
     if "leefwereld" in text or "dagelijks leven" in text or ("app" in text and "ai" in text):
         return THEME_EXPLANATION_FALLBACKS["leefwereld"]
 
-    if "risico" in text or "verantwoord" in text or ("veilig" in text and "ai" in text):
-        return THEME_EXPLANATION_FALLBACKS["risicos"]
+    if "beeldthema" in text or "beeldvraag" in text or ("foto" in text and "herken" in text):
+        return THEME_EXPLANATION_FALLBACKS["beeld"]
+
+    if "kritisch" in text or "risico" in text or "verantwoord" in text or ("veilig" in text and "ai" in text):
+        return THEME_EXPLANATION_FALLBACKS["kritisch"]
 
     if ("hoe werkt" in text and "ai" in text) or ("werkt ai" in text) or "thema werking" in text:
         return THEME_EXPLANATION_FALLBACKS["werking"]
@@ -4259,7 +4291,7 @@ def _bot_local_fallback(gs: Optional[GameState], user_message: str) -> Optional[
 def _bot_intro_reply() -> str:
     return (
         "BavoBot helpt al voor de start. Je kan iets vragen over spelregels, prompts, bias, privacy, broncontrole, "
-        "chatbots of beeldvragen."
+        "chatbots of AI-foto's."
     )
 
 def _bot_system_prompt(gs: GameState) -> str:
