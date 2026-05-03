@@ -188,6 +188,7 @@ CONSENSUS_MAX_USES = 3
 MAX_EVENT_LOG_ENTRIES = 120
 JSON_LIST_CACHE: Dict[str, Dict[str, Any]] = {}
 PROCESSED_QUESTION_CACHE: Dict[str, Dict[str, Any]] = {}
+AI_GROUP_EVALUATION_REPORT_CACHE: Dict[str, List[Tuple[str, int, int]]] = {}
 # Optional: load .env if present
 try:
     from dotenv import load_dotenv
@@ -206,6 +207,7 @@ try:
     QUESTION_GENERATION_MODEL = os.getenv("OPENAI_QUESTION_MODEL", "gpt-4.1-mini")
     IMAGE_GENERATION_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5").strip() or "gpt-image-1.5"
     IMAGE_ANALYSIS_MODEL = os.getenv("OPENAI_IMAGE_ANALYSIS_MODEL", QUESTION_GENERATION_MODEL).strip() or QUESTION_GENERATION_MODEL
+    EVALUATION_REPORT_MODEL = os.getenv("OPENAI_EVALUATION_REPORT_MODEL", QUESTION_GENERATION_MODEL).strip() or QUESTION_GENERATION_MODEL
     IMAGE_GENERATION_QUALITY = os.getenv("OPENAI_IMAGE_QUALITY", "medium").strip() or "medium"
     IMAGE_GENERATION_SIZE = os.getenv("OPENAI_IMAGE_SIZE", "1024x1024").strip() or "1024x1024"
     THEME_GENERATION_GUIDANCE = {
@@ -290,6 +292,7 @@ Geef altijd JSON in dit formaat:
 except Exception:
     _client = None
     IMAGE_ANALYSIS_MODEL = "gpt-4.1-mini"
+    EVALUATION_REPORT_MODEL = "gpt-4.1-mini"
     APIConnectionError = Exception
     APIStatusError = Exception
     BadRequestError = Exception
@@ -1991,6 +1994,250 @@ def score_percent(correct: int, answered: int) -> int:
     return int(round((correct / answered) * 100))
 
 
+def clean_ai_report_text(value: object, max_length: int = 420) -> str:
+    text = re.sub(r"\s+", " ", str(value or "")).strip()
+    if not text:
+        return ""
+    if len(text) <= max_length:
+        return text
+
+    trimmed = text[:max_length].rsplit(" ", 1)[0].strip()
+    return trimmed or text[:max_length].strip()
+
+
+def clean_ai_report_list(values: object, max_items: int = 4, max_length: int = 420) -> List[str]:
+    if not isinstance(values, list):
+        return []
+
+    cleaned: List[str] = []
+    for value in values:
+        text = clean_ai_report_text(value, max_length=max_length)
+        if text:
+            cleaned.append(text)
+        if len(cleaned) >= max_items:
+            break
+    return cleaned
+
+
+def build_group_evaluation_ai_payload(gs: GameState) -> dict:
+    evaluation = gs.group_evaluation
+    strong_themes: List[str] = []
+    growth_themes: List[str] = []
+    themes_payload: List[dict] = []
+
+    for theme_key, theme_stats in sorted_group_evaluation_themes(evaluation):
+        if theme_stats.answered <= 0:
+            continue
+
+        theme_score = score_percent(theme_stats.correct, theme_stats.answered)
+        if theme_score >= 75:
+            band = "sterk"
+            strong_themes.append(theme_stats.label)
+        elif theme_score >= 50:
+            band = "wisselend"
+            growth_themes.append(theme_stats.label)
+        else:
+            band = "aandachtspunt"
+            growth_themes.append(theme_stats.label)
+
+        themes_payload.append(
+            {
+                "key": theme_key,
+                "label": theme_stats.label,
+                "answered": theme_stats.answered,
+                "correct": theme_stats.correct,
+                "score_percent": theme_score,
+                "band": band,
+            }
+        )
+
+    mistakes_payload: List[dict] = []
+    for mistake in evaluation.mistakes[:3]:
+        mistakes_payload.append(
+            {
+                "theme_label": clean_ai_report_text(mistake.theme_label, max_length=80),
+                "question": clean_ai_report_text(mistake.question, max_length=220),
+                "chosen_option": clean_ai_report_text(mistake.chosen_option, max_length=180),
+                "correct_option": clean_ai_report_text(mistake.correct_option, max_length=180),
+                "explanation": clean_ai_report_text(mistake.explanation, max_length=260),
+            }
+        )
+
+    return {
+        "total_answered": evaluation.total_answered,
+        "total_correct": evaluation.total_correct,
+        "score_percent": score_percent(evaluation.total_correct, evaluation.total_answered),
+        "strong_themes": strong_themes,
+        "growth_themes": growth_themes,
+        "themes": themes_payload,
+        "mistakes": mistakes_payload,
+    }
+
+
+def group_evaluation_ai_report_cache_key(payload: dict) -> str:
+    serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def build_ai_group_evaluation_report_rows(gs: GameState) -> Optional[List[Tuple[str, int, int]]]:
+    if _client is None or gs.group_evaluation.total_answered <= 0:
+        return None
+
+    payload = build_group_evaluation_ai_payload(gs)
+    cache_key = group_evaluation_ai_report_cache_key(payload)
+    cached_rows = AI_GROUP_EVALUATION_REPORT_CACHE.get(cache_key)
+    if cached_rows:
+        return list(cached_rows)
+
+    try:
+        response = _client.chat.completions.create(
+            model=EVALUATION_REPORT_MODEL,
+            response_format={"type": "json_object"},
+            temperature=0.3,
+            timeout=12.0,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Je schrijft een kort groepsverslag over AI-geletterdheid voor leerlingen van 12 tot 14 jaar. "
+                        "Gebruik alleen de feiten uit de invoer. "
+                        "Verzin geen cijfers, thema's, fouten, voorbeelden of conclusies die niet in de data staan. "
+                        "Schrijf in eenvoudig, vlot Nederlands dat warm en menselijk klinkt, zonder kinderachtig te worden. "
+                        "Spreek de groep rechtstreeks aan als 'jullie'. "
+                        "Schrijf actief en concreet, niet droog of schools. "
+                        "Vermijd stijve formuleringen zoals 'we hebben gekeken hoe goed leerlingen...' of 'er werd vastgesteld dat'. "
+                        "Gebruik geen clichés, geen managementtaal en geen lege opvulzinnen. "
+                        "Hou elke tekst kort: maximaal 1 tot 3 zinnen per veld. "
+                        "Gebruik geen markdown of opsommingstekens. "
+                        "Geef alleen JSON terug."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Maak een kort AI-verslag op basis van deze evaluatiegegevens. "
+                        "Gebruik de themalabels exact zoals gegeven. "
+                        "Laat geen onderdelen weg als er data voor is. "
+                        "Laat het verslag klinken alsof een sterke leerkracht het helder en vlot aan een klas uitlegt. "
+                        "Gebruik afwisselende zinnen en benoem zo veel mogelijk concrete sterktes en groeipunten uit de data zelf. "
+                        "Maak de intro meteen raak en vermijd algemene openers. "
+                        "Geef JSON in dit formaat:\n"
+                        "{\n"
+                        '  "intro": "...",\n'
+                        '  "why_it_matters": ["...", "..."],\n'
+                        '  "what_went_well": ["..."],\n'
+                        '  "attention_points": ["..."],\n'
+                        '  "theme_analysis": [{"theme": "...", "summary": "..."}],\n'
+                        '  "mistake_lessons": ["..."],\n'
+                        '  "closing": "..."\n'
+                        "}\n\n"
+                        "Evaluatiegegevens:\n"
+                        f"{json.dumps(payload, ensure_ascii=False, indent=2)}"
+                    ),
+                },
+            ],
+        )
+    except Exception as exc:
+        print("AI group evaluation report error:", exc)
+        return None
+
+    content = clean_ai_report_text(response.choices[0].message.content or "", max_length=10000)
+    if not content:
+        return None
+
+    try:
+        report = json.loads(content)
+    except json.JSONDecodeError:
+        return None
+
+    intro = clean_ai_report_text(report.get("intro"), max_length=320)
+    why_it_matters = clean_ai_report_list(report.get("why_it_matters"), max_items=3, max_length=360)
+    what_went_well = clean_ai_report_list(report.get("what_went_well"), max_items=4, max_length=360)
+    attention_points = clean_ai_report_list(report.get("attention_points"), max_items=4, max_length=360)
+    mistake_lessons = clean_ai_report_list(report.get("mistake_lessons"), max_items=4, max_length=360)
+    closing = clean_ai_report_text(report.get("closing"), max_length=320)
+
+    theme_summaries: Dict[str, str] = {}
+    for entry in report.get("theme_analysis") if isinstance(report.get("theme_analysis"), list) else []:
+        if not isinstance(entry, dict):
+            continue
+        theme_label = clean_ai_report_text(entry.get("theme"), max_length=80)
+        summary = clean_ai_report_text(entry.get("summary"), max_length=360)
+        if theme_label and summary:
+            theme_summaries[theme_label] = summary
+
+    if not any([intro, why_it_matters, what_went_well, attention_points, theme_summaries, mistake_lessons, closing]):
+        return None
+
+    rows: List[Tuple[str, int, int]] = [("Jullie AI-terugblik", 18, 10)]
+    if intro:
+        rows.append((intro, 11, 8))
+
+    rows.append(("Jullie score in één oogopslag", 14, 6))
+    rows.append((
+        f"Jullie beantwoordden {payload['total_answered']} AI-vragen. "
+        f"Daarvan waren er {payload['total_correct']} juist. "
+        f"Dat is {payload['score_percent']}% correct.",
+        11,
+        7,
+    ))
+
+    if payload["strong_themes"]:
+        rows.append(("Jullie sterkste thema's waren: " + ", ".join(payload["strong_themes"]) + ".", 11, 7))
+    else:
+        rows.append(("Er sprong nog geen duidelijk sterk thema uit, maar dat geeft vooral aan waar extra oefenkansen zitten.", 11, 7))
+
+    if payload["growth_themes"]:
+        rows.append(("Hier mogen jullie nog scherper op worden: " + ", ".join(payload["growth_themes"]) + ".", 11, 8))
+    else:
+        rows.append(("Er sprong geen duidelijk aandachtsthema uit, maar blijven oefenen op kritisch kijken blijft belangrijk.", 11, 8))
+
+    if why_it_matters:
+        rows.append(("Waarom dit belangrijk is", 14, 6))
+        rows.extend((paragraph, 11, 7) for paragraph in why_it_matters)
+
+    if what_went_well:
+        rows.append(("Hier stonden jullie al sterk", 14, 6))
+        rows.extend((paragraph, 11, 7) for paragraph in what_went_well)
+
+    if attention_points:
+        rows.append(("Hier zit nog groeiruimte", 14, 6))
+        rows.extend((paragraph, 11, 7) for paragraph in attention_points)
+
+    if theme_summaries:
+        rows.append(("Per thema bekeken", 14, 6))
+        for theme_entry in payload["themes"]:
+            summary = theme_summaries.get(theme_entry["label"])
+            if summary:
+                rows.append((f"{theme_entry['label']}: {summary}", 11, 9))
+
+    if mistake_lessons or payload["mistakes"]:
+        rows.append(("Fouten waar je slimmer van wordt", 14, 6))
+        if mistake_lessons:
+            rows.extend((paragraph, 11, 7) for paragraph in mistake_lessons)
+        else:
+            for mistake in payload["mistakes"]:
+                detail_parts = []
+                if mistake["chosen_option"]:
+                    detail_parts.append(f"Jullie kozen: {mistake['chosen_option']}.")
+                if mistake["correct_option"]:
+                    detail_parts.append(f"Sterker was: {mistake['correct_option']}.")
+                if mistake["explanation"]:
+                    detail_parts.append(f"Waarom dit telt: {mistake['explanation']}")
+                detail = " ".join(detail_parts).strip() or "Gebruik dit foutje als herinnering om AI-antwoorden altijd te controleren."
+                rows.append((f"Bij {mistake['theme_label']} liep het mis bij: {mistake['question']} {detail}", 11, 8))
+
+    if closing:
+        rows.append(("Wat jullie hieruit meenemen", 14, 6))
+        rows.append((closing, 11, 0))
+    elif rows:
+        last_text, last_size, _last_gap = rows[-1]
+        rows[-1] = (last_text, last_size, 0)
+
+    AI_GROUP_EVALUATION_REPORT_CACHE[cache_key] = list(rows)
+    return rows
+
+
 def group_evaluation_report_rows(gs: GameState) -> List[Tuple[str, int, int]]:
     evaluation = gs.group_evaluation
     rows: List[Tuple[str, int, int]] = [
@@ -2718,7 +2965,8 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
 
 
 def build_group_evaluation_pdf(gs: GameState) -> bytes:
-    return build_text_pdf(student_group_evaluation_report_rows(gs))
+    rows = build_ai_group_evaluation_report_rows(gs) or student_group_evaluation_report_rows(gs)
+    return build_text_pdf(rows)
 
 def _choose_start_coords(names: List[str], min_dist: int, seed: Optional[int]) -> List[Coord]:
     rng = random.Random(seed)
@@ -3429,8 +3677,9 @@ async def download_group_evaluation_pdf():
     async with STATE_LOCK:
         if STATE is None:
             raise HTTPException(404, "Geen actief spel.")
+        state_snapshot = STATE.model_copy(deep=True)
 
-        pdf_bytes = build_group_evaluation_pdf(STATE)
+    pdf_bytes = build_group_evaluation_pdf(state_snapshot)
 
     return Response(
         content=pdf_bytes,
