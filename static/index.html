@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uit de Steengroeve</title>
+    <title>De diamantmijn</title>
     <style>
         :root {
             --sand: #f6efdf;
@@ -618,6 +618,26 @@
             grid-template-rows: auto minmax(0, 1fr) auto;
             padding: 22px;
             min-height: 0;
+        }
+
+        .chat-guide {
+            display: grid;
+            grid-template-columns: 88px minmax(0, 1fr);
+            gap: 16px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .chat-guide-avatar {
+            width: 88px;
+            height: 88px;
+            object-fit: cover;
+            border-radius: 24px;
+            border: 2px solid rgba(133, 93, 53, 0.24);
+            background: rgba(255, 248, 235, 0.92);
+            box-shadow:
+                0 16px 28px rgba(54, 36, 20, 0.16),
+                inset 0 1px 0 rgba(255, 255, 255, 0.82);
         }
 
         .dashboard-chat #chatbox {
@@ -2796,6 +2816,11 @@
                 padding: 22px 18px;
             }
 
+            .chat-guide {
+                grid-template-columns: 1fr;
+                justify-items: start;
+            }
+
             .player-row,
             .chat-form {
                 grid-template-columns: 1fr;
@@ -2868,7 +2893,7 @@
             <div class="hero-copy">
                 <span class="eyebrow">Spelbegeleiding</span>
                 <div>
-                    <h1>Uit de Steengroeve</h1>
+                    <h1>De diamantmijn</h1>
                 </div>
                 <div class="hero-tools">
                     <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
@@ -3027,14 +3052,17 @@
         </section>
 
         <section class="panel dashboard-chat">
-            <div class="section-heading">
-                <span class="eyebrow">Hulp</span>
-                <h2>BavoBot</h2>
-                <p class="panel-intro">Stel snel een vraag over de spelregels of de AI-thema's.</p>
+            <div class="chat-guide">
+                <img class="chat-guide-avatar" src="/static/Aico.png" alt="Aico, de gids van De diamantmijn" />
+                <div class="section-heading">
+                    <span class="eyebrow">Hulp</span>
+                    <h2>Aico</h2>
+                    <p class="panel-intro">Stel snel een vraag aan Aico over de spelregels of de AI-thema's.</p>
+                </div>
             </div>
             <div id="chatbox" class="scrollbox"></div>
             <div class="chat-form">
-                <input id="chatInput" placeholder="Vraag iets over de regels..." />
+                <input id="chatInput" placeholder="Vraag iets aan Aico over de regels..." />
                 <button type="button" onclick="sendChat()">Verstuur</button>
             </div>
         </section>
@@ -3049,7 +3077,7 @@
         <div class="explosion-fragments" aria-hidden="true"></div>
         <div class="explosion-copy">
             <span class="eyebrow">Explosie</span>
-            <h2>De steengroeve stort in</h2>
+            <h2>De diamantmijn stort in</h2>
             <p>
                 Het scherm barst open en alles begint te rommelen. Spelers die nog binnen zijn, verliezen meteen.
             </p>
@@ -3059,7 +3087,7 @@
     <div id="rankingOverlay" class="ranking-overlay" hidden>
         <div class="ranking-reveal">
             <span class="eyebrow">All time ranking</span>
-            <h2>Wie raakte uit de groeve?</h2>
+            <h2>Wie raakte uit de mijn?</h2>
             <p id="rankingRevealSummary" class="ranking-reveal-summary"></p>
             <div id="rankingRevealList" class="ranking-reveal-list" aria-live="polite"></div>
             <div class="ranking-actions">
@@ -5670,7 +5698,7 @@
                 } else {
                     const activeBadge = document.createElement("span");
                     activeBadge.className = "player-status";
-                    activeBadge.textContent = "In groeve";
+                    activeBadge.textContent = "In mijn";
                     row.appendChild(content);
                     row.appendChild(activeBadge);
                 }
@@ -6289,10 +6317,10 @@
                     })
                 });
 
-                appendChatLine("BavoBot", data.reply);
+                appendChatLine("Aico", data.reply);
                 await refreshState();
             } catch (error) {
-                appendChatLine("BavoBot", error.message);
+                appendChatLine("Aico", error.message);
             }
         }
 

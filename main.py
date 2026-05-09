@@ -199,7 +199,7 @@ except Exception:
 TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD", "double diamond").strip()
 OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or "").strip()
 
-# OpenAI client (BavoBot Full)
+# OpenAI client (Aico)
 # Works with the "openai" python package (new style client).
 try:
     from openai import OpenAI, APIConnectionError, APIStatusError, BadRequestError
@@ -1742,7 +1742,7 @@ class ConsensusEvaluationRequest(BaseModel):
 # App + In-memory state
 # ----------------------------
 
-app = FastAPI(title="Uit de Steengroeve - Game API (MVP)")
+app = FastAPI(title="De diamantmijn - Game API (MVP)")
 from fastapi.responses import FileResponse, Response
 
 HTML_HEADERS = {
@@ -1829,7 +1829,7 @@ def _escaped_diamond_total(gs: GameState) -> int:
 
 def _ranking_summary_text(names: List[str], diamond_total: int) -> str:
     if not names:
-        return "Niemand raakte op tijd uit de groeve. Er werd geen rankingresultaat toegevoegd."
+        return "Niemand raakte op tijd uit de mijn. Er werd geen rankingresultaat toegevoegd."
 
     names_text = ", ".join(names)
     diamonds_text = f"{diamond_total} diamant{'en' if diamond_total != 1 else ''}"
@@ -3090,7 +3090,7 @@ def _finish_immediately_if_all_players_escaped(gs: GameState) -> bool:
     gs.timer_paused = False
     gs.paused_at = None
     gs.pause_reasons = []
-    _log(gs, "Alle spelers zijn buiten. De teller springt naar 0 en de groeve ontploft meteen.")
+    _log(gs, "Alle spelers zijn buiten. De teller springt naar 0 en de mijn ontploft meteen.")
     _explode(gs, reason="alle spelers ontsnapt")
     return True
 
@@ -4116,7 +4116,7 @@ async def next_turn():
             _finish_immediately_if_all_players_escaped(gs)
             return ActionResponse(
                 ok=True,
-                message="Alle spelers zijn buiten. De teller staat op 0 en de groeve ontploft meteen.",
+                message="Alle spelers zijn buiten. De teller staat op 0 en de mijn ontploft meteen.",
                 state=gs,
             )
 
@@ -4311,7 +4311,7 @@ async def player_escape(player_id: str, coord: Optional[Coord] = None):
             _finish_immediately_if_all_players_escaped(gs)
             return ActionResponse(
                 ok=True,
-                message=f"{player.name} ontsnapt. Iedereen is buiten: de groeve ontploft meteen.",
+                message=f"{player.name} ontsnapt. Iedereen is buiten: de mijn ontploft meteen.",
                 state=gs,
             )
 
@@ -4319,7 +4319,7 @@ async def player_escape(player_id: str, coord: Optional[Coord] = None):
 
 
 # ----------------------------
-# BavoBot Full: Chat endpoint
+# Aico: Chat endpoint
 # ----------------------------
 
 def _normalize_bot_rule_text(text: str) -> str:
@@ -4357,10 +4357,10 @@ def _bot_rulebook(gs: Optional[GameState]) -> str:
     passage_bonus = gs.passage_bonus_tiles if gs else 0
 
     return f"""
-Officiële spelregels van Uit de Steengroeve. Volg deze regels letterlijk en verzin niets erbij.
+Officiele spelregels van De diamantmijn. Volg deze regels letterlijk en verzin niets erbij.
 
 Algemeen:
-- Doel: verzamel diamanten en raak voor de explosie uit de steengroeve.
+- Doel: verzamel diamanten en raak voor de explosie uit de diamantmijn.
 - De app beheert timer, startcoördinaten, vragen, itemalarmen, uitgang en eindresultaat.
 - Pionbeweging en het echte leggen of wegnemen van fysieke tegels gebeuren op het fysieke bord.
 
@@ -4397,7 +4397,7 @@ Groene exitknop:
 Ontsnappen en einde:
 - Een speler kan pas ontsnappen als de uitgang onthuld is.
 - Ontsnapte spelers doen niet meer mee aan volgende beurten.
-- Als iedereen al buiten is, springt de teller naar 0 en ontploft de groeve meteen voor het eindresultaat.
+- Als iedereen al buiten is, springt de teller naar 0 en ontploft de mijn meteen voor het eindresultaat.
 - Pas na de explosie verschijnt de all time ranking.
 - Voor die ranking tellen alleen diamanten mee van spelers die effectief ontsnapt zijn.
 
@@ -4476,7 +4476,7 @@ def _bot_rule_fallback(gs: Optional[GameState], user_message: str) -> Optional[s
         return "De pauzeknop zet de spelklok stil zonder het spel te resetten. Met dezelfde knop kan je de klok weer hervatten."
 
     if ("iedereen" in text and ("buiten" in text or "ontsnapt" in text)) or ("wanneer" in text and "ranking" in text):
-        return "Als iedereen buiten is, springt de teller naar 0 en ontploft de groeve meteen. Daarna komt het eindresultaat en de all time ranking."
+        return "Als iedereen buiten is, springt de teller naar 0 en ontploft de mijn meteen. Daarna komt het eindresultaat en de all time ranking."
 
     return None
 
@@ -4539,13 +4539,13 @@ def _bot_local_fallback(gs: Optional[GameState], user_message: str) -> Optional[
 
 def _bot_intro_reply() -> str:
     return (
-        "BavoBot helpt al voor de start. Je kan iets vragen over spelregels, prompts, bias, privacy, broncontrole, "
+        "Aico helpt al voor de start. Je kan iets vragen over spelregels, prompts, bias, privacy, broncontrole, "
         "chatbots of AI-foto's."
     )
 
 def _bot_system_prompt(gs: GameState) -> str:
     """
-    BavoBot Full: spelleider + regel-uitleg + korte coaching, zonder AI-verwijzingen.
+    Aico: spelleider + regel-uitleg + korte coaching, zonder AI-verwijzingen.
     """
     remaining = gs.remaining_seconds()
     remaining_str = f"{remaining//60}:{remaining%60:02d}" if remaining is not None else "onbekend"
@@ -4555,7 +4555,7 @@ def _bot_system_prompt(gs: GameState) -> str:
     cp_name = cp.name if cp else "geen"
 
     return f"""
-Je bent BavoBot, een speelse maar duidelijke spelleider voor 12-jarigen.
+Je bent Aico, een speelse maar duidelijke spelleider van De diamantmijn voor 12-jarigen.
 Je helpt met spelregels, volgende stappen en korte verduidelijking van infokaarten.
 Je blijft thema-neutraal: je verwijst NIET naar AI of technologie, tenzij de speler dat expliciet als thema gekozen heeft.
 
@@ -4600,7 +4600,7 @@ async def chat(req: ChatRequest):
     if fallback_reply:
         async with STATE_LOCK:
             if STATE is not None:
-                _log(STATE, f"BavoBot regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
+                _log(STATE, f"Aico regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
         return {"reply": fallback_reply}
 
     if gs is None:
@@ -4609,7 +4609,7 @@ async def chat(req: ChatRequest):
     if _client is None:
         return {
             "reply": (
-                "BavoBot geeft nu snelle lokale hulp. Vraag zo concreet mogelijk naar een spelregel of een AI-thema zoals prompts, bias, privacy of broncontrole."
+                "Aico geeft nu snelle lokale hulp. Vraag zo concreet mogelijk naar een spelregel of een AI-thema zoals prompts, bias, privacy of broncontrole."
             )
         }
 
@@ -4632,7 +4632,7 @@ async def chat(req: ChatRequest):
         # Log bot interaction briefly
         async with STATE_LOCK:
             if STATE is not None:
-                _log(STATE, f"BavoBot antwoordt op '{user_msg[:40]}...': {reply[:60]}...")
+                _log(STATE, f"Aico antwoordt op '{user_msg[:40]}...': {reply[:60]}...")
         return {"reply": reply}
     except Exception:
         return {
