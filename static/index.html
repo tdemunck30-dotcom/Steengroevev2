@@ -186,8 +186,8 @@
 
         .hero-panel {
             display: grid;
-            grid-template-columns: minmax(0, 1.22fr) minmax(620px, 0.94fr);
-            gap: 30px;
+            grid-template-columns: minmax(360px, 0.78fr) minmax(0, 1.22fr);
+            gap: 24px;
             align-items: start;
             background:
                 radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 48%),
@@ -201,9 +201,24 @@
             gap: 18px;
         }
 
+        .hero-left-stack,
         .hero-copy {
             display: grid;
+        }
+
+        .hero-left-stack {
             gap: 16px;
+            align-content: start;
+            min-width: 0;
+        }
+
+        .hero-copy {
+            gap: 16px;
+        }
+
+        .hero-players-block {
+            margin-top: 2px;
+            max-width: 560px;
         }
 
         .lead {
@@ -326,12 +341,12 @@
             grid-column: 1;
             grid-row: 2 / 4;
             display: grid;
-            grid-template-rows: auto auto auto auto;
+            grid-template-rows: auto auto;
             align-content: start;
-            gap: 12px;
+            gap: 16px;
             padding: 22px;
             overflow-x: hidden;
-            overflow-y: auto;
+            overflow-y: visible;
         }
 
         .dashboard-block {
@@ -364,7 +379,7 @@
             border-top: 1px solid rgba(109, 66, 37, 0.14);
         }
 
-        .dashboard-sidebar #playerInputs {
+        .players-block #playerInputs {
             min-height: 0;
             max-height: min(280px, 36vh);
             overflow-y: auto;
@@ -452,20 +467,6 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-        }
-
-        .dashboard-sidebar .small-actions {
-            margin-top: 0;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-        }
-
-        .dashboard-sidebar .small-actions button {
-            flex: none;
-            width: 100%;
-            min-height: 46px;
-            padding: 10px 14px;
         }
 
         .action-controls-block .section-heading {
@@ -2749,11 +2750,7 @@
                 border-top: none;
             }
 
-            .dashboard-sidebar .players-block {
-                padding: 18px;
-            }
-
-            .dashboard-sidebar #playerInputs {
+            .players-block #playerInputs {
                 max-height: min(224px, 32vh);
             }
 
@@ -2857,7 +2854,7 @@
                 overflow: visible;
             }
 
-            .dashboard-sidebar #playerInputs {
+            .players-block #playerInputs {
                 min-height: 0;
                 max-height: none;
                 overflow: visible;
@@ -2872,7 +2869,7 @@
                 grid-template-columns: 1fr;
             }
 
-            .dashboard-sidebar .small-actions {
+            .players-block .small-actions {
                 grid-template-columns: 1fr;
             }
 
@@ -2933,11 +2930,11 @@
             }
 
             .hero-panel {
-                grid-template-columns: minmax(0, 1.08fr) minmax(460px, 0.9fr);
+                grid-template-columns: minmax(340px, 0.76fr) minmax(520px, 1.24fr);
                 gap: 22px;
             }
 
-            .dashboard-sidebar #playerInputs {
+            .players-block #playerInputs {
                 max-height: min(240px, 30vh);
             }
 
@@ -3093,14 +3090,35 @@
 <body>
     <main id="appDashboard" class="app-dashboard">
         <section class="panel hero-panel dashboard-hero">
-            <div class="hero-copy">
-                <div>
-                    <h1>De diamantmijn</h1>
+            <div class="hero-left-stack">
+                <div class="hero-copy">
+                    <div>
+                        <h1>De diamantmijn</h1>
+                    </div>
+                    <div class="hero-tools">
+                        <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
+                            Leerkrachtmodule
+                        </button>
+                    </div>
                 </div>
-                <div class="hero-tools">
-                    <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
-                        Leerkrachtmodule
-                    </button>
+                <div id="playersBlock" class="dashboard-block scrollable players-block hero-players-block">
+                    <div class="section-heading">
+                        <span class="eyebrow">Voorbereiding</span>
+                        <h2>Spelers</h2>
+                        <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
+                    </div>
+                    <div id="playersSummary" class="players-summary" hidden>
+                        <strong>Spelers klaar</strong>
+                        <span id="playersSummaryText"></span>
+                    </div>
+                    <div id="playerSetupContent" class="player-setup-content">
+                        <div id="playerInputs" class="player-list"></div>
+                        <div class="small-actions">
+                            <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
+                            <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
+                        </div>
+                    </div>
+                    <button id="playersBlockToggle" class="players-block-toggle" type="button" hidden onclick="togglePlayersBlock()">Spelers verbergen</button>
                 </div>
             </div>
             <div class="hero-side">
@@ -3136,26 +3154,6 @@
         </section>
 
         <section class="panel dashboard-sidebar">
-            <div id="playersBlock" class="dashboard-block scrollable players-block">
-                <div class="section-heading">
-                    <span class="eyebrow">Voorbereiding</span>
-                    <h2>Spelers</h2>
-                    <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
-                </div>
-                <div id="playersSummary" class="players-summary" hidden>
-                    <strong>Spelers klaar</strong>
-                    <span id="playersSummaryText"></span>
-                </div>
-                <div id="playerSetupContent" class="player-setup-content">
-                    <div id="playerInputs" class="player-list"></div>
-                    <div class="small-actions">
-                        <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
-                        <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
-                    </div>
-                </div>
-                <button id="playersBlockToggle" class="players-block-toggle" type="button" hidden onclick="togglePlayersBlock()">Spelers verbergen</button>
-            </div>
-
             <div class="dashboard-block action-controls-block">
                 <div class="section-heading">
                     <h2>Spelacties</h2>
