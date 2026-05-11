@@ -336,6 +336,8 @@
         }
 
         .hero-top-action {
+            display: grid;
+            justify-items: start;
             padding: 18px;
             border-radius: 24px;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 235, 216, 0.92));
@@ -344,9 +346,10 @@
         }
 
         .hero-top-action .action-button {
-            min-height: 66px;
+            width: min(100%, 300px);
+            min-height: 62px;
             border-radius: 18px;
-            padding: 12px 14px;
+            padding: 11px 14px;
         }
 
         .hero-chat-card {
@@ -368,10 +371,11 @@
 
         .hero-consensus-panel {
             display: grid;
-            gap: 16px;
+            gap: 12px;
             align-content: start;
+            justify-items: start;
             min-height: 100%;
-            padding: 22px;
+            padding: 18px;
             border-radius: 28px;
             background:
                 radial-gradient(circle at top right, rgba(255, 255, 255, 0.92), transparent 28%),
@@ -400,7 +404,9 @@
         }
 
         .hero-consensus-panel .action-button {
-            min-height: 84px;
+            width: min(100%, 300px);
+            min-height: 72px;
+            padding: 11px 14px;
         }
 
         .section-heading {
@@ -545,10 +551,6 @@
         .action-controls-block .action-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
-        }
-
-        .action-controls-block .action-grid > :first-child {
-            grid-column: 1 / -1;
         }
 
         .action-controls-block .action-button {
@@ -2898,7 +2900,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .action-controls-block .action-grid > :first-child,
             .theme-controls-block .button-grid > :last-child {
                 grid-column: auto;
             }
@@ -3184,11 +3185,6 @@
                     </button>
                 </div>
                 <div class="consensus-block hero-consensus-panel">
-                    <div class="section-heading">
-                        <span class="eyebrow">Samen denken</span>
-                        <h2>Groepsdilemma</h2>
-                        <p class="panel-intro">Laat de groep hier samen redeneren over een ethische AI-situatie en bespreek de keuze hardop.</p>
-                    </div>
                     <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
                         <span class="button-title">Start groepsdilemma</span>
                         <span class="button-subtitle">Open de rode knop en laat iedereen eerst samen afwegen voor er geantwoord wordt.</span>
@@ -3208,10 +3204,6 @@
                     <h2>Spelacties</h2>
                 </div>
                 <div class="action-grid">
-                    <button class="action-button secondary-action" onclick="nextTurn()">
-                        <span class="button-title">Volgende speler</span>
-                        <span class="button-subtitle">Spring handmatig door als een beurt niet via een vraag eindigt.</span>
-                    </button>
                     <button id="exitButton" class="action-button exit-action" type="button" onclick="pressExitButton()">
                         <span id="exitButtonTitle" class="button-title">Groene exitknop</span>
                         <span id="exitButtonSubtitle" class="button-subtitle">Alleen speler aan beurt. Uitgang verschijnt en teller springt naar 5 minuten.</span>
