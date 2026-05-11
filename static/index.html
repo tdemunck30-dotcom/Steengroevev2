@@ -42,7 +42,7 @@
             --frame-fade-bottom: clamp(42px, 7vh, 92px);
             margin: 0;
             min-height: 100vh;
-            height: 100dvh;
+            height: auto;
             font-family: "Aptos", "Trebuchet MS", "Segoe UI", sans-serif;
             background:
                 radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.56), transparent 9%),
@@ -51,7 +51,7 @@
                 linear-gradient(180deg, #95c3f1 0 128px, #ddecf7 128px 206px, #e8d8b8 206px 100%);
             color: var(--stone);
             position: relative;
-            overflow: hidden;
+            overflow: auto;
             display: flex;
             justify-content: center;
             align-items: stretch;
@@ -103,25 +103,26 @@
         main.app-dashboard {
             position: relative;
             z-index: 1;
-            width: min(1820px, 100%);
+            width: min(1600px, 100%);
             margin: 0;
-            padding: 14px 16px 18px;
+            padding: 10px 12px 18px;
             display: grid;
             gap: 20px;
-            height: 100%;
-            grid-template-columns: minmax(720px, 1.42fr) minmax(360px, 0.86fr) minmax(380px, 0.92fr);
-            grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
-            align-content: stretch;
-            overflow: hidden;
+            min-height: calc(100dvh - 54px);
+            height: auto;
+            grid-template-columns: minmax(430px, 1.34fr) minmax(300px, 0.86fr) minmax(300px, 0.86fr);
+            grid-template-rows: auto minmax(270px, auto) minmax(210px, auto);
+            align-content: start;
+            overflow: visible;
         }
 
         main.app-dashboard > * {
             min-height: 0;
         }
 
-        .dashboard-sidebar,
+        .dashboard-controls,
         .dashboard-panel,
-        .dashboard-chat {
+        .hero-chat-card {
             min-width: 0;
         }
 
@@ -186,7 +187,7 @@
 
         .hero-panel {
             display: grid;
-            grid-template-columns: minmax(250px, 0.52fr) minmax(0, 1.48fr);
+            grid-template-columns: minmax(250px, 0.56fr) minmax(360px, 0.94fr) minmax(300px, 0.9fr);
             gap: 24px;
             align-items: start;
             background:
@@ -197,7 +198,7 @@
         .dashboard-hero {
             grid-column: 1 / 4;
             grid-row: 1;
-            padding: 20px 22px;
+            padding: 16px 18px;
             gap: 18px;
         }
 
@@ -209,6 +210,17 @@
             gap: 16px;
             align-content: start;
             min-width: 0;
+        }
+
+        .hero-main-column,
+        .hero-side-column {
+            display: grid;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .hero-side-column {
+            align-content: start;
         }
 
         .hero-players-block {
@@ -323,6 +335,74 @@
             background: linear-gradient(135deg, #4a6676, #324957);
         }
 
+        .hero-top-action {
+            padding: 18px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 235, 216, 0.92));
+            border: 1px solid rgba(141, 91, 53, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .hero-top-action .action-button {
+            min-height: 66px;
+            border-radius: 18px;
+            padding: 12px 14px;
+        }
+
+        .hero-chat-card {
+            display: grid;
+            grid-template-rows: auto minmax(170px, 1fr) auto;
+            gap: 0;
+            padding: 12px;
+            border-radius: 26px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(249, 241, 230, 0.95));
+            border: 1px solid rgba(141, 91, 53, 0.18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
+        }
+
+        .hero-chat-card #chatbox {
+            min-height: 170px;
+            max-height: 240px;
+            height: 100%;
+        }
+
+        .hero-consensus-panel {
+            display: grid;
+            gap: 16px;
+            align-content: start;
+            min-height: 100%;
+            padding: 22px;
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 255, 255, 0.92), transparent 28%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(249, 239, 227, 0.98));
+            border: 1px solid rgba(141, 91, 53, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .hero-consensus-panel .section-heading {
+            gap: 10px;
+            margin-bottom: 0;
+        }
+
+        .hero-consensus-panel .section-heading h2 {
+            font-size: clamp(2.65rem, 4.6vw, 4rem);
+            line-height: 0.94;
+            letter-spacing: -0.05em;
+            margin: 0;
+        }
+
+        .hero-consensus-panel .panel-intro {
+            display: block;
+            max-width: 24rem;
+            font-size: 0.98rem;
+            line-height: 1.5;
+        }
+
+        .hero-consensus-panel .action-button {
+            min-height: 84px;
+        }
+
         .section-heading {
             margin-bottom: 18px;
         }
@@ -336,16 +416,26 @@
             display: none;
         }
 
-        .dashboard-sidebar {
+        .dashboard-controls {
             grid-column: 1;
             grid-row: 2 / 4;
             display: grid;
-            grid-template-rows: auto auto;
-            align-content: start;
-            gap: 16px;
+            gap: 18px;
             padding: 22px;
-            overflow-x: hidden;
+            align-self: stretch;
+            align-content: start;
+            overflow-x: visible;
             overflow-y: visible;
+        }
+
+        .dashboard-controls .section-heading {
+            margin-bottom: 6px;
+        }
+
+        .controls-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
         }
 
         .dashboard-block {
@@ -380,7 +470,7 @@
 
         .players-block #playerInputs {
             min-height: 0;
-            max-height: min(280px, 36vh);
+            max-height: min(250px, 28vh);
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -418,54 +508,34 @@
             background: linear-gradient(135deg, #8a735f, #695544);
         }
 
-        .dashboard-sidebar .action-grid {
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-            gap: 12px;
-        }
-
-        .dashboard-sidebar .button-grid {
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
-            gap: 14px;
-        }
-
-        .dashboard-sidebar .action-button {
-            min-height: 86px;
+        .dashboard-controls .action-button,
+        .dashboard-controls button.theme {
+            min-height: 78px;
             padding: 12px 14px;
             border-radius: 18px;
         }
 
-        .dashboard-sidebar button.theme {
-            min-height: 82px;
-            padding: 12px 14px;
-            border-radius: 20px;
+        .dashboard-controls .button-title {
+            font-size: 0.92rem;
+            line-height: 1.18;
         }
 
-        .dashboard-sidebar .button-title {
-            font-size: 0.9rem;
-            line-height: 1.2;
-        }
-
-        .dashboard-sidebar .button-grid .button-title {
-            font-size: 0.9rem;
-            line-height: 1.22;
-        }
-
-        .dashboard-sidebar .button-subtitle {
-            display: none;
-        }
-
-        .dashboard-sidebar .action-grid .button-subtitle {
+        .dashboard-controls .button-subtitle {
             display: block;
-            margin-top: 6px;
-            font-size: 0.79rem;
-            line-height: 1.35;
+            margin-top: 5px;
+            font-size: 0.77rem;
+            line-height: 1.3;
             color: rgba(255, 252, 248, 0.97);
             font-weight: 700;
             text-shadow: 0 1px 1px rgba(26, 26, 26, 0.18);
             display: -webkit-box;
-            -webkit-line-clamp: 3;
+            -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+
+        .dashboard-controls button.theme .button-subtitle {
+            display: none;
         }
 
         .action-controls-block .section-heading {
@@ -473,8 +543,12 @@
         }
 
         .action-controls-block .action-grid {
-            grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
+        }
+
+        .action-controls-block .action-grid > :first-child {
+            grid-column: 1 / -1;
         }
 
         .action-controls-block .action-button {
@@ -508,6 +582,19 @@
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+
+        .theme-controls-block .button-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .theme-controls-block .button-grid > :last-child {
+            grid-column: 1 / -1;
+        }
+
+        .theme-controls-block .section-heading {
+            margin-bottom: 16px;
         }
 
         .consensus-block {
@@ -621,30 +708,17 @@
         .dashboard-start {
             grid-column: 2;
             grid-row: 2;
-            grid-template-rows: auto minmax(0, 1fr) auto;
+            grid-template-rows: auto minmax(0, 1fr);
         }
 
         .dashboard-start .scrollbox {
-            max-height: 136px;
-        }
-
-        .dashboard-start .consensus-block {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid rgba(109, 66, 37, 0.14);
-        }
-
-        .dashboard-start .consensus-block .section-heading {
-            margin-bottom: 6px;
-        }
-
-        .dashboard-start .consensus-block .action-button {
-            min-height: 76px;
+            max-height: 280px;
         }
 
         .dashboard-items {
             grid-column: 3;
-            grid-row: 2;
+            grid-row: 2 / 4;
+            align-self: stretch;
         }
 
         .dashboard-log {
@@ -652,28 +726,24 @@
             grid-row: 3;
         }
 
-        .dashboard-chat {
-            grid-column: 3;
-            grid-row: 3;
-            display: grid;
-            grid-template-rows: auto minmax(0, 1fr) auto;
-            padding: 22px;
-            min-height: 0;
+        .dashboard-items .scrollbox {
+            max-height: none;
+            min-height: 100%;
         }
 
         .chat-guide {
             display: grid;
-            grid-template-columns: 118px minmax(0, 1fr);
-            gap: 16px;
+            grid-template-columns: 92px minmax(0, 1fr);
+            gap: 14px;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .chat-guide-portrait {
-            width: 118px;
-            height: 136px;
+            width: 92px;
+            height: 102px;
             overflow: hidden;
-            border-radius: 30px;
+            border-radius: 24px;
             border: 2px solid rgba(133, 93, 53, 0.24);
             background: rgba(255, 248, 235, 0.92);
             box-shadow:
@@ -685,13 +755,9 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center 12%;
-            transform: scale(1.34);
-            transform-origin: center 18%;
-        }
-
-        .dashboard-chat #chatbox {
-            height: 100%;
+            object-position: center 10%;
+            transform: scale(1.18);
+            transform-origin: center 16%;
         }
 
         .panel-intro {
@@ -2706,7 +2772,7 @@
             min-width: 180px;
         }
 
-        @media (min-width: 981px) and (max-width: 1480px), (min-width: 981px) and (max-height: 900px) {
+        @media (max-width: 1480px) {
             body {
                 height: auto;
                 min-height: 100vh;
@@ -2715,10 +2781,8 @@
 
             main.app-dashboard {
                 width: min(1380px, 100%);
-                height: auto;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
                 grid-template-rows: auto auto auto auto;
-                overflow: visible;
             }
 
             .dashboard-hero {
@@ -2726,69 +2790,36 @@
                 grid-row: 1;
             }
 
-            .dashboard-sidebar {
-                grid-column: 1 / 3;
-                grid-row: 2;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                grid-template-rows: none;
-                align-items: start;
-                gap: 16px;
-                overflow: visible;
-            }
-
-            .dashboard-sidebar .dashboard-block {
-                padding: 18px;
-                border-radius: 24px;
-                background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(248, 239, 224, 0.95));
-                border: 1px solid rgba(141, 91, 53, 0.18);
-                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.84);
-            }
-
-            .dashboard-sidebar .dashboard-block + .dashboard-block {
-                padding-top: 18px;
-                border-top: none;
-            }
-
             .players-block #playerInputs {
                 max-height: min(224px, 32vh);
             }
 
-            .dashboard-sidebar .action-grid,
-            .dashboard-sidebar .button-grid {
-                grid-template-columns: 1fr;
+            .hero-panel {
+                grid-template-columns: minmax(280px, 0.74fr) minmax(0, 1fr);
             }
 
-            .dashboard-sidebar .action-button,
-            .dashboard-sidebar button.theme {
-                min-height: 84px;
-                padding: 12px 14px;
+            .hero-side-column {
+                grid-column: 1 / 3;
+                grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1fr);
+                align-items: start;
             }
 
-            .dashboard-sidebar .button-subtitle,
-            .dashboard-sidebar .action-grid .button-subtitle {
-                display: block;
-                margin-top: 6px;
-                font-size: 0.8rem;
-                line-height: 1.35;
-                -webkit-line-clamp: 3;
+            .dashboard-controls {
+                grid-column: 1;
+                grid-row: 2 / 5;
             }
 
             .dashboard-start {
-                grid-column: 1;
-                grid-row: 3;
+                grid-column: 2;
+                grid-row: 2;
             }
 
-            .dashboard-items {
+            .dashboard-log {
                 grid-column: 2;
                 grid-row: 3;
             }
 
-            .dashboard-log {
-                grid-column: 1;
-                grid-row: 4;
-            }
-
-            .dashboard-chat {
+            .dashboard-items {
                 grid-column: 2;
                 grid-row: 4;
             }
@@ -2798,6 +2829,10 @@
             .hero-panel {
                 grid-template-columns: 1fr;
                 gap: 18px;
+            }
+
+            .hero-side-column {
+                grid-template-columns: 1fr;
             }
 
             .dashboard-hero .status-grid {
@@ -2842,15 +2877,10 @@
                 display: block;
             }
 
-            .dashboard-sidebar,
+            .dashboard-controls,
             .dashboard-panel,
-            .dashboard-chat {
+            .hero-chat-card {
                 padding: 22px;
-            }
-
-            .dashboard-sidebar {
-                grid-template-rows: none;
-                overflow: visible;
             }
 
             .players-block #playerInputs {
@@ -2860,12 +2890,17 @@
                 padding-right: 0;
             }
 
-            .dashboard-sidebar .button-grid {
+            .theme-controls-block .button-grid {
                 grid-template-columns: 1fr;
             }
 
-            .dashboard-sidebar .action-grid {
+            .action-controls-block .action-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .action-controls-block .action-grid > :first-child,
+            .theme-controls-block .button-grid > :last-child {
+                grid-column: auto;
             }
 
             .players-block .small-actions {
@@ -2885,19 +2920,6 @@
 
             .consensus-actions button {
                 flex: 1 1 200px;
-            }
-
-            .dashboard-sidebar .button-subtitle {
-                display: block;
-                margin-top: 6px;
-                font-size: 0.8rem;
-                line-height: 1.35;
-            }
-
-            .dashboard-sidebar .action-button,
-            .dashboard-sidebar button.theme {
-                min-height: 84px;
-                padding: 12px 14px;
             }
 
             #alarmBanner {
@@ -2925,24 +2947,16 @@
             }
 
             main.app-dashboard {
-                grid-template-columns: minmax(580px, 1.24fr) minmax(300px, 0.82fr) minmax(320px, 0.88fr);
+                grid-template-columns: minmax(430px, 1.26fr) minmax(300px, 0.84fr) minmax(300px, 0.84fr);
             }
 
             .hero-panel {
-                grid-template-columns: minmax(240px, 0.5fr) minmax(560px, 1.5fr);
+                grid-template-columns: minmax(240px, 0.54fr) minmax(360px, 0.96fr) minmax(280px, 0.84fr);
                 gap: 22px;
             }
 
             .players-block #playerInputs {
                 max-height: min(240px, 30vh);
-            }
-
-            .dashboard-sidebar .button-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-sidebar .action-grid {
-                grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
             }
 
             .player-row {
@@ -2989,11 +3003,8 @@
                 grid-template-columns: 1fr;
             }
 
-            .dashboard-sidebar .button-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .dashboard-sidebar .action-grid {
+            .theme-controls-block .button-grid,
+            .action-controls-block .action-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -3004,9 +3015,9 @@
                 grid-template-columns: 1fr;
             }
 
-            .dashboard-sidebar,
+            .dashboard-controls,
             .dashboard-panel,
-            .dashboard-chat {
+            .hero-chat-card {
                 padding: 22px 18px;
             }
 
@@ -3098,8 +3109,25 @@
                         Leerkrachtmodule
                     </button>
                 </div>
+                <section class="hero-chat-card">
+                    <div class="chat-guide">
+                        <div class="chat-guide-portrait">
+                            <img class="chat-guide-avatar" src="/static/Aico.png" alt="Aico, de gids van De diamantmijn" />
+                        </div>
+                        <div class="section-heading">
+                            <span class="eyebrow">Hulp</span>
+                            <h2>Aico</h2>
+                            <p class="panel-intro">Stel snel een vraag aan Aico over de spelregels of de AI-thema's.</p>
+                        </div>
+                    </div>
+                    <div id="chatbox" class="scrollbox"></div>
+                    <div class="chat-form">
+                        <input id="chatInput" placeholder="Vraag iets aan Aico over de regels..." />
+                        <button type="button" onclick="sendChat()">Verstuur</button>
+                    </div>
+                </section>
             </div>
-            <div class="hero-side">
+            <div class="hero-main-column">
                 <div class="turn-spotlight">
                     <span class="turn-spotlight-label">Aan Beurt</span>
                     <strong id="turnSpotlightName" class="turn-spotlight-name">-</strong>
@@ -3148,19 +3176,38 @@
                     <button class="secondary-button" type="button" onclick="downloadGroupEvaluationPdf()">Groepsverslag downloaden</button>
                 </div>
             </div>
+            <div class="hero-side-column">
+                <div class="hero-top-action">
+                    <button class="action-button primary-action" onclick="newGame()">
+                        <span class="button-title">Nieuw spel</span>
+                        <span class="button-subtitle">Reset timer, startposities en beurtvolgorde en begin opnieuw.</span>
+                    </button>
+                </div>
+                <div class="consensus-block hero-consensus-panel">
+                    <div class="section-heading">
+                        <span class="eyebrow">Samen denken</span>
+                        <h2>Groepsdilemma</h2>
+                        <p class="panel-intro">Laat de groep hier samen redeneren over een ethische AI-situatie en bespreek de keuze hardop.</p>
+                    </div>
+                    <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
+                        <span class="button-title">Start groepsdilemma</span>
+                        <span class="button-subtitle">Open de rode knop en laat iedereen eerst samen afwegen voor er geantwoord wordt.</span>
+                    </button>
+                    <div class="consensus-status">
+                        <strong id="consensusStatusTitle">Nog niet beschikbaar</strong>
+                        <span id="consensusStatusText">Start eerst een spel om de rode knop te activeren.</span>
+                        <span id="consensusStatusMeta" class="entry-meta"></span>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <section class="panel dashboard-sidebar">
+        <section class="panel dashboard-controls">
             <div class="dashboard-block action-controls-block">
                 <div class="section-heading">
                     <h2>Spelacties</h2>
-                    <p class="panel-intro">Start een nieuwe ronde of geef de beurt meteen door aan de volgende speler.</p>
                 </div>
                 <div class="action-grid">
-                    <button class="action-button primary-action" onclick="newGame()">
-                        <span class="button-title">Nieuw spel</span>
-                        <span class="button-subtitle">Reset timer en startposities en begin opnieuw.</span>
-                    </button>
                     <button class="action-button secondary-action" onclick="nextTurn()">
                         <span class="button-title">Volgende speler</span>
                         <span class="button-subtitle">Spring handmatig door als een beurt niet via een vraag eindigt.</span>
@@ -3175,24 +3222,22 @@
                     </button>
                 </div>
             </div>
-
-            <div class="dashboard-block">
+            <div class="dashboard-block theme-controls-block">
                 <div class="section-heading">
                     <h2>Themavragen</h2>
-                    <p class="panel-intro">Kies een thema en open meteen een grote vraag voor de groep.</p>
                 </div>
                 <div class="button-grid">
                     <button class="theme werking" onclick="loadQuestion('werking')">
                         <span class="button-title">Hoe werkt AI?</span>
-                        <span class="button-subtitle">Ontdek hoe modellen leren, voorspellen en keuzes maken.</span>
+                        <span class="button-subtitle">Hoe werkt AI?</span>
                     </button>
                     <button class="theme leefwereld" onclick="loadQuestion('leefwereld')">
                         <span class="button-title">AI in jouw leefwereld</span>
-                        <span class="button-subtitle">Voorbeelden uit school, media en dagelijkse situaties.</span>
+                        <span class="button-subtitle">AI in jouw leefwereld</span>
                     </button>
                     <button class="theme kritisch" onclick="loadQuestion('kritisch')">
                         <span class="button-title">Kritisch, veilig en verantwoord</span>
-                        <span class="button-subtitle">Controleer output, denk na over privacy en maak bewuste keuzes.</span>
+                        <span class="button-subtitle">Kritisch, veilig en verantwoord</span>
                     </button>
                     <button class="theme kansen" onclick="loadQuestion('kansen')">
                         <span class="button-title">Voordelen en kansen</span>
@@ -3213,21 +3258,6 @@
                 <p class="panel-intro">Na het starten van een spel verschijnen hier alle startcoordinaten. Zodra de uitgang zichtbaar is, kan je hier ook spelers als ontsnapt markeren.</p>
             </div>
             <div id="startList" class="scrollbox" aria-live="polite"></div>
-            <div class="consensus-block">
-                <div class="section-heading">
-                    <h2>Groepsdilemma</h2>
-                    <p class="panel-intro">Gebruik de rode knop wanneer de groep samen een ethische afweging wil maken.</p>
-                </div>
-                <button id="consensusButton" class="action-button ethics-action" type="button" onclick="openConsensusChallenge()">
-                    <span class="button-title">Start groepsdilemma</span>
-                    <span class="button-subtitle">Kom samen tot een consensus en laat de leerkracht daarna jullie redenering beoordelen.</span>
-                </button>
-                <div class="consensus-status">
-                    <strong id="consensusStatusTitle">Nog niet beschikbaar</strong>
-                    <span id="consensusStatusText">Start eerst een spel om de rode knop te activeren.</span>
-                    <span id="consensusStatusMeta" class="entry-meta"></span>
-                </div>
-            </div>
         </section>
 
         <section class="panel dashboard-panel compact-panel items-compact-panel dashboard-items">
@@ -3246,24 +3276,6 @@
                 <p class="panel-intro">Alle belangrijke spelmomenten worden hier achter elkaar bijgehouden.</p>
             </div>
             <div id="log" class="scrollbox" aria-live="polite"></div>
-        </section>
-
-        <section class="panel dashboard-chat">
-            <div class="chat-guide">
-                <div class="chat-guide-portrait">
-                    <img class="chat-guide-avatar" src="/static/Aico.png" alt="Aico, de gids van De diamantmijn" />
-                </div>
-                <div class="section-heading">
-                    <span class="eyebrow">Hulp</span>
-                    <h2>Aico</h2>
-                    <p class="panel-intro">Stel snel een vraag aan Aico over de spelregels of de AI-thema's.</p>
-                </div>
-            </div>
-            <div id="chatbox" class="scrollbox"></div>
-            <div class="chat-form">
-                <input id="chatInput" placeholder="Vraag iets aan Aico over de regels..." />
-                <button type="button" onclick="sendChat()">Verstuur</button>
-            </div>
         </section>
     </main>
 
