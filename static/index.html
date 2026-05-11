@@ -186,7 +186,7 @@
 
         .hero-panel {
             display: grid;
-            grid-template-columns: minmax(360px, 0.78fr) minmax(0, 1.22fr);
+            grid-template-columns: minmax(250px, 0.52fr) minmax(0, 1.48fr);
             gap: 24px;
             align-items: start;
             background:
@@ -201,24 +201,23 @@
             gap: 18px;
         }
 
-        .hero-left-stack,
         .hero-copy {
             display: grid;
         }
 
-        .hero-left-stack {
+        .hero-copy {
             gap: 16px;
             align-content: start;
             min-width: 0;
         }
 
-        .hero-copy {
-            gap: 16px;
-        }
-
         .hero-players-block {
             margin-top: 2px;
-            max-width: 560px;
+            max-width: none;
+        }
+
+        .hero-side .hero-players-block {
+            margin-top: 4px;
         }
 
         .lead {
@@ -2930,7 +2929,7 @@
             }
 
             .hero-panel {
-                grid-template-columns: minmax(340px, 0.76fr) minmax(520px, 1.24fr);
+                grid-template-columns: minmax(240px, 0.5fr) minmax(560px, 1.5fr);
                 gap: 22px;
             }
 
@@ -3090,35 +3089,14 @@
 <body>
     <main id="appDashboard" class="app-dashboard">
         <section class="panel hero-panel dashboard-hero">
-            <div class="hero-left-stack">
-                <div class="hero-copy">
-                    <div>
-                        <h1>De diamantmijn</h1>
-                    </div>
-                    <div class="hero-tools">
-                        <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
-                            Leerkrachtmodule
-                        </button>
-                    </div>
+            <div class="hero-copy">
+                <div>
+                    <h1>De diamantmijn</h1>
                 </div>
-                <div id="playersBlock" class="dashboard-block scrollable players-block hero-players-block">
-                    <div class="section-heading">
-                        <span class="eyebrow">Voorbereiding</span>
-                        <h2>Spelers</h2>
-                        <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
-                    </div>
-                    <div id="playersSummary" class="players-summary" hidden>
-                        <strong>Spelers klaar</strong>
-                        <span id="playersSummaryText"></span>
-                    </div>
-                    <div id="playerSetupContent" class="player-setup-content">
-                        <div id="playerInputs" class="player-list"></div>
-                        <div class="small-actions">
-                            <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
-                            <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
-                        </div>
-                    </div>
-                    <button id="playersBlockToggle" class="players-block-toggle" type="button" hidden onclick="togglePlayersBlock()">Spelers verbergen</button>
+                <div class="hero-tools">
+                    <button class="ghost-button teacher-launch" type="button" onclick="openTeacherReview()">
+                        Leerkrachtmodule
+                    </button>
                 </div>
             </div>
             <div class="hero-side">
@@ -3144,6 +3122,25 @@
                         <span class="status-label">Uitgang</span>
                         <span id="exitDisplay" class="status-value">Nog onbekend</span>
                     </div>
+                </div>
+                <div id="playersBlock" class="dashboard-block scrollable players-block hero-players-block">
+                    <div class="section-heading">
+                        <span class="eyebrow">Voorbereiding</span>
+                        <h2>Spelers</h2>
+                        <p class="panel-intro">Vul hier de namen in voor je een nieuw spel start.</p>
+                    </div>
+                    <div id="playersSummary" class="players-summary" hidden>
+                        <strong>Spelers klaar</strong>
+                        <span id="playersSummaryText"></span>
+                    </div>
+                    <div id="playerSetupContent" class="player-setup-content">
+                        <div id="playerInputs" class="player-list"></div>
+                        <div class="small-actions">
+                            <button class="ghost-button" onclick="addPlayerInput()">Speler toevoegen</button>
+                            <button class="ghost-button" onclick="removePlayerInput()">Laatste verwijderen</button>
+                        </div>
+                    </div>
+                    <button id="playersBlockToggle" class="players-block-toggle" type="button" hidden onclick="togglePlayersBlock()">Spelers verbergen</button>
                 </div>
                 <div id="statusMessage" class="message" aria-live="polite"></div>
                 <div id="groupEvaluationDownloadPanel" class="evaluation-download-panel" hidden>
