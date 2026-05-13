@@ -221,6 +221,7 @@
 
         .hero-side-column {
             align-content: start;
+            justify-items: end;
         }
 
         .hero-players-block {
@@ -337,9 +338,9 @@
 
         .hero-top-action {
             display: grid;
-            justify-items: start;
-            width: calc(100% - 12px);
-            margin-left: 12px;
+            justify-items: end;
+            width: min(100%, 286px);
+            margin-left: auto;
             padding: 18px;
             border-radius: 24px;
             background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 235, 216, 0.92));
@@ -348,10 +349,10 @@
         }
 
         .hero-top-action .action-button {
-            width: min(100%, 300px);
-            min-height: 62px;
+            width: 100%;
+            min-height: 58px;
             border-radius: 18px;
-            padding: 11px 14px;
+            padding: 10px 13px;
         }
 
         .hero-chat-card {
@@ -375,9 +376,9 @@
             display: grid;
             gap: 12px;
             align-content: start;
-            justify-items: start;
-            width: calc(100% - 12px);
-            margin-left: 12px;
+            justify-items: stretch;
+            width: min(100%, 286px);
+            margin-left: auto;
             min-height: 100%;
             padding: 18px;
             border-radius: 28px;
@@ -408,9 +409,21 @@
         }
 
         .hero-consensus-panel .action-button {
-            width: min(100%, 300px);
-            min-height: 72px;
-            padding: 11px 14px;
+            width: 100%;
+            min-height: 68px;
+            padding: 10px 13px;
+        }
+
+        .hero-top-action .button-title,
+        .hero-consensus-panel .button-title {
+            font-size: 1rem;
+        }
+
+        .hero-top-action .button-subtitle,
+        .hero-consensus-panel .button-subtitle {
+            margin-top: 6px;
+            font-size: 0.84rem;
+            line-height: 1.32;
         }
 
         .section-heading {
@@ -966,22 +979,22 @@
         }
 
         .explosion-overlay.show::before {
-            animation: crackLines 5.2s ease 1.05s forwards;
+            animation: crackLines 7.4s ease 7s forwards;
         }
 
         .explosion-overlay.show::after {
-            animation: explosionFlash 5.2s ease 1.05s forwards;
+            animation: explosionFlash 7.4s ease 7s forwards;
         }
 
         .explosion-overlay.show .explosion-fragments {
-            animation: fragmentBurst 5.2s ease 1.05s forwards;
+            animation: fragmentBurst 7.4s ease 7s forwards;
         }
 
         .explosion-copy {
             position: relative;
             z-index: 1;
-            width: min(720px, 100%);
-            padding: 34px 36px;
+            width: min(760px, 100%);
+            padding: 38px 34px;
             border-radius: 28px;
             background: linear-gradient(180deg, rgba(34, 16, 13, 0.92), rgba(18, 9, 8, 0.96));
             border: 1px solid rgba(255, 255, 255, 0.14);
@@ -990,10 +1003,22 @@
             text-shadow: 0 1px 0 rgba(0, 0, 0, 0.32);
             transform: scale(0.9);
             opacity: 0;
+            display: grid;
+            justify-items: center;
+            text-align: center;
+            gap: 8px;
+        }
+
+        .explosion-copy h2 {
+            margin: 0;
+            font-size: clamp(4.5rem, 12vw, 7.8rem);
+            line-height: 0.9;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
         }
 
         .explosion-overlay.show .explosion-copy {
-            animation: explosionCopy 5.2s cubic-bezier(0.18, 0.84, 0.22, 1) 1.05s forwards;
+            animation: explosionCopy 7.4s cubic-bezier(0.18, 0.84, 0.22, 1) 7s forwards;
         }
 
         @keyframes pulse {
@@ -1045,10 +1070,10 @@
 
         main.app-dashboard.exploding {
             animation-name: screenShake;
-            animation-duration: 0.76s;
+            animation-duration: 0.82s;
             animation-timing-function: linear;
-            animation-delay: 1.05s;
-            animation-iteration-count: 7;
+            animation-delay: 7s;
+            animation-iteration-count: 9;
         }
 
         main.app-dashboard.blasting {
@@ -3358,11 +3383,7 @@
     <div id="explosionOverlay" class="explosion-overlay" hidden>
         <div class="explosion-fragments" aria-hidden="true"></div>
         <div class="explosion-copy">
-            <span class="eyebrow">Eindstatus</span>
             <h2>game-over</h2>
-            <p>
-                Eerst loeit de sirene, daarna rolt de klap als zwaar gedonder door de mijn. Spelers die nog binnen zijn, verliezen meteen.
-            </p>
         </div>
     </div>
 
@@ -5713,9 +5734,9 @@
 
             const audio = new AudioCtx();
             const now = audio.currentTime;
-            const sirenDuration = 1.05;
+            const sirenDuration = 7.0;
             const blastAt = now + sirenDuration;
-            const rumbleDuration = 4.8;
+            const rumbleDuration = 7.4;
             const master = audio.createGain();
             const compressor = audio.createDynamicsCompressor();
             const sirenGain = audio.createGain();
@@ -5750,53 +5771,58 @@
             sirenB.detune.setValueAtTime(-7, now);
 
             sirenA.frequency.setValueAtTime(640, now);
-            sirenA.frequency.linearRampToValueAtTime(980, now + 0.24);
-            sirenA.frequency.linearRampToValueAtTime(560, now + 0.52);
-            sirenA.frequency.linearRampToValueAtTime(940, now + 0.8);
+            sirenA.frequency.linearRampToValueAtTime(980, now + 1.15);
+            sirenA.frequency.linearRampToValueAtTime(560, now + 2.3);
+            sirenA.frequency.linearRampToValueAtTime(940, now + 3.45);
+            sirenA.frequency.linearRampToValueAtTime(540, now + 4.6);
+            sirenA.frequency.linearRampToValueAtTime(920, now + 5.8);
             sirenA.frequency.linearRampToValueAtTime(520, blastAt);
 
             sirenB.frequency.setValueAtTime(610, now);
-            sirenB.frequency.linearRampToValueAtTime(930, now + 0.26);
-            sirenB.frequency.linearRampToValueAtTime(530, now + 0.54);
-            sirenB.frequency.linearRampToValueAtTime(880, now + 0.82);
+            sirenB.frequency.linearRampToValueAtTime(930, now + 1.2);
+            sirenB.frequency.linearRampToValueAtTime(530, now + 2.4);
+            sirenB.frequency.linearRampToValueAtTime(880, now + 3.6);
+            sirenB.frequency.linearRampToValueAtTime(510, now + 4.8);
+            sirenB.frequency.linearRampToValueAtTime(860, now + 6.0);
             sirenB.frequency.linearRampToValueAtTime(500, blastAt);
 
             sirenGain.gain.setValueAtTime(0.0001, now);
-            sirenGain.gain.exponentialRampToValueAtTime(0.05, now + 0.05);
-            sirenGain.gain.linearRampToValueAtTime(0.038, now + 0.72);
+            sirenGain.gain.exponentialRampToValueAtTime(0.052, now + 0.08);
+            sirenGain.gain.linearRampToValueAtTime(0.048, now + 5.9);
+            sirenGain.gain.linearRampToValueAtTime(0.032, now + 6.65);
             sirenGain.gain.exponentialRampToValueAtTime(0.0001, blastAt);
 
             sub.type = "sine";
             sub.frequency.setValueAtTime(58, blastAt);
-            sub.frequency.exponentialRampToValueAtTime(27, blastAt + 2.8);
+            sub.frequency.exponentialRampToValueAtTime(31, blastAt + 3.4);
             sub.frequency.exponentialRampToValueAtTime(21, blastAt + rumbleDuration);
 
             body.type = "triangle";
             body.frequency.setValueAtTime(92, blastAt);
-            body.frequency.exponentialRampToValueAtTime(42, blastAt + 2.2);
+            body.frequency.exponentialRampToValueAtTime(46, blastAt + 2.9);
             body.frequency.exponentialRampToValueAtTime(30, blastAt + rumbleDuration);
 
             tail.type = "sawtooth";
             tail.frequency.setValueAtTime(148, blastAt);
-            tail.frequency.exponentialRampToValueAtTime(62, blastAt + 0.5);
+            tail.frequency.exponentialRampToValueAtTime(76, blastAt + 0.9);
             tail.frequency.exponentialRampToValueAtTime(26, blastAt + rumbleDuration);
 
             subGain.gain.setValueAtTime(0.0001, blastAt);
             subGain.gain.exponentialRampToValueAtTime(0.26, blastAt + 0.03);
-            subGain.gain.exponentialRampToValueAtTime(0.05, blastAt + 1.9);
+            subGain.gain.exponentialRampToValueAtTime(0.08, blastAt + 3.2);
             subGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
 
             bodyGain.gain.setValueAtTime(0.0001, blastAt);
             bodyGain.gain.exponentialRampToValueAtTime(0.16, blastAt + 0.04);
-            bodyGain.gain.exponentialRampToValueAtTime(0.04, blastAt + 1.2);
+            bodyGain.gain.exponentialRampToValueAtTime(0.06, blastAt + 2.4);
             bodyGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
 
             tailGain.gain.setValueAtTime(0.0001, blastAt);
             tailGain.gain.exponentialRampToValueAtTime(0.1, blastAt + 0.02);
-            tailGain.gain.exponentialRampToValueAtTime(0.018, blastAt + 0.45);
-            tailGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + 1.4);
+            tailGain.gain.exponentialRampToValueAtTime(0.026, blastAt + 1.2);
+            tailGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + 2.6);
 
-            thunderNoise.buffer = createThunderNoiseBuffer(audio, rumbleDuration + 0.4);
+            thunderNoise.buffer = createThunderNoiseBuffer(audio, rumbleDuration + 0.8);
             thunderNoiseFilter.type = "bandpass";
             thunderNoiseFilter.frequency.setValueAtTime(780, blastAt);
             thunderNoiseFilter.frequency.exponentialRampToValueAtTime(130, blastAt + rumbleDuration);
@@ -5806,7 +5832,7 @@
             thunderNoiseLowpass.frequency.exponentialRampToValueAtTime(180, blastAt + rumbleDuration);
             thunderNoiseGain.gain.setValueAtTime(0.0001, blastAt);
             thunderNoiseGain.gain.exponentialRampToValueAtTime(0.22, blastAt + 0.03);
-            thunderNoiseGain.gain.exponentialRampToValueAtTime(0.06, blastAt + 0.58);
+            thunderNoiseGain.gain.exponentialRampToValueAtTime(0.08, blastAt + 1.5);
             thunderNoiseGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
 
             crackNoise.buffer = createThunderNoiseBuffer(audio, 0.7);
@@ -5848,7 +5874,7 @@
             sirenB.stop(blastAt + 0.02);
             sub.stop(blastAt + rumbleDuration);
             body.stop(blastAt + rumbleDuration);
-            tail.stop(blastAt + 1.4);
+            tail.stop(blastAt + 2.6);
             thunderNoise.stop(blastAt + rumbleDuration);
             crackNoise.stop(blastAt + 0.26);
 
@@ -5931,7 +5957,7 @@
                 overlay.classList.remove("show");
                 overlay.hidden = true;
                 dashboard.classList.remove("exploding");
-            }, 6600);
+            }, 15000);
         }
 
         function triggerDynamiteBlastEffect(state) {
