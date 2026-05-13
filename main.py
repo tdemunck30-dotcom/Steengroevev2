@@ -1632,6 +1632,7 @@ class GameState(BaseModel):
     latest_all_time_ranking_entry_id: Optional[str] = None
     final_result_note: Optional[str] = None
     ranking_recorded: bool = False
+    ranking_name_prompt_pending: bool = False
     group_evaluation: GroupEvaluation = Field(default_factory=GroupEvaluation)
 
     # Logging
@@ -1678,6 +1679,10 @@ class NewGameRequest(BaseModel):
     emergency_endgame_minutes: int = 5  # explosion occurs this many minutes after emergency press
     min_start_distance: int = 4         # min manhattan distance between players (soft)
     seed: Optional[int] = None
+
+
+class RankingFinalizeRequest(BaseModel):
+    player_names: List[str] = Field(min_items=1, max_items=8)
 
 
 class ActionResponse(BaseModel):
@@ -1827,6 +1832,26 @@ def _escaped_diamond_total(gs: GameState) -> int:
     return sum(max(0, int(player.info_cards or 0)) for player in _escaped_players(gs))
 
 
+def _normalize_ranking_player_names(player_names: List[str], expected_count: int) -> List[str]:
+    normalized_names: List[str] = []
+    if expected_count <= 0:
+        return normalized_names
+
+    if len(player_names) != expected_count:
+        raise HTTPException(
+            400,
+            f"Geef precies {expected_count} naam{'en' if expected_count != 1 else ''} op voor de ontsnapte spelers.",
+        )
+
+    for index, raw_name in enumerate(player_names, start=1):
+        normalized_name = str(raw_name or "").strip()
+        if not normalized_name:
+            raise HTTPException(400, f"Vul een naam in voor ontsnapte speler {index}.")
+        normalized_names.append(normalized_name)
+
+    return normalized_names
+
+
 def _ranking_summary_text(names: List[str], diamond_total: int) -> str:
     if not names:
         return "Niemand raakte op tijd uit de mijn. Er werd geen rankingresultaat toegevoegd."
@@ -1844,6 +1869,13 @@ def _sync_ranking_snapshot(gs: GameState) -> None:
     gs.all_time_ranking = load_all_time_ranking()
 
 
+def _persist_all_time_ranking_entry(entry: AllTimeRankingEntry) -> None:
+    ranking_entries = load_all_time_ranking()
+    ranking_entries = [existing for existing in ranking_entries if existing.id != entry.id]
+    ranking_entries.append(entry)
+    save_all_time_ranking(ranking_entries)
+
+
 def _record_all_time_ranking_result(gs: GameState) -> None:
     if gs.ranking_recorded:
         if not gs.all_time_ranking:
@@ -1855,12 +1887,12 @@ def _record_all_time_ranking_result(gs: GameState) -> None:
         gs.latest_all_time_ranking_entry_id = None
         gs.final_result_note = _ranking_summary_text([], 0)
         gs.ranking_recorded = True
+        gs.ranking_name_prompt_pending = False
         _sync_ranking_snapshot(gs)
         return
 
     player_names = [player.name for player in escaped_players]
     diamond_total = _escaped_diamond_total(gs)
-    ranking_entries = load_all_time_ranking()
     entry = AllTimeRankingEntry(
         id=gs.game_id,
         game_id=gs.game_id,
@@ -1870,13 +1902,11 @@ def _record_all_time_ranking_result(gs: GameState) -> None:
         diamond_total=diamond_total,
     )
 
-    ranking_entries = [existing for existing in ranking_entries if existing.id != entry.id]
-    ranking_entries.append(entry)
-    save_all_time_ranking(ranking_entries)
-
+    _persist_all_time_ranking_entry(entry)
     gs.latest_all_time_ranking_entry_id = entry.id
     gs.final_result_note = _ranking_summary_text(player_names, diamond_total)
     gs.ranking_recorded = True
+    gs.ranking_name_prompt_pending = True
     _sync_ranking_snapshot(gs)
     _log(gs, "All time ranking bijgewerkt: " + gs.final_result_note)
 
@@ -3672,6 +3702,53 @@ async def get_all_time_ranking():
     return load_all_time_ranking()
 
 
+@app.post("/api/ranking/finalize", response_model=ActionResponse)
+async def finalize_all_time_ranking(payload: RankingFinalizeRequest):
+    async with STATE_LOCK:
+        if STATE is None:
+            raise HTTPException(404, "Geen actief spel.")
+
+        gs = STATE
+        if gs.phase != "finished":
+            raise HTTPException(400, "De ranking kan pas na het einde van het spel bevestigd worden.")
+
+        if not gs.ranking_name_prompt_pending:
+            raise HTTPException(400, "De rankingnamen zijn voor dit spel al bevestigd.")
+
+        escaped_players = _escaped_players(gs)
+        if not escaped_players:
+            raise HTTPException(400, "Er zijn geen ontsnapte spelers om in de ranking te zetten.")
+
+        normalized_names = _normalize_ranking_player_names(payload.player_names, len(escaped_players))
+        for player, name in zip(escaped_players, normalized_names):
+            player.name = name
+
+        diamond_total = _escaped_diamond_total(gs)
+        entry_id = gs.latest_all_time_ranking_entry_id or gs.game_id
+        existing_entry = next((entry for entry in load_all_time_ranking() if entry.id == entry_id), None)
+        entry = AllTimeRankingEntry(
+            id=entry_id,
+            game_id=gs.game_id,
+            created_at=existing_entry.created_at if existing_entry else time.time(),
+            player_names=normalized_names,
+            escaped_player_count=len(normalized_names),
+            diamond_total=diamond_total,
+        )
+
+        _persist_all_time_ranking_entry(entry)
+        gs.latest_all_time_ranking_entry_id = entry.id
+        gs.final_result_note = _ranking_summary_text(normalized_names, diamond_total)
+        gs.ranking_name_prompt_pending = False
+        _sync_ranking_snapshot(gs)
+        _log(gs, "Rankingnamen bevestigd: " + ", ".join(normalized_names) + ".")
+
+        return ActionResponse(
+            ok=True,
+            message="De all time ranking is opgeslagen met de bevestigde namen.",
+            state=gs,
+        )
+
+
 @app.get("/api/evaluation/pdf")
 async def download_group_evaluation_pdf():
     async with STATE_LOCK:
@@ -3739,6 +3816,24 @@ async def resume_timer():
 async def teacher_auth_check(x_teacher_password: Optional[str] = Header(None)):
     require_teacher_password(x_teacher_password)
     return {"ok": True}
+
+
+@app.post("/api/ranking/clear")
+async def clear_all_time_ranking(x_teacher_password: Optional[str] = Header(None)):
+    require_teacher_password(x_teacher_password)
+    save_all_time_ranking([])
+
+    async with STATE_LOCK:
+        if STATE is not None:
+            STATE.all_time_ranking = []
+
+        state_payload = STATE
+
+    return {
+        "ok": True,
+        "message": "De all time ranking is leeggemaakt.",
+        "state": state_payload,
+    }
 
 
 @app.get("/api/question/pending")

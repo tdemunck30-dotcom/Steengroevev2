@@ -966,15 +966,15 @@
         }
 
         .explosion-overlay.show::before {
-            animation: crackLines 5.4s ease forwards;
+            animation: crackLines 5.2s ease 1.05s forwards;
         }
 
         .explosion-overlay.show::after {
-            animation: explosionFlash 5.4s ease forwards;
+            animation: explosionFlash 5.2s ease 1.05s forwards;
         }
 
         .explosion-overlay.show .explosion-fragments {
-            animation: fragmentBurst 5.4s ease forwards;
+            animation: fragmentBurst 5.2s ease 1.05s forwards;
         }
 
         .explosion-copy {
@@ -993,7 +993,7 @@
         }
 
         .explosion-overlay.show .explosion-copy {
-            animation: explosionCopy 5.4s cubic-bezier(0.18, 0.84, 0.22, 1) forwards;
+            animation: explosionCopy 5.2s cubic-bezier(0.18, 0.84, 0.22, 1) 1.05s forwards;
         }
 
         @keyframes pulse {
@@ -1044,7 +1044,11 @@
         }
 
         main.app-dashboard.exploding {
-            animation: screenShake 0.76s linear 7;
+            animation-name: screenShake;
+            animation-duration: 0.76s;
+            animation-timing-function: linear;
+            animation-delay: 1.05s;
+            animation-iteration-count: 7;
         }
 
         main.app-dashboard.blasting {
@@ -1502,6 +1506,67 @@
             margin-top: 0;
         }
 
+        .ranking-name-overlay-card {
+            width: min(680px, 100%);
+            display: grid;
+            gap: 18px;
+        }
+
+        .ranking-name-copy {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.86);
+            line-height: 1.65;
+        }
+
+        .ranking-name-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .ranking-name-row {
+            display: grid;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .ranking-name-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .ranking-name-label {
+            font-weight: 800;
+            color: #fff3e3;
+        }
+
+        .ranking-name-row input {
+            background: rgba(255, 255, 255, 0.94);
+            color: var(--stone);
+        }
+
+        .ranking-name-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .ranking-name-actions button {
+            flex: 1 1 220px;
+        }
+
+        .ranking-name-overlay-card .message {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #eadfce;
+        }
+
         .evaluation-download-panel {
             display: grid;
             gap: 10px;
@@ -1890,6 +1955,10 @@
 
         .teacher-lock {
             background: linear-gradient(135deg, #7c4934, #5d3424);
+        }
+
+        .teacher-danger {
+            background: linear-gradient(135deg, #a53d33, #74231c);
         }
 
         .teacher-count {
@@ -3289,10 +3358,10 @@
     <div id="explosionOverlay" class="explosion-overlay" hidden>
         <div class="explosion-fragments" aria-hidden="true"></div>
         <div class="explosion-copy">
-            <span class="eyebrow">Explosie</span>
-            <h2>De diamantmijn stort in</h2>
+            <span class="eyebrow">Eindstatus</span>
+            <h2>game-over</h2>
             <p>
-                Het scherm barst open en alles begint te rommelen. Spelers die nog binnen zijn, verliezen meteen.
+                Eerst loeit de sirene, daarna rolt de klap als zwaar gedonder door de mijn. Spelers die nog binnen zijn, verliezen meteen.
             </p>
         </div>
     </div>
@@ -3306,6 +3375,21 @@
             <div class="ranking-actions">
                 <button class="secondary-button" type="button" onclick="downloadGroupEvaluationPdf()">Groepsverslag downloaden</button>
                 <button class="close-button" type="button" onclick="hideRankingOverlay()">Sluiten</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="rankingNameOverlay" class="overlay" hidden>
+        <div class="overlay-card ranking-name-overlay-card">
+            <span class="eyebrow">All time ranking</span>
+            <h2>Bevestig de namen van de ontsnapte spelers</h2>
+            <p id="rankingNameIntro" class="ranking-name-copy">
+                Pas de namen hieronder aan als dat nodig is. Daarna wordt het totale aantal diamanten van alle ontsnapte spelers samen opgeslagen in de all time ranking.
+            </p>
+            <div id="rankingNameList" class="ranking-name-list"></div>
+            <div id="rankingNameStatus" class="message" aria-live="polite"></div>
+            <div class="ranking-name-actions">
+                <button id="rankingNameSubmit" class="close-button" type="button" onclick="submitRankingNames()">Ranking opslaan en tonen</button>
             </div>
         </div>
     </div>
@@ -3428,6 +3512,7 @@
                         <strong id="teacherPendingCount" class="teacher-count">0</strong>
                     </div>
                     <button class="teacher-refresh" type="button" onclick="refreshTeacherActivePanel()">Vernieuwen</button>
+                    <button class="teacher-danger" type="button" onclick="clearAllTimeRanking()">Ranking leegmaken</button>
                     <button class="teacher-lock" type="button" onclick="lockTeacherReview()">Vergrendelen</button>
                     <button class="close-button" type="button" onclick="closeTeacherReview()">Sluiten</button>
                 </div>
@@ -3697,6 +3782,7 @@
         let explosionTimeoutId = null;
         let dynamiteBlastTimeoutId = null;
         let rankingRevealTimeoutId = null;
+        let rankingNameSubmitBusy = false;
         let lastExplosionSignature = "";
         let lastDynamiteBlastId = 0;
         let lastRankingRevealSignature = "";
@@ -4716,6 +4802,51 @@
             }
         }
 
+        async function clearAllTimeRanking() {
+            if (!teacherPassword) {
+                openTeacherAuth(
+                    "Geef het leerkrachtpaswoord in om de all time ranking leeg te maken.",
+                    () => {
+                        byId("teacherOverlay").hidden = false;
+                        clearAllTimeRanking();
+                    }
+                );
+                return;
+            }
+
+            if (!window.confirm("Weet je zeker dat je de all time ranking volledig wilt leegmaken?")) {
+                return;
+            }
+
+            try {
+                const data = await fetchJson("/api/ranking/clear", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders()
+                });
+
+                cachedRankingEntries = [];
+                renderAllTimeRanking([], "", latestState?.final_result_note || "");
+                hideRankingOverlay();
+
+                if (Object.prototype.hasOwnProperty.call(data, "state")) {
+                    const explosionEntry = getLatestExplosionEntry(data.state);
+                    lastRankingRevealSignature = buildRankingRevealKey(data.state, explosionEntry);
+                    renderState(data.state);
+                }
+
+                setTeacherReviewStatus(data.message);
+                setTeacherDeleteStatus(data.message);
+                setStatusMessage(data.message);
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherReviewStatus(error.message, true);
+                setTeacherDeleteStatus(error.message, true);
+                setStatusMessage(error.message);
+            }
+        }
+
         function openTeacherReview() {
             if (!teacherPassword) {
                 openTeacherAuth(
@@ -5559,6 +5690,21 @@
             };
         }
 
+        function createThunderNoiseBuffer(audio, durationSeconds) {
+            const frameCount = Math.max(1, Math.floor(audio.sampleRate * durationSeconds));
+            const buffer = audio.createBuffer(1, frameCount, audio.sampleRate);
+            const channel = buffer.getChannelData(0);
+            let previous = 0;
+
+            for (let index = 0; index < frameCount; index += 1) {
+                const white = Math.random() * 2 - 1;
+                previous = previous * 0.985 + white * 0.16;
+                channel[index] = previous;
+            }
+
+            return buffer;
+        }
+
         function playExplosionRumble() {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
             if (!AudioCtx) {
@@ -5566,52 +5712,147 @@
             }
 
             const audio = new AudioCtx();
+            const now = audio.currentTime;
+            const sirenDuration = 1.05;
+            const blastAt = now + sirenDuration;
+            const rumbleDuration = 4.8;
             const master = audio.createGain();
-            const low = audio.createOscillator();
-            const mid = audio.createOscillator();
-            const high = audio.createOscillator();
-            const tremolo = audio.createOscillator();
-            const tremoloGain = audio.createGain();
-            const duration = 5.2;
+            const compressor = audio.createDynamicsCompressor();
+            const sirenGain = audio.createGain();
+            const sirenA = audio.createOscillator();
+            const sirenB = audio.createOscillator();
+            const sub = audio.createOscillator();
+            const body = audio.createOscillator();
+            const tail = audio.createOscillator();
+            const subGain = audio.createGain();
+            const bodyGain = audio.createGain();
+            const tailGain = audio.createGain();
+            const thunderNoise = audio.createBufferSource();
+            const thunderNoiseFilter = audio.createBiquadFilter();
+            const thunderNoiseLowpass = audio.createBiquadFilter();
+            const thunderNoiseGain = audio.createGain();
+            const crackNoise = audio.createBufferSource();
+            const crackNoiseFilter = audio.createBiquadFilter();
+            const crackNoiseGain = audio.createGain();
 
-            low.type = "sawtooth";
-            low.frequency.setValueAtTime(42, audio.currentTime);
-            low.frequency.exponentialRampToValueAtTime(24, audio.currentTime + duration);
+            audio.resume().catch(() => {});
 
-            mid.type = "triangle";
-            mid.frequency.setValueAtTime(68, audio.currentTime);
-            mid.frequency.exponentialRampToValueAtTime(34, audio.currentTime + duration);
+            compressor.threshold.setValueAtTime(-24, now);
+            compressor.knee.setValueAtTime(16, now);
+            compressor.ratio.setValueAtTime(10, now);
+            compressor.attack.setValueAtTime(0.003, now);
+            compressor.release.setValueAtTime(0.32, now);
 
-            high.type = "square";
-            high.frequency.setValueAtTime(118, audio.currentTime);
-            high.frequency.exponentialRampToValueAtTime(62, audio.currentTime + duration);
+            master.gain.setValueAtTime(0.82, now);
 
-            tremolo.type = "sine";
-            tremolo.frequency.setValueAtTime(5.4, audio.currentTime);
-            tremoloGain.gain.setValueAtTime(0.07, audio.currentTime);
+            sirenA.type = "sawtooth";
+            sirenB.type = "triangle";
+            sirenB.detune.setValueAtTime(-7, now);
 
-            master.gain.setValueAtTime(0.001, audio.currentTime);
-            master.gain.exponentialRampToValueAtTime(0.14, audio.currentTime + 0.24);
-            master.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + duration);
+            sirenA.frequency.setValueAtTime(640, now);
+            sirenA.frequency.linearRampToValueAtTime(980, now + 0.24);
+            sirenA.frequency.linearRampToValueAtTime(560, now + 0.52);
+            sirenA.frequency.linearRampToValueAtTime(940, now + 0.8);
+            sirenA.frequency.linearRampToValueAtTime(520, blastAt);
 
-            tremolo.connect(tremoloGain);
-            tremoloGain.connect(master.gain);
-            low.connect(master);
-            mid.connect(master);
-            high.connect(master);
-            master.connect(audio.destination);
+            sirenB.frequency.setValueAtTime(610, now);
+            sirenB.frequency.linearRampToValueAtTime(930, now + 0.26);
+            sirenB.frequency.linearRampToValueAtTime(530, now + 0.54);
+            sirenB.frequency.linearRampToValueAtTime(880, now + 0.82);
+            sirenB.frequency.linearRampToValueAtTime(500, blastAt);
 
-            low.start();
-            mid.start();
-            high.start();
-            tremolo.start();
+            sirenGain.gain.setValueAtTime(0.0001, now);
+            sirenGain.gain.exponentialRampToValueAtTime(0.05, now + 0.05);
+            sirenGain.gain.linearRampToValueAtTime(0.038, now + 0.72);
+            sirenGain.gain.exponentialRampToValueAtTime(0.0001, blastAt);
 
-            low.stop(audio.currentTime + duration);
-            mid.stop(audio.currentTime + duration);
-            high.stop(audio.currentTime + duration);
-            tremolo.stop(audio.currentTime + duration);
+            sub.type = "sine";
+            sub.frequency.setValueAtTime(58, blastAt);
+            sub.frequency.exponentialRampToValueAtTime(27, blastAt + 2.8);
+            sub.frequency.exponentialRampToValueAtTime(21, blastAt + rumbleDuration);
 
-            tremolo.onended = () => {
+            body.type = "triangle";
+            body.frequency.setValueAtTime(92, blastAt);
+            body.frequency.exponentialRampToValueAtTime(42, blastAt + 2.2);
+            body.frequency.exponentialRampToValueAtTime(30, blastAt + rumbleDuration);
+
+            tail.type = "sawtooth";
+            tail.frequency.setValueAtTime(148, blastAt);
+            tail.frequency.exponentialRampToValueAtTime(62, blastAt + 0.5);
+            tail.frequency.exponentialRampToValueAtTime(26, blastAt + rumbleDuration);
+
+            subGain.gain.setValueAtTime(0.0001, blastAt);
+            subGain.gain.exponentialRampToValueAtTime(0.26, blastAt + 0.03);
+            subGain.gain.exponentialRampToValueAtTime(0.05, blastAt + 1.9);
+            subGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
+
+            bodyGain.gain.setValueAtTime(0.0001, blastAt);
+            bodyGain.gain.exponentialRampToValueAtTime(0.16, blastAt + 0.04);
+            bodyGain.gain.exponentialRampToValueAtTime(0.04, blastAt + 1.2);
+            bodyGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
+
+            tailGain.gain.setValueAtTime(0.0001, blastAt);
+            tailGain.gain.exponentialRampToValueAtTime(0.1, blastAt + 0.02);
+            tailGain.gain.exponentialRampToValueAtTime(0.018, blastAt + 0.45);
+            tailGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + 1.4);
+
+            thunderNoise.buffer = createThunderNoiseBuffer(audio, rumbleDuration + 0.4);
+            thunderNoiseFilter.type = "bandpass";
+            thunderNoiseFilter.frequency.setValueAtTime(780, blastAt);
+            thunderNoiseFilter.frequency.exponentialRampToValueAtTime(130, blastAt + rumbleDuration);
+            thunderNoiseFilter.Q.setValueAtTime(0.65, blastAt);
+            thunderNoiseLowpass.type = "lowpass";
+            thunderNoiseLowpass.frequency.setValueAtTime(2200, blastAt);
+            thunderNoiseLowpass.frequency.exponentialRampToValueAtTime(180, blastAt + rumbleDuration);
+            thunderNoiseGain.gain.setValueAtTime(0.0001, blastAt);
+            thunderNoiseGain.gain.exponentialRampToValueAtTime(0.22, blastAt + 0.03);
+            thunderNoiseGain.gain.exponentialRampToValueAtTime(0.06, blastAt + 0.58);
+            thunderNoiseGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + rumbleDuration);
+
+            crackNoise.buffer = createThunderNoiseBuffer(audio, 0.7);
+            crackNoiseFilter.type = "highpass";
+            crackNoiseFilter.frequency.setValueAtTime(1600, blastAt);
+            crackNoiseGain.gain.setValueAtTime(0.0001, blastAt);
+            crackNoiseGain.gain.exponentialRampToValueAtTime(0.12, blastAt + 0.015);
+            crackNoiseGain.gain.exponentialRampToValueAtTime(0.0001, blastAt + 0.24);
+
+            sirenA.connect(sirenGain);
+            sirenB.connect(sirenGain);
+            sub.connect(subGain);
+            body.connect(bodyGain);
+            tail.connect(tailGain);
+            thunderNoise.connect(thunderNoiseFilter);
+            thunderNoiseFilter.connect(thunderNoiseLowpass);
+            thunderNoiseLowpass.connect(thunderNoiseGain);
+            crackNoise.connect(crackNoiseFilter);
+            crackNoiseFilter.connect(crackNoiseGain);
+
+            sirenGain.connect(master);
+            subGain.connect(master);
+            bodyGain.connect(master);
+            tailGain.connect(master);
+            thunderNoiseGain.connect(master);
+            crackNoiseGain.connect(master);
+            master.connect(compressor);
+            compressor.connect(audio.destination);
+
+            sirenA.start(now);
+            sirenB.start(now);
+            sub.start(blastAt);
+            body.start(blastAt);
+            tail.start(blastAt);
+            thunderNoise.start(blastAt);
+            crackNoise.start(blastAt);
+
+            sirenA.stop(blastAt + 0.02);
+            sirenB.stop(blastAt + 0.02);
+            sub.stop(blastAt + rumbleDuration);
+            body.stop(blastAt + rumbleDuration);
+            tail.stop(blastAt + 1.4);
+            thunderNoise.stop(blastAt + rumbleDuration);
+            crackNoise.stop(blastAt + 0.26);
+
+            thunderNoise.onended = () => {
                 audio.close().catch(() => {});
             };
         }
@@ -5678,7 +5919,7 @@
             dashboard.classList.add("exploding");
 
             if (navigator.vibrate) {
-                navigator.vibrate([420, 130, 360, 120, 420, 100, 260]);
+                navigator.vibrate([120, 80, 120, 200, 420, 120, 520, 120, 320]);
             }
             playExplosionRumble();
 
@@ -5690,7 +5931,7 @@
                 overlay.classList.remove("show");
                 overlay.hidden = true;
                 dashboard.classList.remove("exploding");
-            }, 5400);
+            }, 6600);
         }
 
         function triggerDynamiteBlastEffect(state) {
@@ -6006,10 +6247,114 @@
             });
         }
 
+        function getLatestExplosionEntry(state) {
+            return [...(state?.event_log || [])]
+                .reverse()
+                .find((line) => line.includes("Explosie!")) || "";
+        }
+
+        function buildRankingRevealKey(state, explosionEntry) {
+            return [
+                state?.game_id || "",
+                explosionEntry || "",
+                state?.latest_all_time_ranking_entry_id || "",
+                state?.final_result_note || "",
+                state?.ranking_name_prompt_pending ? "pending" : "ready",
+                Array.isArray(state?.all_time_ranking) ? state.all_time_ranking.length : 0
+            ].join("|");
+        }
+
+        function showRankingOverlay() {
+            const overlay = byId("rankingOverlay");
+            overlay.hidden = false;
+            overlay.classList.remove("show");
+            void overlay.offsetWidth;
+            overlay.classList.add("show");
+        }
+
         function hideRankingOverlay() {
             const overlay = byId("rankingOverlay");
             overlay.classList.remove("show");
             overlay.hidden = true;
+        }
+
+        function setRankingNameStatus(text = "", isError = false) {
+            const status = byId("rankingNameStatus");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setRankingNameButtonsDisabled(disabled) {
+            byId("rankingNameSubmit").disabled = disabled;
+        }
+
+        function hideRankingNameOverlay() {
+            byId("rankingNameOverlay").hidden = true;
+            setRankingNameStatus("");
+        }
+
+        function renderRankingNamePrompt(state) {
+            const overlay = byId("rankingNameOverlay");
+            const intro = byId("rankingNameIntro");
+            const list = byId("rankingNameList");
+            const escapedPlayers = Array.isArray(state?.players)
+                ? state.players.filter((player) => player && player.escaped)
+                : [];
+            const diamondTotal = escapedPlayers.reduce((sum, player) => sum + Number(player.info_cards || 0), 0);
+
+            list.replaceChildren();
+
+            if (!escapedPlayers.length) {
+                hideRankingNameOverlay();
+                return;
+            }
+
+            intro.textContent = escapedPlayers.length === 1
+                ? "Bevestig hieronder de naam van de ontsnapte speler. De score van " + diamondTotal + " diamant" + (diamondTotal === 1 ? "" : "en") + " wordt daarna toegevoegd aan de all time ranking."
+                : "Bevestig hieronder de namen van de ontsnapte spelers. Hun " + diamondTotal + " diamant" + (diamondTotal === 1 ? "" : "en") + " worden samen toegevoegd aan de all time ranking.";
+
+            escapedPlayers.forEach((player, index) => {
+                const row = document.createElement("label");
+                row.className = "ranking-name-row";
+
+                const head = document.createElement("div");
+                head.className = "ranking-name-head";
+
+                const title = document.createElement("span");
+                title.className = "ranking-name-label";
+                title.textContent = escapedPlayers.length === 1
+                    ? "Ontsnapte speler"
+                    : "Ontsnapte speler " + (index + 1);
+
+                const meta = document.createElement("span");
+                meta.className = "entry-meta";
+                const diamonds = Number(player.info_cards || 0);
+                meta.textContent = diamonds + " diamant" + (diamonds === 1 ? "" : "en");
+
+                const input = document.createElement("input");
+                input.type = "text";
+                input.maxLength = 48;
+                input.value = player.name || "Speler " + (index + 1);
+                input.dataset.role = "ranking-name-input";
+
+                head.appendChild(title);
+                head.appendChild(meta);
+                row.appendChild(head);
+                row.appendChild(input);
+                list.appendChild(row);
+            });
+
+            setRankingNameStatus("");
+            setRankingNameButtonsDisabled(rankingNameSubmitBusy);
+            overlay.hidden = false;
+
+            requestAnimationFrame(() => {
+                const firstInput = overlay.querySelector("[data-role='ranking-name-input']");
+                if (firstInput) {
+                    firstInput.focus();
+                    firstInput.select();
+                }
+            });
         }
 
         function downloadGroupEvaluationPdf() {
@@ -6046,24 +6391,28 @@
                 return;
             }
 
-            const revealKey = [state.game_id || "", explosionEntry, state.latest_all_time_ranking_entry_id || "", state.final_result_note || ""].join("|");
+            const revealKey = buildRankingRevealKey(state, explosionEntry);
             if (revealKey === lastRankingRevealSignature) {
                 return;
             }
 
             lastRankingRevealSignature = revealKey;
-            renderAllTimeRanking(state.all_time_ranking || [], state.latest_all_time_ranking_entry_id || "", state.final_result_note || "");
 
             if (rankingRevealTimeoutId) {
                 clearTimeout(rankingRevealTimeoutId);
             }
 
             rankingRevealTimeoutId = setTimeout(() => {
-                const overlay = byId("rankingOverlay");
-                overlay.hidden = false;
-                overlay.classList.remove("show");
-                void overlay.offsetWidth;
-                overlay.classList.add("show");
+                if (latestState?.ranking_name_prompt_pending) {
+                    renderRankingNamePrompt(latestState);
+                } else {
+                    renderAllTimeRanking(
+                        latestState?.all_time_ranking || state.all_time_ranking || [],
+                        latestState?.latest_all_time_ranking_entry_id || state.latest_all_time_ranking_entry_id || "",
+                        latestState?.final_result_note || state.final_result_note || ""
+                    );
+                    showRankingOverlay();
+                }
                 rankingRevealTimeoutId = null;
             }, 10000);
         }
@@ -6258,6 +6607,7 @@
                 byId("consensusOverlay").hidden = true;
                 byId("explosionOverlay").hidden = true;
                 byId("dynamiteBlastOverlay").hidden = true;
+                hideRankingNameOverlay();
                 hideRankingOverlay();
                 byId("explosionOverlay").classList.remove("show");
                 byId("appDashboard").classList.remove("exploding");
@@ -6287,6 +6637,7 @@
                 byId("consensusOverlay").hidden = true;
                 byId("explosionOverlay").hidden = true;
                 byId("dynamiteBlastOverlay").hidden = true;
+                hideRankingNameOverlay();
                 hideRankingOverlay();
                 byId("explosionOverlay").classList.remove("show");
                 byId("appDashboard").classList.remove("exploding");
@@ -6327,10 +6678,11 @@
             renderPauseButton(state);
             renderGroupEvaluationDownload(state);
             renderPlayersSetup(state);
+            if (!state.ranking_name_prompt_pending) {
+                hideRankingNameOverlay();
+            }
 
-            const explosionEntry = [...(state.event_log || [])]
-                .reverse()
-                .find((line) => line.includes("Explosie!"));
+            const explosionEntry = getLatestExplosionEntry(state);
             if (explosionEntry && explosionEntry !== lastExplosionSignature) {
                 lastExplosionSignature = explosionEntry;
                 triggerExplosionEffect();
@@ -6413,6 +6765,54 @@
                 setStatusMessage(data.message);
             } catch (error) {
                 setStatusMessage(error.message);
+            }
+        }
+
+        async function submitRankingNames() {
+            if (rankingNameSubmitBusy) {
+                return;
+            }
+
+            const playerNames = [...byId("rankingNameList").querySelectorAll("[data-role='ranking-name-input']")]
+                .map((input) => input.value.trim());
+
+            if (!playerNames.length) {
+                setRankingNameStatus("Er zijn geen ontsnapte spelers om in de ranking op te slaan.", true);
+                return;
+            }
+
+            if (playerNames.some((name) => !name)) {
+                setRankingNameStatus("Vul voor elke ontsnapte speler een naam in.", true);
+                return;
+            }
+
+            rankingNameSubmitBusy = true;
+            setRankingNameStatus("De ranking wordt opgeslagen...");
+            setRankingNameButtonsDisabled(true);
+
+            try {
+                const data = await fetchJson("/api/ranking/finalize", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({player_names: playerNames})
+                });
+
+                const explosionEntry = getLatestExplosionEntry(data.state);
+                lastRankingRevealSignature = buildRankingRevealKey(data.state, explosionEntry);
+                hideRankingNameOverlay();
+                renderState(data.state);
+                renderAllTimeRanking(
+                    data.state.all_time_ranking || [],
+                    data.state.latest_all_time_ranking_entry_id || "",
+                    data.state.final_result_note || ""
+                );
+                showRankingOverlay();
+                setStatusMessage(data.message);
+            } catch (error) {
+                setRankingNameStatus(error.message, true);
+            } finally {
+                rankingNameSubmitBusy = false;
+                setRankingNameButtonsDisabled(false);
             }
         }
 
