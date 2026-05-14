@@ -3577,7 +3577,7 @@
             <section id="teacherReviewPanel" class="teacher-panel">
                 <div class="teacher-section-head">
                     <h3>AI-vragen nakijken</h3>
-                    <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. Alles wat nagekeken moet worden staat bovenaan samen.</p>
+                    <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. De beeldronde zelf werkt nu alleen nog met echte foto's of AI-beelden.</p>
                 </div>
                 <div class="teacher-generate-bar">
                     <span class="teacher-generate-label">Nieuwe AI-vraag genereren per thema</span>
@@ -3586,11 +3586,10 @@
                         <button class="teacher-generate-button theme leefwereld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('leefwereld')">AI in jouw leefwereld</button>
                         <button class="teacher-generate-button theme kritisch" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kritisch')">Kritisch, veilig en verantwoord</button>
                         <button class="teacher-generate-button theme kansen" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kansen')">Voordelen en kansen</button>
-                        <button class="teacher-generate-button theme beeld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('beeld')">AI-foto's herkennen</button>
                     </div>
                 </div>
                 <div class="teacher-generate-bar">
-                    <span class="teacher-generate-label">Automatische beeldmix samenstellen</span>
+                    <span class="teacher-generate-label">Automatische echt-of-AI beeldmix samenstellen</span>
                     <div class="teacher-auto-image-grid">
                         <div class="teacher-inline-field">
                             <label for="teacherAutoImageCount">Aantal beeldvragen</label>
@@ -3639,7 +3638,7 @@
                         <label for="teacherManualType">Type vraag</label>
                         <select id="teacherManualType" onchange="updateTeacherManualType()">
                             <option value="multiple_choice">Gewone meerkeuzevraag</option>
-                            <option value="image_binary">Beeldvraag: AI of niet</option>
+                            <option value="image_binary">Beeldvraag: echt of AI</option>
                             <option value="consensus_dilemma">Groepsdilemma</option>
                         </select>
                     </div>
@@ -3650,7 +3649,6 @@
                             <option value="leefwereld">AI in jouw leefwereld</option>
                             <option value="kritisch">Kritisch, veilig en verantwoord</option>
                             <option value="kansen">Voordelen en kansen</option>
-                            <option value="beeld">AI-foto's herkennen</option>
                         </select>
                     </div>
                     <div class="teacher-inline-field">
@@ -3692,16 +3690,16 @@
                     </section>
                     <section id="teacherManualImageFields" class="teacher-manual-section" hidden>
                         <div class="teacher-inline-field">
-                            <label for="teacherImagePasteZone">Plak een foto rechtstreeks</label>
+                            <label for="teacherImagePasteZone">Plak een AI-beeld of bewerkte foto</label>
                             <div
                                 id="teacherImagePasteZone"
                                 class="teacher-paste-zone"
                                 tabindex="0"
                                 role="button"
-                                aria-label="Plak hier een foto voor deze beeldvraag"
+                                aria-label="Plak hier een AI-beeld of bewerkte foto voor deze beeldvraag"
                             >
-                                <strong id="teacherImagePasteTitle">Plak hier een foto</strong>
-                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in.</span>
+                                <strong id="teacherImagePasteTitle">Plak hier een AI-beeld of bewerkte foto</strong>
+                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je hieronder een directe link van Wikimedia Commons of Library of Congress.</span>
                             </div>
                         </div>
                         <div class="teacher-inline-field">
@@ -3710,10 +3708,10 @@
                                 id="teacherManualImageUrl"
                                 type="text"
                                 maxlength="260"
-                                placeholder="/static/question-images/mijn-foto.jpg"
+                                placeholder="https://commons.wikimedia.org/wiki/Special:Redirect/file/..."
                             />
                             <p class="teacher-manual-tip">
-                                Je kunt hier nog altijd zelf een pad of URL invullen, maar plakken in het vak hierboven werkt meestal het snelst.
+                                Voor echte foto's gebruik je hier een directe URL van Wikimedia Commons of Library of Congress. Plakken hierboven is vooral handig voor AI-beelden of bewerkte foto's.
                             </p>
                         </div>
                         <div id="teacherImagePreviewBox" class="teacher-image-preview" hidden>
@@ -3734,14 +3732,14 @@
                             <textarea
                                 id="teacherManualExplanation"
                                 maxlength="900"
-                                placeholder="Bijvoorbeeld: let op rare handen, schaduwen of onmogelijke details."
+                                placeholder="Bijvoorbeeld: de reflectie klopt niet helemaal. Tip: let op ramen, handen of tekst."
                             ></textarea>
                         </div>
                         <div class="teacher-inline-field">
                             <label for="teacherManualImageCorrect">Juiste beoordeling</label>
                             <select id="teacherManualImageCorrect">
-                                <option value="0">Waarschijnlijk AI-gegenereerd</option>
-                                <option value="1">Waarschijnlijk niet AI-gegenereerd</option>
+                                <option value="0">Waarschijnlijk AI-gegenereerd of bewerkt</option>
+                                <option value="1">Waarschijnlijk een echte foto</option>
                             </select>
                         </div>
                     </section>
@@ -3787,6 +3785,10 @@
             verantwoord: "Kritisch, veilig en verantwoord",
             beeldronde: "AI-foto's herkennen"
         };
+        const imageBinaryLabels = [
+            "Waarschijnlijk AI-gegenereerd of bewerkt",
+            "Waarschijnlijk een echte foto"
+        ];
         const answerLetters = ["A", "B", "C", "D"];
 
         let currentQuestionId = null;
@@ -3826,6 +3828,37 @@
 
         function byId(id) {
             return document.getElementById(id);
+        }
+
+        function getImageBinaryLabel(correctIndex) {
+            return imageBinaryLabels[correctIndex] || "Onbekend";
+        }
+
+        function isTrustedRealSourceUrl(url) {
+            try {
+                const parsed = new URL(url, window.location.origin);
+                const host = (parsed.hostname || "").toLowerCase();
+                const path = decodeURIComponent(parsed.pathname || "");
+
+                if (host === "commons.wikimedia.org") {
+                    return path.startsWith("/wiki/Special:Redirect/file/");
+                }
+                if (host === "upload.wikimedia.org") {
+                    return path.startsWith("/wikipedia/commons/");
+                }
+                if (host === "cdn.loc.gov") {
+                    return path.startsWith("/service/");
+                }
+                if (host === "tile.loc.gov") {
+                    return path.startsWith("/storage-services/service/");
+                }
+                if (host === "loc.gov" || host === "www.loc.gov") {
+                    return path.startsWith("/resource/") || path.startsWith("/pictures/resource/");
+                }
+                return false;
+            } catch (error) {
+                return false;
+            }
         }
 
         function autoResizeTextarea(element) {
@@ -3882,8 +3915,8 @@
 
         function resetTeacherImagePasteZoneState() {
             setTeacherImagePasteZoneState(
-                "Plak hier een foto",
-                "Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in."
+                "Plak hier een AI-beeld of bewerkte foto",
+                "Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je een directe link van Wikimedia Commons of Library of Congress."
             );
         }
 
@@ -4100,9 +4133,7 @@
 
                 const explanation = document.createElement("div");
                 explanation.className = "teacher-delete-meta";
-                explanation.textContent = Number(question.correct_index) === 0
-                    ? "Juiste beoordeling: Waarschijnlijk AI-gegenereerd"
-                    : "Juiste beoordeling: Waarschijnlijk niet AI-gegenereerd";
+                explanation.textContent = "Juiste beoordeling: " + getImageBinaryLabel(Number(question.correct_index));
                 card.appendChild(explanation);
 
                 const explanationCopy = String(question.explanation || "").trim();
@@ -4298,9 +4329,9 @@
                 byId("teacherManualSubmit").textContent = "Beeldvraag toevoegen";
                 byId("teacherManualQuestion").placeholder = "Typ hier de vraag bij de afbeelding";
                 byId("teacherManualIntro").textContent =
-                    "Voeg hier een beeldvraag toe. Je kunt een foto rechtstreeks plakken of zelf een pad invullen, en leerlingen kiezen daarna of het beeld AI-gegenereerd is of niet.";
+                    "Voeg hier een beeldvraag toe voor de ronde echt of AI. Echte foto's moeten uit Wikimedia Commons of Library of Congress komen; AI-beelden of bewerkte foto's kun je plakken of lokaal opslaan.";
                 byId("teacherManualHelper").textContent =
-                    "Plak een foto of vul een beeldpad in, werk daarna de beeldvelden af en voeg de foto-ronde meteen toe aan de beeldvragenpool.";
+                    "Voeg altijd een korte uitleg met kijktip toe. Gebruik voor echte foto's een vertrouwde bronlink en voor AI-beelden gerust een geplakte of lokale afbeelding.";
                 updateTeacherImagePreview(byId("teacherManualImageUrl").value.trim());
                 requestAnimationFrame(refreshTeacherTextareaHeights);
                 return;
@@ -4899,6 +4930,14 @@
                 return;
             }
 
+            if (theme === "beeld") {
+                setTeacherReviewStatus(
+                    "De beeldronde gebruikt nu alleen beeldvragen. Gebruik de automatische beeldmix of voeg handmatig een beeldvraag toe.",
+                    true
+                );
+                return;
+            }
+
             if (!teacherPassword) {
                 openTeacherAuth("Geef het leerkrachtpaswoord in om nieuwe AI-vragen te genereren.");
                 return;
@@ -5067,7 +5106,15 @@
                 }
 
                 if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 1) {
-                    throw new Error("Kies of het beeld AI-gegenereerd is of niet.");
+                    throw new Error("Kies of het beeld AI-gegenereerd of echt is.");
+                }
+
+                if (!explanation) {
+                    throw new Error("Voeg korte uitleg toe met een tip waar leerlingen op moeten letten.");
+                }
+
+                if (correctIndex === 1 && !isTrustedRealSourceUrl(imageUrl)) {
+                    throw new Error("Echte foto's moeten uit Wikimedia Commons of Library of Congress komen.");
                 }
 
                 return {
@@ -7022,8 +7069,13 @@
                 const explanation = (data.explanation || "").trim();
                 const correctOption = (data.correct_option || "").trim();
                 const correctLabel = (data.correct_label || "").trim();
+                const questionType = (data.question_type || "").trim();
                 const answerLine = correctOption
-                    ? (correctLabel ? correctLabel + ". " + correctOption : correctOption)
+                    ? (
+                        questionType === "image_binary"
+                            ? correctOption
+                            : (correctLabel ? correctLabel + ". " + correctOption : correctOption)
+                    )
                     : "Bekijk samen welk antwoord het best past.";
                 const successDetail = explanation
                     ? explanation + " Je mag nu zelf 3 tegels leggen waar je wil."

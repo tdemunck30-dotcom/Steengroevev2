@@ -16,6 +16,7 @@ import math
 import io
 from difflib import SequenceMatcher
 from typing import Any, Dict, List, Optional, Literal, Tuple
+from urllib.parse import unquote, urlparse
 
 from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
@@ -32,6 +33,7 @@ CORE_FILE = DATA_DIR / "core_questions.json"
 IMAGE_FILE = DATA_DIR / "image_questions.json"
 CONSENSUS_FILE = DATA_DIR / "consensus_dilemmas.json"
 DISABLED_CONSENSUS_FILE = DATA_DIR / "disabled_consensus_dilemmas.json"
+USED_TRUSTED_REAL_IMAGE_FILE = DATA_DIR / "used_trusted_real_images.json"
 ALL_TIME_RANKING_FILE = DATA_DIR / "all_time_ranking.json"
 QUESTION_IMAGE_DIR = Path("static") / "question-images"
 UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
@@ -59,14 +61,91 @@ OPENAI_IMAGE_OUTPUT_MIME_TYPES = {
     "webp": "image/webp",
 }
 IMAGE_BINARY_OPTIONS = [
-    "Waarschijnlijk AI-gegenereerd",
-    "Waarschijnlijk niet AI-gegenereerd",
+    "Waarschijnlijk AI-gegenereerd of bewerkt",
+    "Waarschijnlijk een echte foto",
 ]
 AUTO_IMAGE_QUESTION_VARIANTS = [
-    "Werd deze foto door AI gegenereerd of niet?",
-    "Is dit beeld AI-gegenereerd of niet?",
-    "Kijk goed: is deze foto waarschijnlijk met AI gemaakt of niet?",
+    "Kijk goed: is dit waarschijnlijk een echte foto of een AI-beeld?",
+    "Denk je dat deze foto echt is, of door AI gegenereerd of bewerkt?",
+    "Wat denk je: zie je hier een echte foto of een AI-beeld?",
 ]
+TRUSTED_REAL_IMAGE_LIBRARY = [
+    {
+        "id": "trusted_real_wikimedia_cat_window",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Cat_In_A_Window.jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Cat_In_A_Window.jpg",
+        "image_alt": "Kat die uit een raam kijkt met gevelbekleding op de achtergrond",
+        "question": "Kijk goed: is dit waarschijnlijk een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit Wikimedia Commons. De snorharen, vachtstructuur en weerspiegelingen in het raam blijven overal logisch. "
+            "Tip: kijk bij twijfel naar fijne randen zoals haren, glasreflecties en rechte lijnen rond het venster."
+        ),
+    },
+    {
+        "id": "trusted_real_wikimedia_market_rain",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:USDA_Farmers_Market_Rainy_Opening_(9128285098).jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/USDA_Farmers_Market_Rainy_Opening_(9128285098).jpg",
+        "image_alt": "Straatmarkt in de regen met paraplu's en natte straatstenen",
+        "question": "Wat denk je: zie je hier een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit Wikimedia Commons. De natte straat, paraplu's en mensen reageren allemaal geloofwaardig op hetzelfde licht en weer. "
+            "Tip: kijk of schaduwen, reflecties en drukke achtergronden overal dezelfde logica volgen."
+        ),
+    },
+    {
+        "id": "trusted_real_wikimedia_tomatoes_greenhouse",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Tomatoes_in_Greenhouse_(28270013041).jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tomatoes_in_Greenhouse_(28270013041).jpg",
+        "image_alt": "Tomatenplanten in een broeikas met bladeren en rekken",
+        "question": "Denk je dat deze foto echt is, of door AI gegenereerd of bewerkt?",
+        "explanation": (
+            "Dit is een echte foto uit Wikimedia Commons. De planten tonen natuurlijke variatie: bladeren verschillen licht van vorm, en de diepte in de serre blijft consequent. "
+            "Tip: let op herhaling. AI maakt patronen vaak te netjes of laat details plots verspringen."
+        ),
+    },
+    {
+        "id": "trusted_real_loc_train_interior",
+        "source": "loc",
+        "source_label": "Library of Congress",
+        "source_url": "https://www.loc.gov/pictures/item/2016795675/",
+        "image_url": "https://cdn.loc.gov/service/pnp/det/4a20000/4a20000/4a20100/4a20142v.jpg",
+        "image_alt": "Interieur van een treinwagon met stoelen, ramen en gangpad",
+        "question": "Kijk goed: is dit waarschijnlijk een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit de Library of Congress. De perspectieflijnen van stoelen, ramen en plafond blijven netjes doorlopen zonder vreemde breuken. "
+            "Tip: kijk in interieurs vooral naar herhalende vormen. Bij AI loopt zo'n patroon vaak ergens net mis."
+        ),
+    },
+    {
+        "id": "trusted_real_loc_greenhouse",
+        "source": "loc",
+        "source_label": "Library of Congress",
+        "source_url": "https://www.loc.gov/pictures/item/pa3952.photos.200937p/",
+        "image_url": "https://cdn.loc.gov/service/pnp/habshaer/pa/pa3900/pa3952/photos/200937pv.jpg",
+        "image_alt": "Buitenzicht van een greenhouse of serre vanuit schuin perspectief",
+        "question": "Wat denk je: zie je hier een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit de Library of Congress. Metselwerk, ramen en perspectief blijven logisch en tonen kleine natuurlijke onregelmatigheden. "
+            "Tip: echte foto's hebben vaak kleine imperfecties, maar geen onmogelijke vervormingen in stenen, raamranden of hoeken."
+        ),
+    },
+]
+WIKIMEDIA_COMMONS_HOSTS = {
+    "commons.wikimedia.org",
+    "upload.wikimedia.org",
+}
+LIBRARY_OF_CONGRESS_HOSTS = {
+    "www.loc.gov",
+    "loc.gov",
+    "cdn.loc.gov",
+    "tile.loc.gov",
+}
 AUTO_IMAGE_SCENE_LIBRARY = [
     {
         "label": "rommelige klasbank",
@@ -145,10 +224,6 @@ KANSEN_THEME_SOURCE_IDS = {
     "ai_19",
     "ai_35",
     "ai_52",
-}
-BEELD_THEME_SOURCE_IDS = {
-    "core_risicos_3",
-    "core_risicos_13",
 }
 ETHICAL_AI_DILEMMAS = [
     {
@@ -333,6 +408,135 @@ def normalize_theme_key(theme: object) -> str:
     return mapped_theme
 
 
+def image_binary_answer_label(index: object) -> str:
+    if isinstance(index, int) and 0 <= index < len(IMAGE_BINARY_OPTIONS):
+        return IMAGE_BINARY_OPTIONS[index]
+    return "Onbekend"
+
+
+def image_source_host(image_url: object) -> str:
+    parsed = urlparse(str(image_url or "").strip())
+    return str(parsed.netloc or "").split(":", 1)[0].strip().casefold()
+
+
+def image_source_path(image_url: object) -> str:
+    parsed = urlparse(str(image_url or "").strip())
+    return unquote(str(parsed.path or ""))
+
+
+def trusted_real_source_label_for_url(image_url: object) -> str:
+    host = image_source_host(image_url)
+    if host in WIKIMEDIA_COMMONS_HOSTS:
+        return "Wikimedia Commons"
+    if host in LIBRARY_OF_CONGRESS_HOSTS:
+        return "Library of Congress"
+    return ""
+
+
+def is_trusted_real_image_url(image_url: object) -> bool:
+    normalized_url = str(image_url or "").strip()
+    if not normalized_url:
+        return False
+
+    host = image_source_host(normalized_url)
+    path = image_source_path(normalized_url)
+
+    if host == "commons.wikimedia.org":
+        return path.startswith("/wiki/Special:Redirect/file/")
+
+    if host == "upload.wikimedia.org":
+        return path.startswith("/wikipedia/commons/")
+
+    if host == "cdn.loc.gov":
+        return path.startswith("/service/")
+
+    if host == "tile.loc.gov":
+        return path.startswith("/storage-services/service/")
+
+    if host in {"loc.gov", "www.loc.gov"}:
+        return path.startswith("/resource/") or path.startswith("/pictures/resource/")
+
+    return False
+
+
+def is_image_binary_question(question: dict) -> bool:
+    return str(question.get("type") or "multiple_choice") == "image_binary"
+
+
+def is_round_eligible_image_question(question: dict) -> bool:
+    if not is_image_binary_question(question):
+        return False
+    if not question.get("approved", True) or question.get("rejected", False):
+        return False
+
+    correct_index = question.get("correct_index")
+    image_url = str(question.get("image_url") or "").strip()
+    if correct_index not in (0, 1) or not image_url:
+        return False
+
+    if correct_index == 1:
+        return is_trusted_real_image_url(image_url)
+
+    return True
+
+
+def build_trusted_real_image_questions() -> List[dict]:
+    used_ids = set(load_used_trusted_real_image_ids())
+    questions: List[dict] = []
+
+    for item in TRUSTED_REAL_IMAGE_LIBRARY:
+        questions.append(
+            {
+                "id": item["id"],
+                "source": item["source"],
+                "source_label": item["source_label"],
+                "source_url": item["source_url"],
+                "type": "image_binary",
+                "theme": "beeld",
+                "display_theme": THEMES["beeld"]["label"],
+                "question": item["question"],
+                "options": list(IMAGE_BINARY_OPTIONS),
+                "correct_index": 1,
+                "image_url": item["image_url"],
+                "image_alt": item["image_alt"],
+                "explanation": item["explanation"],
+                "approved": True,
+                "rejected": False,
+                "used": item["id"] in used_ids,
+            }
+        )
+
+    return questions
+
+
+def dedupe_image_questions_by_url(questions: List[dict]) -> List[dict]:
+    unique_questions: List[dict] = []
+    seen_urls: set[str] = set()
+
+    for question in questions:
+        image_url = str(question.get("image_url") or "").strip()
+        if not image_url or image_url in seen_urls:
+            continue
+
+        seen_urls.add(image_url)
+        unique_questions.append(question)
+
+    return unique_questions
+
+
+def load_round_image_questions(include_used: bool = True) -> List[dict]:
+    questions = build_trusted_real_image_questions()
+    questions.extend(
+        question
+        for question in load_image_questions()
+        if is_round_eligible_image_question(question)
+    )
+    questions = dedupe_image_questions_by_url(questions)
+    if include_used:
+        return questions
+    return [question for question in questions if not question.get("used", False)]
+
+
 def processed_question_cache_key(path: Path) -> str:
     return f"processed::{cache_key_for_path(path)}"
 
@@ -365,8 +569,8 @@ def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
 
         if question_id in KANSEN_THEME_SOURCE_IDS:
             normalized_theme = "kansen"
-        elif question_id in BEELD_THEME_SOURCE_IDS:
-            normalized_theme = "beeld"
+        elif normalized_theme == "beeld":
+            normalized_theme = "kritisch"
 
         if normalized_theme and question.get("theme") != normalized_theme:
             question["theme"] = normalized_theme
@@ -390,6 +594,10 @@ def migrate_image_question_metadata_in_memory(questions: List[dict]) -> bool:
 
         if question.get("display_theme") != image_theme_label:
             question["display_theme"] = image_theme_label
+            changed = True
+
+        if list(question.get("options") or []) != list(IMAGE_BINARY_OPTIONS):
+            question["options"] = list(IMAGE_BINARY_OPTIONS)
             changed = True
 
     return changed
@@ -579,6 +787,14 @@ def save_all_time_ranking(entries: List[AllTimeRankingEntry]) -> None:
         json.dump(serializable_entries, f, indent=2, ensure_ascii=False)
 
 
+def load_used_trusted_real_image_ids() -> List[str]:
+    return load_string_list_from_file(USED_TRUSTED_REAL_IMAGE_FILE)
+
+
+def save_used_trusted_real_image_ids(image_ids: List[str]) -> None:
+    save_json_list_to_file(USED_TRUSTED_REAL_IMAGE_FILE, list(dict.fromkeys(image_ids)))
+
+
 def reset_questions():
     for load_questions, save_questions in (
         (load_core_questions, save_core_questions),
@@ -593,6 +809,8 @@ def reset_questions():
             question["used"] = False
 
         save_questions(questions)
+
+    save_used_trusted_real_image_ids([])
 
 
 def save_core_questions(questions):
@@ -694,8 +912,8 @@ def explain_generated_ai_image(
     image_alt: str = "",
 ) -> str:
     fallback = (
-        "Dit beeld is AI-gegenereerd. Kijk extra naar kleine details zoals handen, texturen, "
-        "schaduwen, symmetrie en elementen die net niet logisch in elkaar passen."
+        "Dit beeld is door AI gemaakt of bewerkt. Er zit minstens een klein detail in dat net niet logisch klopt, zoals een vreemde reflectie, vervormde tekst of een rare rand. "
+        "Tip: zoom in op kleine stukjes van het beeld en controleer of licht, vingers, tekst en herhalende patronen overal consistent blijven."
     )
 
     if _client is None or not image_bytes:
@@ -712,8 +930,9 @@ def explain_generated_ai_image(
                     "content": (
                         "Je helpt een leerkracht bij een beeldvraag over AI-beelden voor leerlingen van 12 tot 14 jaar. "
                         "De afbeelding is al zeker AI-gegenereerd. "
-                        "Geef 1 of 2 korte Nederlandse zinnen die uitleggen welke zichtbare details leerlingen zouden kunnen opmerken "
-                        "om te vermoeden dat het beeld door AI gemaakt is. "
+                        "Geef exact 2 korte Nederlandse zinnen in eenvoudig Nederlands. "
+                        "De eerste zin legt uit welke zichtbare aanwijzing leerlingen zouden kunnen opmerken om te vermoeden dat het beeld door AI gemaakt is. "
+                        "De tweede zin begint met 'Tip:' en zegt waar ze best op letten. "
                         "Noem alleen dingen die echt zichtbaar lijken. "
                         "Als het beeld moeilijk te ontmaskeren is, zeg dat eerlijk en noem waar je extra op zou letten. "
                         "Geef alleen JSON terug in de vorm {\"explanation\":\"...\"}."
@@ -781,9 +1000,12 @@ def build_auto_image_prompt(scene: dict, focus: str = "") -> str:
         "Create a photorealistic, candid smartphone photo that looks like an ordinary real-life snapshot. "
         f"Scene: {scene.get('prompt', '')} "
         f"{focus_clause}"
+        "The image must stay mostly believable, but include exactly one subtle visible clue that gives away AI generation or editing. "
+        "Examples include a slightly warped finger, an impossible reflection, a mildly distorted label, a repeated object detail, an inconsistent shadow or a seam that almost lines up but not quite. "
+        "Keep that clue modest, age-appropriate and only noticeable after careful looking. "
         "Keep the composition natural and slightly imperfect. "
         "Do not add text overlays, watermarks, collages, split screens or user interface elements. "
-        "If people appear, keep anatomy and proportions realistic."
+        "If people appear, keep anatomy and proportions realistic apart from that one subtle clue."
     )
 
 
@@ -884,9 +1106,7 @@ def unique_image_candidates_by_correct_index(questions: List[dict], correct_inde
     candidates: List[dict] = []
 
     for question in questions:
-        if str(question.get("type") or "") != "image_binary":
-            continue
-        if not question.get("approved", True) or question.get("rejected", False):
+        if not is_round_eligible_image_question(question):
             continue
         if question.get("correct_index") != correct_index:
             continue
@@ -1143,7 +1363,7 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
     if is_image_question:
         instruction = (
             question.get("instruction")
-            or "Kijk goed naar het beeld en kies of het waarschijnlijk door AI gemaakt is of niet."
+            or "Kijk goed naar het beeld en kies of het waarschijnlijk een echte foto is, of door AI gegenereerd of bewerkt."
         )
         eyebrow = question.get("eyebrow") or "Beeldvraag"
         fallback_theme_label = THEMES["beeld"]["label"]
@@ -1208,11 +1428,7 @@ def build_manageable_question_summary(
         payload["image_url"] = question.get("image_url", "")
         payload["image_alt"] = question.get("image_alt", "")
         payload["explanation"] = learning_explanation_text(question)
-        payload["correct_label"] = (
-            "Waarschijnlijk AI-gegenereerd"
-            if question.get("correct_index") == 0
-            else "Waarschijnlijk niet AI-gegenereerd"
-        )
+        payload["correct_label"] = image_binary_answer_label(question.get("correct_index"))
     elif question_type == "consensus_dilemma":
         payload["guidance"] = str(question.get("guidance") or "").strip()
     else:
@@ -1248,12 +1464,17 @@ def learning_explanation_text(question: dict) -> str:
 
     correct_text = correct_option_text(question)
     if str(question.get("type") or "multiple_choice") == "image_binary":
-        if correct_text:
+        if question.get("correct_index") == 1:
+            source_label = trusted_real_source_label_for_url(question.get("image_url"))
+            source_text = f" uit {source_label}" if source_label else ""
             return (
-                f"Het juiste antwoord is: {correct_text}. "
-                "Let op details zoals handen, tekst, schaduwen, verhoudingen en andere onmogelijke elementen."
+                f"Dit is een echte foto{source_text}. Licht, schaduwen, perspectief en kleine details blijven hier logisch samenwerken. "
+                "Tip: kijk bij twijfel naar tekst, reflecties, handen en herhalende patronen voor je iets als fake bestempelt."
             )
-        return "Let op details zoals handen, tekst, schaduwen, verhoudingen en andere onmogelijke elementen."
+        return (
+            "Dit beeld is door AI gemaakt of bewerkt. Er zit ergens een klein detail dat net niet klopt, ook al oogt de foto op het eerste zicht geloofwaardig. "
+            "Tip: zoom in op kleine delen en controleer vingers, tekst, reflecties, schaduwen en randen op subtiele fouten."
+        )
 
     theme = str(question.get("theme") or "").strip()
     label = answer_label_from_index(question.get("correct_index"))
@@ -1373,6 +1594,17 @@ def mark_question_used(question_id: str) -> Optional[dict]:
             question["used"] = True
             save_questions(questions)
             return question
+
+    for question in build_trusted_real_image_questions():
+        if question.get("id") != question_id:
+            continue
+
+        used_ids = load_used_trusted_real_image_ids()
+        if question_id not in used_ids:
+            used_ids.append(question_id)
+            save_used_trusted_real_image_ids(used_ids)
+        question["used"] = True
+        return question
 
     return None
 
@@ -3406,25 +3638,21 @@ async def next_question(payload: dict):
     if theme_key not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
 
-    core_questions = rebalance_ai_question_answer_positions()
-    available_questions = [
-        q for q in core_questions
-        if q.get("theme") == theme_key
-        and not q.get("used", False)
-        and q.get("approved", True)
-    ]
     selected_question = None
     if theme_key == "beeld":
-        available_image_questions = [
-            q for q in load_image_questions()
-            if not q.get("used", False)
+        available_image_questions = load_round_image_questions(include_used=False)
+        if available_image_questions:
+            selected_question = random.choice(available_image_questions)
+    else:
+        core_questions = rebalance_ai_question_answer_positions()
+        available_questions = [
+            q for q in core_questions
+            if q.get("theme") == theme_key
+            and not q.get("used", False)
             and q.get("approved", True)
         ]
-        combined_questions = available_questions + available_image_questions
-        if combined_questions:
-            selected_question = random.choice(combined_questions)
-    elif available_questions:
-        selected_question = random.choice(available_questions)
+        if available_questions:
+            selected_question = random.choice(available_questions)
 
     if selected_question:
         return build_question_payload(selected_question, theme_key)
@@ -3438,6 +3666,11 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
 
     if theme not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
+    if theme == "beeld":
+        raise HTTPException(
+            400,
+            "De beeldronde gebruikt alleen beeldvragen. Gebruik de automatische beeldmix of voeg handmatig een beeldvraag toe.",
+        )
 
     if _client is None:
         raise HTTPException(500, "OpenAI client niet beschikbaar.")
@@ -3549,6 +3782,7 @@ async def answer_question(payload: dict):
 
     question = mark_question_used(question_id)
     if question is not None:
+        question_type = str(question.get("type") or "multiple_choice")
         correct_index = question["correct_index"]
         is_correct = chosen_index == correct_index
         async with STATE_LOCK:
@@ -3559,7 +3793,12 @@ async def answer_question(payload: dict):
             "correct": is_correct,
             "correct_index": correct_index,
             "correct_option": correct_option,
-            "correct_label": answer_label_from_index(correct_index),
+            "correct_label": (
+                image_binary_answer_label(correct_index)
+                if question_type == "image_binary"
+                else answer_label_from_index(correct_index)
+            ),
+            "question_type": question_type,
             "explanation": learning_explanation_text(question),
         }
 
@@ -3951,13 +4190,13 @@ async def generate_teacher_image_set(
 
     focus = str(payload.focus or "").strip()
     existing_image_questions = load_image_questions()
-    real_candidates = unique_real_image_candidates(existing_image_questions)
+    real_candidates = unique_real_image_candidates(load_round_image_questions())
     local_ai_candidates = unique_ai_image_candidates(existing_image_questions)
 
     if not real_candidates:
         raise HTTPException(
             400,
-            "Voeg eerst minstens een echte beeldvraag toe, zodat de automatische beeldmix ook een niet-AI-foto kan gebruiken.",
+            "Er zijn momenteel geen betrouwbare echte foto's beschikbaar voor de beeldronde.",
         )
 
     real_count = 1
@@ -3997,7 +4236,7 @@ async def generate_teacher_image_set(
             image_alt=generated_image["image_alt"],
             explanation=str(generated_image.get("explanation") or "").strip() or (
                 "Dit beeld werd met AI gemaakt voor deze automatische beeldmix. "
-                "Kijk bij zulke foto's extra naar kleine details, texturen, schaduwen en onwaarschijnlijke elementen."
+                "Tip: let op kleine details zoals tekst, randen, reflecties, vingers en schaduwen die net niet logisch blijven."
             ),
             source="ai",
         )
@@ -4049,7 +4288,7 @@ async def generate_teacher_image_set(
     return {
         "ok": True,
         "message": (
-            f"Automatische beeldmix klaar: 1 bestaande echte foto en {ai_total} {ai_suffix}."
+            f"Automatische beeldmix klaar: 1 betrouwbare echte foto en {ai_total} {ai_suffix}."
             f"{generation_note}"
         ),
         "real_count": real_count,
@@ -4059,7 +4298,7 @@ async def generate_teacher_image_set(
         "questions": preview_questions,
         "saved_count": len(new_questions),
         "preview_message": (
-            f"De mix hieronder gebruikt 1 bestaande echte foto en {ai_total} {ai_suffix.lower()}."
+            f"De mix hieronder gebruikt 1 betrouwbare echte foto en {ai_total} {ai_suffix.lower()}."
             " Alleen echt nieuwe AI-vragen worden extra toegevoegd onder 'Vragen verwijderen'."
         ),
     }
@@ -4108,12 +4347,22 @@ async def create_teacher_question(
             raise HTTPException(400, "Geef een afbeeldingspad of afbeeldings-URL op.")
 
         if payload.correct_index not in (0, 1):
-            raise HTTPException(400, "Kies bij een beeldvraag of het beeld AI-gegenereerd is of niet.")
+            raise HTTPException(400, "Kies bij een beeldvraag of het beeld AI-gegenereerd of echt is.")
+
+        explanation = str(payload.explanation or "").strip()
+        if not explanation:
+            raise HTTPException(400, "Voeg korte uitleg toe met een tip waar leerlingen op moeten letten.")
+
+        if payload.correct_index == 1 and not is_trusted_real_image_url(image_url):
+            raise HTTPException(
+                400,
+                "Echte foto's voor de beeldronde moeten uit Wikimedia Commons of de Library of Congress komen.",
+            )
 
         image_questions = load_image_questions()
         duplicate_image = find_duplicate_image_question(
             {"type": "image_binary", "image_url": image_url},
-            image_questions,
+            image_questions + build_trusted_real_image_questions(),
         )
         if duplicate_image is not None:
             raise HTTPException(409, "Dit beeld staat al in de lijst. Kies een andere afbeelding.")
@@ -4129,7 +4378,7 @@ async def create_teacher_question(
             "correct_index": payload.correct_index,
             "image_url": image_url,
             "image_alt": str(payload.image_alt or "").strip() or "Beeld bij de vraag",
-            "explanation": str(payload.explanation or "").strip(),
+            "explanation": explanation,
             "approved": True,
             "rejected": False,
             "used": False,
@@ -4148,6 +4397,11 @@ async def create_teacher_question(
         raise HTTPException(400, "Kies eerst een thema voor deze meerkeuzevraag.")
     if theme_key not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
+    if theme_key == "beeld":
+        raise HTTPException(
+            400,
+            "De beeldronde bevat alleen beeldvragen. Gebruik daarvoor het beeldformulier of de automatische beeldmix.",
+        )
 
     if payload.options is None:
         raise HTTPException(400, "Voeg vier antwoordopties toe voor deze meerkeuzevraag.")
@@ -4467,7 +4721,7 @@ Start van het spel:
 Beurten en vragen:
 - Spelers kiezen meestal een themaknop om een vraag te openen.
 - Bij een gewone meerkeuzevraag geldt: juist antwoord = zelf 3 tegels leggen; fout antwoord = de app geeft 1 verplicht plaatsingscoördinaat.
-- Bij een beeldvraag kies je of een beeld waarschijnlijk AI-gegenereerd is of niet.
+- Bij een beeldvraag kies je of een foto waarschijnlijk echt is, of door AI gegenereerd of bewerkt.
 - Na het afronden van een beantwoorde vraag springt de beurt automatisch door naar de volgende speler.
 - De knop 'Volgende speler' is een noodknop om handmatig door te geven als een beurt niet via een vraag eindigt.
 
