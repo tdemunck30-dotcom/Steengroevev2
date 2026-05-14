@@ -3582,24 +3582,24 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
         content_id = page_id + 1
         page_ids.append(page_id)
         xobject_parts: List[str] = []
+        page_prefix = b""
         if background_object_id is not None:
-            stream = pdf_image_draw_operation("BG", 0, 0, page_width, page_height) + stream
+            page_prefix += pdf_image_draw_operation("BG", 0, 0, page_width, page_height)
             xobject_parts.append(f"/BG {background_object_id} 0 R")
         else:
-            stream = pdf_board_edge_background(page_width, page_height, page_index) + stream
+            page_prefix += pdf_board_edge_background(page_width, page_height, page_index)
 
         if page_index == 0 and aico_object_id is not None and aico_layout is not None:
-            stream = (
-                pdf_image_draw_operation(
-                    "AICO",
-                    aico_layout["x"],
-                    aico_layout["y"],
-                    aico_layout["width"],
-                    aico_layout["height"],
-                )
-                + stream
+            page_prefix += pdf_image_draw_operation(
+                "AICO",
+                aico_layout["x"],
+                aico_layout["y"],
+                aico_layout["width"],
+                aico_layout["height"],
             )
             xobject_parts.append(f"/AICO {aico_object_id} 0 R")
+
+        stream = page_prefix + stream
 
         page_resources = "/Font << /F1 3 0 R >>"
         if xobject_parts:
