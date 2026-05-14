@@ -3699,7 +3699,7 @@
                                 aria-label="Plak hier een AI-beeld of bewerkte foto voor deze beeldvraag"
                             >
                                 <strong id="teacherImagePasteTitle">Plak hier een AI-beeld of bewerkte foto</strong>
-                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je hieronder een directe link van Wikimedia Commons of Library of Congress.</span>
+                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je hieronder een directe link van Wikimedia Commons.</span>
                             </div>
                         </div>
                         <div class="teacher-inline-field">
@@ -3711,7 +3711,7 @@
                                 placeholder="https://commons.wikimedia.org/wiki/Special:Redirect/file/..."
                             />
                             <p class="teacher-manual-tip">
-                                Voor echte foto's gebruik je hier een directe URL van Wikimedia Commons of Library of Congress. Plakken hierboven is vooral handig voor AI-beelden of bewerkte foto's.
+                                Voor echte foto's gebruik je hier een directe URL van Wikimedia Commons. Plakken hierboven is vooral handig voor AI-beelden of bewerkte foto's.
                             </p>
                         </div>
                         <div id="teacherImagePreviewBox" class="teacher-image-preview" hidden>
@@ -3846,15 +3846,6 @@
                 if (host === "upload.wikimedia.org") {
                     return path.startsWith("/wikipedia/commons/");
                 }
-                if (host === "cdn.loc.gov") {
-                    return path.startsWith("/service/");
-                }
-                if (host === "tile.loc.gov") {
-                    return path.startsWith("/storage-services/service/");
-                }
-                if (host === "loc.gov" || host === "www.loc.gov") {
-                    return path.startsWith("/resource/") || path.startsWith("/pictures/resource/");
-                }
                 return false;
             } catch (error) {
                 return false;
@@ -3916,7 +3907,7 @@
         function resetTeacherImagePasteZoneState() {
             setTeacherImagePasteZoneState(
                 "Plak hier een AI-beeld of bewerkte foto",
-                "Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je een directe link van Wikimedia Commons of Library of Congress."
+                "Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je een directe link van Wikimedia Commons."
             );
         }
 
@@ -4329,7 +4320,7 @@
                 byId("teacherManualSubmit").textContent = "Beeldvraag toevoegen";
                 byId("teacherManualQuestion").placeholder = "Typ hier de vraag bij de afbeelding";
                 byId("teacherManualIntro").textContent =
-                    "Voeg hier een beeldvraag toe voor de ronde echt of AI. Echte foto's moeten uit Wikimedia Commons of Library of Congress komen; AI-beelden of bewerkte foto's kun je plakken of lokaal opslaan.";
+                    "Voeg hier een beeldvraag toe voor de ronde echt of AI. Echte foto's moeten uit Wikimedia Commons komen; AI-beelden of bewerkte foto's kun je plakken of lokaal opslaan.";
                 byId("teacherManualHelper").textContent =
                     "Voeg altijd een korte uitleg met kijktip toe. Gebruik voor echte foto's een vertrouwde bronlink en voor AI-beelden gerust een geplakte of lokale afbeelding.";
                 updateTeacherImagePreview(byId("teacherManualImageUrl").value.trim());
@@ -5114,7 +5105,7 @@
                 }
 
                 if (correctIndex === 1 && !isTrustedRealSourceUrl(imageUrl)) {
-                    throw new Error("Echte foto's moeten uit Wikimedia Commons of Library of Congress komen.");
+                    throw new Error("Echte foto's moeten uit Wikimedia Commons komen.");
                 }
 
                 return {
