@@ -41,6 +41,7 @@ UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
 GENERATED_IMAGE_DIR = QUESTION_IMAGE_DIR / "generated"
 PDF_ASSET_DIR = Path("static") / "pdf-assets"
 GROUP_EVALUATION_BACKGROUND_FILE = PDF_ASSET_DIR / "group-evaluation-background.png"
+AICO_REPORT_IMAGE_FILE = Path("static") / "Aico.png"
 AI_GENERATION_MAX_ATTEMPTS = 4
 AI_IMAGE_POOL_TARGET_COUNT = 24
 AI_IMAGE_POOL_TARGET_VARIETY = 16
@@ -115,28 +116,54 @@ TRUSTED_REAL_IMAGE_LIBRARY = [
         ),
     },
     {
-        "id": "trusted_real_loc_train_interior",
-        "source": "loc",
-        "source_label": "Library of Congress",
-        "source_url": "https://www.loc.gov/pictures/item/2016795675/",
-        "image_url": "https://cdn.loc.gov/service/pnp/det/4a20000/4a20000/4a20100/4a20142v.jpg",
+        "id": "trusted_real_wikimedia_train_interior",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:R160_G_Train_Interior.jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/R160_G_Train_Interior.jpg",
         "image_alt": "Interieur van een treinwagon met stoelen, ramen en gangpad",
         "question": "Kijk goed: is dit waarschijnlijk een echte foto of een AI-beeld?",
         "explanation": (
-            "Dit is een echte foto uit de Library of Congress. De perspectieflijnen van stoelen, ramen en plafond blijven netjes doorlopen zonder vreemde breuken. "
+            "Dit is een echte foto uit Wikimedia Commons. De perspectieflijnen van stoelen, ramen en plafond blijven netjes doorlopen zonder vreemde breuken. "
             "Tip: kijk in interieurs vooral naar herhalende vormen. Bij AI loopt zo'n patroon vaak ergens net mis."
         ),
     },
     {
-        "id": "trusted_real_loc_greenhouse",
-        "source": "loc",
-        "source_label": "Library of Congress",
-        "source_url": "https://www.loc.gov/pictures/item/pa3952.photos.200937p/",
-        "image_url": "https://cdn.loc.gov/service/pnp/habshaer/pa/pa3900/pa3952/photos/200937pv.jpg",
+        "id": "trusted_real_wikimedia_bike_rack",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Bike_Rack.jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bike_Rack.jpg",
+        "image_alt": "Fietsenrek met meerdere fietsen op een open plein",
+        "question": "Wat denk je: zie je hier een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit Wikimedia Commons. De metalen buizen, fietswielen en schaduwen blijven overal op dezelfde manier in perspectief staan. "
+            "Tip: kijk bij fietsen naar spaken, kettingen en overlappende buizen; daar maakt AI vaak kleine fouten."
+        ),
+    },
+    {
+        "id": "trusted_real_wikimedia_bus_interior",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:LACMTA_bus_interior.jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/LACMTA_bus_interior.jpg",
+        "image_alt": "Binnenkant van een bus met stoelen, stangen en ramen",
+        "question": "Kijk goed: is dit waarschijnlijk een echte foto of een AI-beeld?",
+        "explanation": (
+            "Dit is een echte foto uit Wikimedia Commons. De stangen, stoelranden en raamreflecties lopen allemaal consequent door zonder vreemde verdraaiingen. "
+            "Tip: let in voertuigen op rechte lijnen en herhalende stoelpatronen; AI laat daar snel kleine breuken zien."
+        ),
+    },
+    {
+        "id": "trusted_real_wikimedia_washington_greenhouse",
+        "source": "wikimedia",
+        "source_label": "Wikimedia Commons",
+        "source_url": "https://commons.wikimedia.org/wiki/File:Washington%27s_greenhouse.jpg",
+        "image_url": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Washington%27s_greenhouse.jpg",
         "image_alt": "Buitenzicht van een greenhouse of serre vanuit schuin perspectief",
         "question": "Wat denk je: zie je hier een echte foto of een AI-beeld?",
         "explanation": (
-            "Dit is een echte foto uit de Library of Congress. Metselwerk, ramen en perspectief blijven logisch en tonen kleine natuurlijke onregelmatigheden. "
+            "Dit is een echte foto uit Wikimedia Commons. Metselwerk, ramen en perspectief blijven logisch en tonen kleine natuurlijke onregelmatigheden. "
             "Tip: echte foto's hebben vaak kleine imperfecties, maar geen onmogelijke vervormingen in stenen, raamranden of hoeken."
         ),
     },
@@ -144,12 +171,6 @@ TRUSTED_REAL_IMAGE_LIBRARY = [
 WIKIMEDIA_COMMONS_HOSTS = {
     "commons.wikimedia.org",
     "upload.wikimedia.org",
-}
-LIBRARY_OF_CONGRESS_HOSTS = {
-    "www.loc.gov",
-    "loc.gov",
-    "cdn.loc.gov",
-    "tile.loc.gov",
 }
 AUTO_IMAGE_SCENE_LIBRARY = [
     {
@@ -247,6 +268,94 @@ AUTO_IMAGE_SCENE_LIBRARY = [
         "alt": "Lege speeltuin met natte glijbaan en plassen",
         "prompt": "A believable smartphone photo of an empty playground after rain with puddles, a wet slide and overcast light.",
     },
+]
+AI_SCENE_EXPLANATION_HINTS = {
+    "rommelige klasbank met schriften pennen en een drinkfles": (
+        "Op de klasbank klopt de tekst op het etiket of op een schrift niet helemaal, en een pen of maprand lijkt net in een ander voorwerp te versmelten. "
+        "Tip: kijk heel precies naar letters, rechte randen en plekken waar pennen, papier en flesjes elkaar raken."
+    ),
+    "natte hond die zich uitschudt in een park": (
+        "Bij de hond lopen sommige waterdruppels en haren niet logisch mee met de beweging, alsof enkele stukjes los van elkaar zweven. "
+        "Tip: let op de rand van de vacht, de vorm van de poten en of opspattend water overal dezelfde richting volgt."
+    ),
+    "bord met pannenkoeken en bessen op een keukentafel": (
+        "Bij de pannenkoeken zie je dat poedersuiker, bessen of de rand van het bord op sommige plekken vreemd in elkaar overlopen. "
+        "Tip: kijk naar kleine eetdetails zoals kruimels, schaduwen op de tafel en de precieze contour van het bestek."
+    ),
+    "rugzak op een stoel in een treinwagon": (
+        "De rugzakriem of stoelrand buigt ergens net onlogisch af, en een raamreflectie volgt niet helemaal hetzelfde perspectief als de wagon. "
+        "Tip: controleer in voertuigen vooral rechte lijnen, herhalende stoelvormen en spiegelingen in de ramen."
+    ),
+    "modderige sportschoenen naast een sporttas in een kleedkamer": (
+        "De veters of moddersporen op de sportschoenen lijken op enkele plekken in elkaar te smelten, en de sporttas heeft een plooi die niet logisch doorloopt. "
+        "Tip: zoom in op veters, ritsen en modderranden; daar verraadt AI zich vaak het snelst."
+    ),
+    "zwarte kat die zich uitrekt op een vensterbank tussen kamerplanten": (
+        "Bij de kat of de planten zie je dat enkele snorharen, bladeren of raamranden niet mooi scherp en logisch doorlopen. "
+        "Tip: let op dunne lijnen zoals snorharen, bladstelen en de reflectie in het glas."
+    ),
+    "straatmarkt in de regen met paraplu s en fruitkramen": (
+        "Een paraplu, kraamrand of natte weerspiegeling klopt net niet met de rest van het beeld, alsof een stukje vervormd is. "
+        "Tip: kijk in regenfoto's naar spiegelingen op de grond, de spaken van paraplu's en de vorm van fruitbakken."
+    ),
+    "kleine broeikas met tomatenplanten en tuinhandschoenen": (
+        "Sommige bladeren, stokken of touwtjes in de broeikas lopen niet logisch door en lijken plots van vorm te veranderen. "
+        "Tip: volg een plantsteel of rekje van begin tot einde en kijk waar een lijn onverwacht verspringt."
+    ),
+    "rij fietsen aan een fietsenrek op een schoolplein": (
+        "Bij een paar fietsen zie je dat spaken, kettingen of framebuizen niet helemaal logisch op elkaar aansluiten. "
+        "Tip: kijk bij fietsen naar ronde vormen, overlappende stangen en de open ruimtes tussen de spaken."
+    ),
+    "voetbalshirts en sporttassen in een kleedkamer": (
+        "Een shirtcijfer, kapstok of tasriem lijkt ergens vervormd, alsof een detail half verdwenen is. "
+        "Tip: let op nummers, ritsen, riemen en herhalende haakjes aan de muur."
+    ),
+    "open boeken en notities op een tafel in een bibliotheek": (
+        "Op de boekenrug of in de notities staan letters die net niet leesbaar zijn, en een paginarand loopt vreemd in de schaduw door. "
+        "Tip: kijk heel precies naar tekst, paginaranden en de hoek van stapels papier."
+    ),
+    "skateboard op de grond in een skatepark bij zonsondergang": (
+        "Een wiel of truck van het skateboard staat net in een onmogelijke hoek, of de schaduw volgt niet mooi de vorm van het bord. "
+        "Tip: controleer ronde wielen, schroeven en of de schaduw dezelfde richting houdt als het licht."
+    ),
+    "kleine vissen in een aquarium met planten en grind": (
+        "Bij een vis of glasreflectie zie je dat een vin, oog of plantenstengel net niet logisch verderloopt. "
+        "Tip: let op doorzichtige randen, dubbele reflecties in het glas en heel fijne vinnen."
+    ),
+    "versgebakken koekjes op een metalen bakplaat": (
+        "Een koekje of kruimelrand lijkt ergens samen te smelten met de bakplaat of het bakpapier, waardoor de vorm net niet klopt. "
+        "Tip: kijk naar kleine kruimels, de rand van het papier en de schaduw onder de koekjes."
+    ),
+    "binnenkant van een bus met lege stoelen en ochtendlicht": (
+        "Een stoelrand, stang of raamreflectie loopt net niet mooi door, alsof één stuk perspectief verschoven is. "
+        "Tip: let in bussen op parallelle lijnen, stoelpatronen en de spiegeling in de ramen."
+    ),
+    "campingtafel met bekers kaarten en een zaklamp buiten": (
+        "De symbolen op de kaarten of de rand van een beker lijken een beetje vervormd, alsof het detail half herschreven is. "
+        "Tip: kijk naar speelkaarten, ronde bekerranden en kleine voorwerpen die dicht bij elkaar liggen."
+    ),
+    "gang in een museum met schilderijen aan de muur": (
+        "Een kaderhoek of lijst van een schilderij klopt net niet met het perspectief van de rest van de gang. "
+        "Tip: volg de rechte lijnen van kaders, vloerplanken en spots aan het plafond."
+    ),
+    "hond die aan een glazen keukendeur staat": (
+        "Bij de hond of in het glas zie je dat een poot, snuit of weerspiegeling niet precies overeenkomt met de rest van het lichaam. "
+        "Tip: kijk naar reflecties in het raam en naar de overgang tussen vacht, poot en deurstijl."
+    ),
+    "lege speeltuin met natte glijbaan en plassen": (
+        "Een ketting, leuning of weerspiegeling in een plas verandert ergens subtiel van vorm terwijl dat niet logisch is. "
+        "Tip: let op herhalende metalen delen, natte reflecties en de precieze rand van de glijbaan."
+    ),
+}
+GENERIC_AI_EXPLANATION_MARKERS = [
+    "dit beeld werd met ai gemaakt",
+    "kijk bij zulke fotos extra",
+    "kijk bij zulke foto s extra",
+    "kan wijzen op ai",
+    "kunnen soms",
+    "lijken soms",
+    "let op of er rare vormen",
+    "de kat en de planten zien er heel natuurlijk uit",
 ]
 THEMES = {
     "werking": {
@@ -488,8 +597,6 @@ def trusted_real_source_label_for_url(image_url: object) -> str:
     host = image_source_host(image_url)
     if host in WIKIMEDIA_COMMONS_HOSTS:
         return "Wikimedia Commons"
-    if host in LIBRARY_OF_CONGRESS_HOSTS:
-        return "Library of Congress"
     return ""
 
 
@@ -506,15 +613,6 @@ def is_trusted_real_image_url(image_url: object) -> bool:
 
     if host == "upload.wikimedia.org":
         return path.startswith("/wikipedia/commons/")
-
-    if host == "cdn.loc.gov":
-        return path.startswith("/service/")
-
-    if host == "tile.loc.gov":
-        return path.startswith("/storage-services/service/")
-
-    if host in {"loc.gov", "www.loc.gov"}:
-        return path.startswith("/resource/") or path.startswith("/pictures/resource/")
 
     return False
 
@@ -685,6 +783,25 @@ def load_round_image_questions(include_used: bool = True) -> List[dict]:
     return [question for question in questions if not question.get("used", False)]
 
 
+def scene_specific_ai_explanation(question: dict) -> str:
+    family_key = image_scene_family_key(question)
+    return AI_SCENE_EXPLANATION_HINTS.get(family_key, "")
+
+
+def should_upgrade_ai_image_explanation(question: dict) -> bool:
+    if question.get("correct_index") != 0:
+        return False
+
+    explanation = normalize_text_for_similarity(question.get("explanation", ""))
+    if not explanation:
+        return True
+
+    if any(marker in explanation for marker in GENERIC_AI_EXPLANATION_MARKERS):
+        return True
+
+    return False
+
+
 def processed_question_cache_key(path: Path) -> str:
     return f"processed::{cache_key_for_path(path)}"
 
@@ -747,6 +864,12 @@ def migrate_image_question_metadata_in_memory(questions: List[dict]) -> bool:
         if list(question.get("options") or []) != list(IMAGE_BINARY_OPTIONS):
             question["options"] = list(IMAGE_BINARY_OPTIONS)
             changed = True
+
+        if question.get("correct_index") == 0 and should_upgrade_ai_image_explanation(question):
+            upgraded_explanation = scene_specific_ai_explanation(question)
+            if upgraded_explanation and str(question.get("explanation") or "").strip() != upgraded_explanation:
+                question["explanation"] = upgraded_explanation
+                changed = True
 
     return changed
 
@@ -968,6 +1091,7 @@ def reset_questions():
         save_questions(questions)
 
     save_used_trusted_real_image_ids([])
+    save_recent_image_scene_keys([])
 
 
 def save_core_questions(questions):
@@ -1069,8 +1193,8 @@ def explain_generated_ai_image(
     image_alt: str = "",
 ) -> str:
     fallback = (
-        "Dit beeld is door AI gemaakt of bewerkt. Er zit minstens een klein detail in dat net niet logisch klopt, zoals een vreemde reflectie, vervormde tekst of een rare rand. "
-        "Tip: zoom in op kleine stukjes van het beeld en controleer of licht, vingers, tekst en herhalende patronen overal consistent blijven."
+        "Er zit in dit beeld een klein detail dat niet logisch doorloopt, zoals een vervormde rand, een rare reflectie of tekst die half verandert. "
+        "Tip: kies één verdacht stukje en volg dat detail heel precies, bijvoorbeeld langs een raamrand, vinger, letter of schaduw."
     )
 
     if _client is None or not image_bytes:
@@ -1088,8 +1212,9 @@ def explain_generated_ai_image(
                         "Je helpt een leerkracht bij een beeldvraag over AI-beelden voor leerlingen van 12 tot 14 jaar. "
                         "De afbeelding is al zeker AI-gegenereerd. "
                         "Geef exact 2 korte Nederlandse zinnen in eenvoudig Nederlands. "
-                        "De eerste zin legt uit welke zichtbare aanwijzing leerlingen zouden kunnen opmerken om te vermoeden dat het beeld door AI gemaakt is. "
+                        "De eerste zin noemt 1 heel concreet zichtbaar detail dat niet klopt en zegt waar in het beeld dat zit. "
                         "De tweede zin begint met 'Tip:' en zegt waar ze best op letten. "
+                        "Schrijf niet algemeen over 'details' of 'schaduwen' zonder concreet voorwerp te noemen. "
                         "Noem alleen dingen die echt zichtbaar lijken. "
                         "Als het beeld moeilijk te ontmaskeren is, zeg dat eerlijk en noem waar je extra op zou letten. "
                         "Geef alleen JSON terug in de vorm {\"explanation\":\"...\"}."
@@ -1681,9 +1806,12 @@ def learning_explanation_text(question: dict) -> str:
                 f"Dit is een echte foto{source_text}. Licht, schaduwen, perspectief en kleine details blijven hier logisch samenwerken. "
                 "Tip: kijk bij twijfel naar tekst, reflecties, handen en herhalende patronen voor je iets als fake bestempelt."
             )
+        scene_hint = scene_specific_ai_explanation(question)
+        if scene_hint:
+            return scene_hint
         return (
-            "Dit beeld is door AI gemaakt of bewerkt. Er zit ergens een klein detail dat net niet klopt, ook al oogt de foto op het eerste zicht geloofwaardig. "
-            "Tip: zoom in op kleine delen en controleer vingers, tekst, reflecties, schaduwen en randen op subtiele fouten."
+            "Er zit in dit beeld een klein detail dat niet logisch doorloopt, ook al oogt de foto op het eerste zicht geloofwaardig. "
+            "Tip: zoom in op een klein verdacht stukje en controleer letters, reflecties, randen of vingers heel precies."
         )
 
     theme = str(question.get("theme") or "").strip()
@@ -3193,6 +3321,21 @@ def load_pdf_background_image(path: Path) -> Optional[dict]:
         return None
 
 
+def pdf_image_xobject(image: dict) -> bytes:
+    image_stream = image["data"]
+    return (
+        b"<< /Type /XObject /Subtype /Image /Width "
+        + str(image["width"]).encode("ascii")
+        + b" /Height "
+        + str(image["height"]).encode("ascii")
+        + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "
+        + str(len(image_stream)).encode("ascii")
+        + b" >>\nstream\n"
+        + image_stream
+        + b"\nendstream"
+    )
+
+
 def pdf_image_draw_operation(name: str, x: float, y: float, width: float, height: float) -> bytes:
     return (
         b"q "
@@ -3337,19 +3480,51 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
     margin_x = 84
     top_y = 718
     bottom_y = 100
+    inner_right_x = page_width - margin_x
     pages: List[bytes] = []
     operations: List[bytes] = []
     y = top_y
+    current_page_index = 0
+
+    aico_image = load_pdf_background_image(AICO_REPORT_IMAGE_FILE)
+    aico_layout: Optional[dict] = None
+    if aico_image is not None:
+        max_width = 148.0
+        max_height = 196.0
+        scale = min(
+            max_width / max(1, aico_image["width"]),
+            max_height / max(1, aico_image["height"]),
+        )
+        draw_width = max(1.0, aico_image["width"] * scale)
+        draw_height = max(1.0, aico_image["height"] * scale)
+        top = top_y + 6
+        draw_y = top - draw_height
+        draw_x = inner_right_x - draw_width + 4
+        aico_layout = {
+            "x": draw_x,
+            "y": draw_y,
+            "width": draw_width,
+            "height": draw_height,
+            "top": top,
+            "bottom": draw_y,
+        }
 
     def flush_page() -> None:
-        nonlocal operations, y
+        nonlocal operations, y, current_page_index
         if operations:
             pages.append(b"".join(operations))
             operations = []
+            current_page_index += 1
         y = top_y
 
     for text, font_size, gap_after in rows:
         wrap_width = 54 if font_size >= 14 else 72
+        if (
+            aico_layout is not None
+            and current_page_index == 0
+            and y >= aico_layout["bottom"] - 4
+        ):
+            wrap_width = 42 if font_size >= 14 else 50
         wrapped_lines = textwrap.wrap(
             str(text or ""),
             width=wrap_width,
@@ -3395,31 +3570,40 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
     background_object_id: Optional[int] = None
     if background_image is not None:
         background_object_id = len(objects) + 1
-        image_stream = background_image["data"]
-        objects.append(
-            (
-                b"<< /Type /XObject /Subtype /Image /Width "
-                + str(background_image["width"]).encode("ascii")
-                + b" /Height "
-                + str(background_image["height"]).encode("ascii")
-                + b" /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length "
-                + str(len(image_stream)).encode("ascii")
-                + b" >>\nstream\n"
-                + image_stream
-                + b"\nendstream"
-            )
-        )
+        objects.append(pdf_image_xobject(background_image))
+
+    aico_object_id: Optional[int] = None
+    if aico_image is not None:
+        aico_object_id = len(objects) + 1
+        objects.append(pdf_image_xobject(aico_image))
 
     for page_index, stream in enumerate(pages):
         page_id = len(objects) + 1
         content_id = page_id + 1
         page_ids.append(page_id)
+        xobject_parts: List[str] = []
         if background_object_id is not None:
             stream = pdf_image_draw_operation("BG", 0, 0, page_width, page_height) + stream
-            page_resources = f"/Font << /F1 3 0 R >> /XObject << /BG {background_object_id} 0 R >>"
+            xobject_parts.append(f"/BG {background_object_id} 0 R")
         else:
             stream = pdf_board_edge_background(page_width, page_height, page_index) + stream
-            page_resources = "/Font << /F1 3 0 R >>"
+
+        if page_index == 0 and aico_object_id is not None and aico_layout is not None:
+            stream = (
+                pdf_image_draw_operation(
+                    "AICO",
+                    aico_layout["x"],
+                    aico_layout["y"],
+                    aico_layout["width"],
+                    aico_layout["height"],
+                )
+                + stream
+            )
+            xobject_parts.append(f"/AICO {aico_object_id} 0 R")
+
+        page_resources = "/Font << /F1 3 0 R >>"
+        if xobject_parts:
+            page_resources += " /XObject << " + " ".join(xobject_parts) + " >>"
 
         objects.append(
             (
@@ -4605,7 +4789,7 @@ async def create_teacher_question(
         if payload.correct_index == 1 and not is_trusted_real_image_url(image_url):
             raise HTTPException(
                 400,
-                "Echte foto's voor de beeldronde moeten uit Wikimedia Commons of de Library of Congress komen.",
+                "Echte foto's voor de beeldronde moeten uit Wikimedia Commons komen.",
             )
 
         image_questions = load_image_questions()
