@@ -7098,21 +7098,36 @@
                         noteText: "Je mag nu zelf 3 tegels leggen waar je wil."
                     });
                 } else {
-                    const autoData = await fetchJson("/api/tile/auto_place", {method: "POST"});
+                    let autoCoord = "";
+                    try {
+                        const autoData = await fetchJson("/api/tile/auto_place", {method: "POST"});
+                        autoCoord = String(autoData.coord || "").trim();
+                    } catch (coordError) {
+                        console.error("Auto place error after wrong image answer:", coordError);
+                    }
+
+                    const fallbackErrorDetail = explanation
+                        ? explanation + " Vraag nu aan de leerkracht om meteen een plaatsingscoördinaat te geven."
+                        : "Vraag nu aan de leerkracht om meteen een plaatsingscoördinaat te geven.";
                     setQuestionFeedback(
                         "error",
                         "Niet juist.",
-                        errorDetail,
-                        autoData.coord
+                        autoCoord ? errorDetail : fallbackErrorDetail,
+                        autoCoord
                     );
                     showAnswerPopup({
                         title: "Even leren van deze vraag",
                         answer: answerLine,
                         detail: explanation,
                         noteTitle: "Wat nu?",
-                        noteText: "De tegel moet nu geplaatst worden op dit coordinaat:",
-                        coord: autoData.coord
+                        noteText: autoCoord
+                            ? "De tegel moet nu geplaatst worden op dit coordinaat:"
+                            : "Vraag de leerkracht om meteen een plaatsingscoördinaat te geven.",
+                        coord: autoCoord
                     });
+                    if (!autoCoord) {
+                        setStatusMessage("Fout antwoord geregistreerd, maar de automatische plaatsingscoördinaat kon niet geladen worden.");
+                    }
                 }
 
                 await refreshState();

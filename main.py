@@ -34,6 +34,7 @@ IMAGE_FILE = DATA_DIR / "image_questions.json"
 CONSENSUS_FILE = DATA_DIR / "consensus_dilemmas.json"
 DISABLED_CONSENSUS_FILE = DATA_DIR / "disabled_consensus_dilemmas.json"
 USED_TRUSTED_REAL_IMAGE_FILE = DATA_DIR / "used_trusted_real_images.json"
+RECENT_IMAGE_SCENE_FILE = DATA_DIR / "recent_image_scene_keys.json"
 ALL_TIME_RANKING_FILE = DATA_DIR / "all_time_ranking.json"
 QUESTION_IMAGE_DIR = Path("static") / "question-images"
 UPLOADED_IMAGE_DIR = QUESTION_IMAGE_DIR / "uploads"
@@ -41,6 +42,10 @@ GENERATED_IMAGE_DIR = QUESTION_IMAGE_DIR / "generated"
 PDF_ASSET_DIR = Path("static") / "pdf-assets"
 GROUP_EVALUATION_BACKGROUND_FILE = PDF_ASSET_DIR / "group-evaluation-background.png"
 AI_GENERATION_MAX_ATTEMPTS = 4
+AI_IMAGE_POOL_TARGET_COUNT = 24
+AI_IMAGE_POOL_TARGET_VARIETY = 16
+AI_IMAGE_POOL_GENERATION_BATCH = 4
+IMAGE_ROUND_RECENT_SCENE_LIMIT = 10
 MAX_TEACHER_IMAGE_BYTES = 8 * 1024 * 1024
 AUTO_IMAGE_SET_MIN_COUNT = 2
 AUTO_IMAGE_SET_MAX_COUNT = 6
@@ -186,6 +191,61 @@ AUTO_IMAGE_SCENE_LIBRARY = [
         "label": "broeikas met tomatenplanten",
         "alt": "Kleine broeikas met tomatenplanten en tuinhandschoenen",
         "prompt": "A believable smartphone photo inside a small greenhouse with tomato plants, a wooden crate and gardening gloves.",
+    },
+    {
+        "label": "fietsrekken na school",
+        "alt": "Rij fietsen aan een fietsenrek op een schoolplein",
+        "prompt": "A realistic phone photo of bicycle racks after school with backpacks, puddles and late afternoon light.",
+    },
+    {
+        "label": "voetbalkleedkamer",
+        "alt": "Voetbalshirts en sporttassen in een kleedkamer",
+        "prompt": "A candid smartphone photo inside a football locker room with shirts, sports bags and a damp floor after training.",
+    },
+    {
+        "label": "bibliotheektafel met boeken",
+        "alt": "Open boeken en notities op een tafel in een bibliotheek",
+        "prompt": "A natural phone snapshot of an old wooden library table with open books, handwritten notes and soft indoor lighting.",
+    },
+    {
+        "label": "skatepark bij zonsondergang",
+        "alt": "Skateboard op de grond in een skatepark bij zonsondergang",
+        "prompt": "A documentary-style smartphone photo of a skateboard lying near a concrete ramp in a skatepark during sunset.",
+    },
+    {
+        "label": "aquarium met vissen",
+        "alt": "Kleine vissen in een aquarium met planten en grind",
+        "prompt": "A believable close smartphone photo of a home aquarium with small fish, aquatic plants and gravel, lit by the tank light.",
+    },
+    {
+        "label": "bakplaat met koekjes",
+        "alt": "Versgebakken koekjes op een metalen bakplaat",
+        "prompt": "A casual kitchen phone photo of freshly baked cookies cooling on a metal baking tray with crumbs and oven mitts nearby.",
+    },
+    {
+        "label": "busrit in de ochtend",
+        "alt": "Binnenkant van een bus met lege stoelen en ochtendlicht",
+        "prompt": "A realistic commuter bus interior photographed with a phone in the morning, with empty seats, window reflections and soft sunlight.",
+    },
+    {
+        "label": "campingtafel buiten",
+        "alt": "Campingtafel met bekers, kaarten en een zaklamp buiten",
+        "prompt": "A natural evening phone photo of a camping table outside with cups, playing cards, a flashlight and a cool blue dusk sky.",
+    },
+    {
+        "label": "museumzaal met schilderijen",
+        "alt": "Gang in een museum met schilderijen aan de muur",
+        "prompt": "A photorealistic smartphone photo inside a museum gallery with framed paintings, polished floors and a few visitors in the distance.",
+    },
+    {
+        "label": "hond aan keukendeur",
+        "alt": "Hond die aan een glazen keukendeur staat",
+        "prompt": "A casual phone photo of a dog standing by a glass kitchen door on a rainy day with natural indoor lighting.",
+    },
+    {
+        "label": "speeltuin na regen",
+        "alt": "Lege speeltuin met natte glijbaan en plassen",
+        "prompt": "A believable smartphone photo of an empty playground after rain with puddles, a wet slide and overcast light.",
     },
 ]
 THEMES = {
@@ -509,6 +569,94 @@ def build_trusted_real_image_questions() -> List[dict]:
     return questions
 
 
+def image_scene_family_key(question: dict) -> str:
+    source_url = str(question.get("source_url") or "").strip()
+    if source_url:
+        return normalize_text_for_similarity(source_url)
+
+    image_alt = str(question.get("image_alt") or "").strip()
+    normalized_alt = normalize_text_for_similarity(image_alt)
+    if normalized_alt and normalized_alt not in {"beeld bij de vraag", "ai gegenereerde foto"}:
+        return normalized_alt
+
+    image_url = str(question.get("image_url") or "").strip()
+    filename = Path(urlparse(image_url).path).name
+    stem = re.sub(r"-\d{10}-\d{4}\.(png|jpg|jpeg|webp)$", "", filename, flags=re.IGNORECASE)
+    stem = re.sub(r"\.(png|jpg|jpeg|webp)$", "", stem, flags=re.IGNORECASE)
+    if stem and stem.lower() != "image":
+        return normalize_text_for_similarity(stem)
+
+    question_id = str(question.get("id") or "").strip()
+    return normalize_text_for_similarity(question_id or image_url)
+
+
+def count_unique_image_scene_keys(questions: List[dict]) -> int:
+    keys = {
+        image_scene_family_key(question)
+        for question in questions
+        if image_scene_family_key(question)
+    }
+    return len(keys)
+
+
+def choose_image_round_question(questions: List[dict]) -> Optional[dict]:
+    if not questions:
+        return None
+
+    recent_scene_keys = set(load_recent_image_scene_keys())
+    fresh_questions = [
+        question for question in questions
+        if image_scene_family_key(question) not in recent_scene_keys
+    ]
+    candidate_pool = fresh_questions or questions
+
+    ai_candidates = [question for question in candidate_pool if question.get("correct_index") == 0]
+    real_candidates = [question for question in candidate_pool if question.get("correct_index") == 1]
+
+    if ai_candidates and real_candidates:
+        if random.random() < 0.8:
+            return random.choice(ai_candidates)
+        return random.choice(real_candidates)
+
+    if ai_candidates:
+        return random.choice(ai_candidates)
+    if real_candidates:
+        return random.choice(real_candidates)
+
+    return random.choice(candidate_pool)
+
+
+def choose_auto_image_scene_seeds_for_generation(
+    count: int,
+    existing_questions: List[dict],
+) -> List[dict]:
+    if count <= 0:
+        return []
+
+    existing_keys = {
+        image_scene_family_key(question)
+        for question in existing_questions
+        if question.get("correct_index") == 0
+    }
+    unused_scenes = [
+        scene for scene in AUTO_IMAGE_SCENE_LIBRARY
+        if normalize_text_for_similarity(scene.get("alt") or scene.get("label") or "") not in existing_keys
+    ]
+
+    if len(unused_scenes) >= count:
+        random.shuffle(unused_scenes)
+        return [dict(scene) for scene in unused_scenes[:count]]
+
+    selected = [dict(scene) for scene in unused_scenes]
+    remaining = count - len(selected)
+    if remaining <= 0:
+        return selected
+
+    fallback_scenes = choose_auto_image_scene_seeds(remaining)
+    selected.extend(fallback_scenes)
+    return selected
+
+
 def dedupe_image_questions_by_url(questions: List[dict]) -> List[dict]:
     unique_questions: List[dict] = []
     seen_urls: set[str] = set()
@@ -795,6 +943,15 @@ def save_used_trusted_real_image_ids(image_ids: List[str]) -> None:
     save_json_list_to_file(USED_TRUSTED_REAL_IMAGE_FILE, list(dict.fromkeys(image_ids)))
 
 
+def load_recent_image_scene_keys() -> List[str]:
+    return load_string_list_from_file(RECENT_IMAGE_SCENE_FILE)
+
+
+def save_recent_image_scene_keys(scene_keys: List[str]) -> None:
+    trimmed = list(dict.fromkeys(scene_keys))[-IMAGE_ROUND_RECENT_SCENE_LIMIT:]
+    save_json_list_to_file(RECENT_IMAGE_SCENE_FILE, trimmed)
+
+
 def reset_questions():
     for load_questions, save_questions in (
         (load_core_questions, save_core_questions),
@@ -1065,6 +1222,59 @@ def generate_ai_mix_image(scene: dict, focus: str = "") -> dict:
             str(scene.get("alt") or "AI-gegenereerde foto"),
         ),
     }
+
+
+def seed_ai_image_question_pool_if_needed() -> int:
+    if _client is None:
+        return 0
+
+    existing_image_questions = load_image_questions()
+    ai_candidates = unique_ai_image_candidates(existing_image_questions)
+    ai_count = len(ai_candidates)
+    scene_variety = count_unique_image_scene_keys(ai_candidates)
+
+    missing_count = max(0, AI_IMAGE_POOL_TARGET_COUNT - ai_count)
+    missing_variety = max(0, AI_IMAGE_POOL_TARGET_VARIETY - scene_variety)
+    generation_count = min(
+        AI_IMAGE_POOL_GENERATION_BATCH,
+        max(missing_count, missing_variety),
+    )
+
+    if generation_count <= 0:
+        return 0
+
+    scenes = choose_auto_image_scene_seeds_for_generation(generation_count, ai_candidates)
+    if not scenes:
+        return 0
+
+    working_questions = list(existing_image_questions)
+    new_questions: List[dict] = []
+
+    for scene in scenes:
+        try:
+            generated_image = generate_ai_mix_image(scene)
+        except HTTPException as exc:
+            print("AI pool seed skipped:", exc.detail)
+            break
+
+        generated_question = build_auto_image_question(
+            working_questions,
+            correct_index=0,
+            image_url=generated_image["image_url"],
+            image_alt=generated_image["image_alt"],
+            explanation=str(generated_image.get("explanation") or "").strip() or (
+                "Dit beeld is door AI gemaakt of bewerkt. Tip: let op kleine details zoals tekst, reflecties, vingers en schaduwen."
+            ),
+            source="ai",
+        )
+        working_questions.append(generated_question)
+        new_questions.append(generated_question)
+
+    if new_questions:
+        existing_image_questions.extend(new_questions)
+        save_image_questions(existing_image_questions)
+
+    return len(new_questions)
 
 
 def build_auto_image_question(
@@ -1592,6 +1802,21 @@ def mark_question_used(question_id: str) -> Optional[dict]:
                 continue
 
             question["used"] = True
+            if is_image_binary_question(question):
+                scene_key = image_scene_family_key(question)
+                if scene_key:
+                    recent_scene_keys = load_recent_image_scene_keys()
+                    recent_scene_keys.append(scene_key)
+                    save_recent_image_scene_keys(recent_scene_keys)
+
+                family_key = image_scene_family_key(question)
+                for sibling in questions:
+                    if sibling.get("id") == question_id:
+                        continue
+                    if not is_image_binary_question(sibling):
+                        continue
+                    if image_scene_family_key(sibling) == family_key:
+                        sibling["used"] = True
             save_questions(questions)
             return question
 
@@ -1603,6 +1828,11 @@ def mark_question_used(question_id: str) -> Optional[dict]:
         if question_id not in used_ids:
             used_ids.append(question_id)
             save_used_trusted_real_image_ids(used_ids)
+        scene_key = image_scene_family_key(question)
+        if scene_key:
+            recent_scene_keys = load_recent_image_scene_keys()
+            recent_scene_keys.append(scene_key)
+            save_recent_image_scene_keys(recent_scene_keys)
         question["used"] = True
         return question
 
@@ -1994,6 +2224,7 @@ def serve_index():
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 STATE_LOCK = asyncio.Lock()
+AI_IMAGE_POOL_LOCK = asyncio.Lock()
 STATE: Optional[GameState] = None
 
 # Global config for current game (stored for the loop)
@@ -3531,9 +3762,24 @@ def preload_runtime_caches() -> None:
     load_all_time_ranking()
 
 
+async def ensure_ai_image_pool_background() -> int:
+    if _client is None:
+        return 0
+    if AI_IMAGE_POOL_LOCK.locked():
+        return 0
+
+    async with AI_IMAGE_POOL_LOCK:
+        try:
+            return await asyncio.to_thread(seed_ai_image_question_pool_if_needed)
+        except Exception as exc:
+            print("AI image pool seed error:", exc)
+            return 0
+
+
 @app.on_event("startup")
 async def startup_loop():
     preload_runtime_caches()
+    asyncio.create_task(ensure_ai_image_pool_background())
     asyncio.create_task(game_loop())
 
 async def game_loop():
@@ -3642,7 +3888,10 @@ async def next_question(payload: dict):
     if theme_key == "beeld":
         available_image_questions = load_round_image_questions(include_used=False)
         if available_image_questions:
-            selected_question = random.choice(available_image_questions)
+            selected_question = choose_image_round_question(available_image_questions)
+        ai_candidates = [q for q in available_image_questions if q.get("correct_index") == 0]
+        if len(ai_candidates) < AI_IMAGE_POOL_TARGET_VARIETY // 2:
+            asyncio.create_task(ensure_ai_image_pool_background())
     else:
         core_questions = rebalance_ai_question_answer_positions()
         available_questions = [
@@ -4205,7 +4454,7 @@ async def generate_teacher_image_set(
         raise HTTPException(400, "De automatische beeldmix heeft minstens een AI-beeld nodig.")
 
     selected_real_questions = random.sample(real_candidates, k=real_count)
-    selected_scenes = choose_auto_image_scene_seeds(target_ai_count)
+    selected_scenes = choose_auto_image_scene_seeds_for_generation(target_ai_count, local_ai_candidates)
 
     new_questions: List[dict] = []
     preview_questions: List[dict] = [
