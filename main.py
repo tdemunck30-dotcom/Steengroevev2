@@ -384,6 +384,127 @@ THEME_ALIASES = {
     "risicos": "kritisch",
     "beeldronde": "beeld",
 }
+QUESTION_DIFFICULTIES = {
+    "basis": {
+        "label": "Niveau 1 · Basis",
+        "short_label": "Basis",
+    },
+    "verdieping": {
+        "label": "Niveau 2 · Verdieping",
+        "short_label": "Verdieping",
+    },
+    "uitdaging": {
+        "label": "Niveau 3 · Uitdaging",
+        "short_label": "Uitdaging",
+    },
+}
+QUESTION_DIFFICULTY_ORDER = ["basis", "verdieping", "uitdaging"]
+QUESTION_DIFFICULTY_SELECTION_PRIORITY = ["verdieping", "uitdaging", "basis"]
+QUESTION_DIFFICULTY_ALIASES = {
+    "basis": "basis",
+    "niveau1": "basis",
+    "niveau-1": "basis",
+    "level1": "basis",
+    "easy": "basis",
+    "verdieping": "verdieping",
+    "niveau2": "verdieping",
+    "niveau-2": "verdieping",
+    "level2": "verdieping",
+    "medium": "verdieping",
+    "uitdaging": "uitdaging",
+    "niveau3": "uitdaging",
+    "niveau-3": "uitdaging",
+    "level3": "uitdaging",
+    "hard": "uitdaging",
+}
+QUESTION_DIFFICULTY_MODES = {
+    "basis": {
+        "label": "Basis",
+        "description": "Kies vooral toegankelijkere vragen.",
+    },
+    "mix": {
+        "label": "Mix",
+        "description": "Wissel niveaus af met nadruk op stevige denkvragen.",
+    },
+    "uitdaging": {
+        "label": "Uitdaging",
+        "description": "Kies vooral de moeilijkere vragen.",
+    },
+}
+QUESTION_DIFFICULTY_MODE_ALIASES = {
+    "basis": "basis",
+    "mix": "mix",
+    "gemengd": "mix",
+    "uitdaging": "uitdaging",
+}
+QUESTION_SCENARIO_MARKERS = (
+    "een leerling",
+    "een klasgenoot",
+    "jij gebruikt",
+    "stel dat",
+    "je wil",
+    "je gebruikt",
+    "op school",
+    "in de klas",
+    "sociale media",
+    "zoekmachine",
+    "chatbot",
+    "app",
+)
+QUESTION_ADVANCED_MARKERS = (
+    "betrouw",
+    "privacy",
+    "vooroordeel",
+    "bias",
+    "transpar",
+    "hallucin",
+    "auteursrecht",
+    "patroon",
+    "algorit",
+    "train",
+    "prompt",
+    "bron",
+    "controle",
+    "persoonsgegeven",
+    "aanbevel",
+)
+QUESTION_CHALLENGE_MARKERS = (
+    "beste",
+    "meest",
+    "sterkst",
+    "eerst",
+    "waarom",
+    "waarschijnlijk",
+    "verschil",
+    "past het best",
+    "veiligst",
+    "eerlijkst",
+    "controleer",
+    "uitleg",
+)
+TRIVIAL_DISTRACTOR_MARKERS = (
+    "alle bovenstaande",
+    "geen van bovenstaande",
+    "ik weet het niet",
+    "maakt niet uit",
+    "zomaar",
+    "omdat ai slaapt",
+    "omdat een robot liegt",
+)
+QUESTION_DIFFICULTY_GENERATION_GUIDANCE = {
+    "basis": (
+        "Maak een toegankelijke vraag op instapniveau. Laat leerlingen nadenken, "
+        "maar hou de situatie overzichtelijk en vermijd te veel extra lagen."
+    ),
+    "verdieping": (
+        "Maak een stevigere denkvraag. Laat minstens twee foute opties op het eerste zicht aannemelijk lijken, "
+        "zodat leerlingen echt moeten vergelijken."
+    ),
+    "uitdaging": (
+        "Maak een moeilijke doordenker. Zorg dat meerdere opties inhoudelijk dichtbij elkaar liggen en dat "
+        "de juiste keuze afhangt van nuance, context of een kritische afweging."
+    ),
+}
 KANSEN_THEME_SOURCE_IDS = {
     "core_leefwereld_2",
     "core_leefwereld_3",
@@ -495,9 +616,13 @@ Kwaliteitseisen:
 - 1 duidelijke, beste correcte optie
 - 3 geloofwaardige maar foutieve opties
 - de opties lijken op elkaar in stijl en lengte
+- laat minstens 2 foute opties inhoudelijk dicht aanleunen bij het juiste antwoord
+- laat foute opties klinken als misvattingen, halve waarheden of bijna-goede keuzes
+- laat het juiste antwoord niet opvallen door veel meer detail of precisie
 - laat leerlingen nadenken in plaats van alleen een woordje herkennen
 - gebruik liefst een korte situatie, vergelijking of redenering
 - vermijd té simpele vragen zoals losse woordbetekenissen zonder context
+- vermijd te simpele vragen zoals losse woordbetekenissen zonder context
 - vermijd onzinnige opties zoals "omdat AI slaapt" of "omdat een robot liegt"
 
 Vaste kwaliteitslat voor AI-geletterdheid:
@@ -844,6 +969,116 @@ def migrate_core_question_themes_in_memory(questions: List[dict]) -> bool:
     return changed
 
 
+def normalize_question_difficulty_key(value: object, fallback: str = "basis") -> str:
+    normalized = normalize_text_for_similarity(value).replace(" ", "").strip("-")
+    if normalized in QUESTION_DIFFICULTY_ALIASES:
+        return QUESTION_DIFFICULTY_ALIASES[normalized]
+    return fallback
+
+
+def infer_question_difficulty(question: dict) -> str:
+    if str(question.get("type") or "multiple_choice") != "multiple_choice":
+        return "basis"
+
+    question_text = normalize_text_for_similarity(question.get("question", ""))
+    options = [
+        normalize_text_for_similarity(option)
+        for option in list(question.get("options") or [])
+        if normalize_text_for_similarity(option)
+    ]
+
+    score = 0
+    if len(question_text.split()) >= 12:
+        score += 1
+    if any(marker in question_text for marker in QUESTION_SCENARIO_MARKERS):
+        score += 1
+    if any(marker in question_text for marker in QUESTION_ADVANCED_MARKERS):
+        score += 1
+    if any(marker in question_text for marker in QUESTION_CHALLENGE_MARKERS):
+        score += 1
+
+    average_option_length = (
+        sum(len(option.split()) for option in options) / len(options)
+        if options
+        else 0.0
+    )
+    if average_option_length >= 5:
+        score += 1
+
+    if str(question.get("source") or "").strip().lower() == "ai":
+        score += 1
+    if str(question.get("theme") or "").strip() == "kritisch":
+        score += 1
+
+    if score >= 5:
+        return "uitdaging"
+    if score >= 3:
+        return "verdieping"
+    return "basis"
+
+
+def question_difficulty_key_for_question(question: dict) -> str:
+    return normalize_question_difficulty_key(
+        question.get("difficulty"),
+        infer_question_difficulty(question),
+    )
+
+
+def question_difficulty_label(question: dict) -> str:
+    difficulty_key = question_difficulty_key_for_question(question)
+    return QUESTION_DIFFICULTIES.get(difficulty_key, QUESTION_DIFFICULTIES["basis"])["label"]
+
+
+def question_difficulty_short_label(question: dict) -> str:
+    difficulty_key = question_difficulty_key_for_question(question)
+    return QUESTION_DIFFICULTIES.get(difficulty_key, QUESTION_DIFFICULTIES["basis"])["short_label"]
+
+
+def question_difficulty_instruction(question: dict) -> str:
+    difficulty_key = question_difficulty_key_for_question(question)
+    base_instruction = (
+        "Kies het beste antwoord. Bij een juist antwoord mag je 3 tegels leggen, "
+        "bij een fout krijg je een plaatsingscoordinaat."
+    )
+    if difficulty_key == "basis":
+        return base_instruction
+    if difficulty_key == "verdieping":
+        return base_instruction + " Lees goed: meerdere opties lijken bewust geloofwaardig."
+    return base_instruction + " Vergelijk de nuances zorgvuldig: meerdere opties kunnen bijna juist lijken."
+
+
+def normalize_question_difficulty_mode(value: object, fallback: str = "mix") -> str:
+    normalized = normalize_text_for_similarity(value).replace(" ", "").strip("-")
+    if normalized in QUESTION_DIFFICULTY_MODE_ALIASES:
+        return QUESTION_DIFFICULTY_MODE_ALIASES[normalized]
+    return fallback
+
+
+def question_difficulty_mode_label(mode: object) -> str:
+    normalized_mode = normalize_question_difficulty_mode(mode)
+    return QUESTION_DIFFICULTY_MODES.get(normalized_mode, QUESTION_DIFFICULTY_MODES["mix"])["label"]
+
+
+def question_difficulty_mode_description(mode: object) -> str:
+    normalized_mode = normalize_question_difficulty_mode(mode)
+    return QUESTION_DIFFICULTY_MODES.get(normalized_mode, QUESTION_DIFFICULTY_MODES["mix"])["description"]
+
+
+def migrate_core_question_difficulties_in_memory(questions: List[dict]) -> bool:
+    changed = False
+
+    for question in questions:
+        if str(question.get("type") or "multiple_choice") != "multiple_choice":
+            continue
+
+        inferred_difficulty = question_difficulty_key_for_question(question)
+        if question.get("difficulty") != inferred_difficulty:
+            question["difficulty"] = inferred_difficulty
+            changed = True
+
+    return changed
+
+
 def migrate_image_question_metadata_in_memory(questions: List[dict]) -> bool:
     changed = False
     image_theme_label = THEMES["beeld"]["label"]
@@ -880,6 +1115,8 @@ def load_core_questions():
 
     questions = load_questions_from_file(CORE_FILE)
     changed = migrate_core_question_themes_in_memory(questions)
+    if migrate_core_question_difficulties_in_memory(questions):
+        changed = True
     cleaned_questions, removed_ids = dedupe_core_question_bank(questions)
     changed = changed or bool(removed_ids)
     if rebalance_core_question_answer_positions_in_memory(cleaned_questions):
@@ -1690,6 +1927,193 @@ def prune_duplicate_pending_ai_questions() -> List[dict]:
     return questions
 
 
+def with_question_difficulty_metadata(question: dict) -> dict:
+    payload = dict(question)
+    if str(payload.get("type") or "multiple_choice") == "multiple_choice":
+        payload["difficulty"] = question_difficulty_key_for_question(payload)
+        payload["difficulty_label"] = question_difficulty_label(payload)
+        payload["difficulty_short_label"] = question_difficulty_short_label(payload)
+    return payload
+
+
+def difficulty_count_template() -> Dict[str, int]:
+    return {difficulty: 0 for difficulty in QUESTION_DIFFICULTY_ORDER}
+
+
+def choose_balanced_core_question(core_questions: List[dict], theme_key: str) -> Optional[dict]:
+    available_by_difficulty: Dict[str, List[dict]] = {
+        difficulty: []
+        for difficulty in QUESTION_DIFFICULTY_ORDER
+    }
+    used_counts = difficulty_count_template()
+
+    for question in core_questions:
+        if str(question.get("type") or "multiple_choice") != "multiple_choice":
+            continue
+        if question.get("theme") != theme_key:
+            continue
+        if not question.get("approved", True) or question.get("rejected", False):
+            continue
+
+        difficulty_key = question_difficulty_key_for_question(question)
+        if question.get("used", False):
+            used_counts[difficulty_key] += 1
+            continue
+
+        available_by_difficulty[difficulty_key].append(question)
+
+    available_difficulties = [
+        difficulty
+        for difficulty in QUESTION_DIFFICULTY_ORDER
+        if available_by_difficulty[difficulty]
+    ]
+    if not available_difficulties:
+        return None
+
+    lowest_used_count = min(used_counts[difficulty] for difficulty in available_difficulties)
+    least_served_difficulties = [
+        difficulty
+        for difficulty in available_difficulties
+        if used_counts[difficulty] == lowest_used_count
+    ]
+
+    for preferred_difficulty in QUESTION_DIFFICULTY_SELECTION_PRIORITY:
+        if preferred_difficulty in least_served_difficulties:
+            return random.choice(available_by_difficulty[preferred_difficulty])
+
+    fallback_difficulty = least_served_difficulties[0]
+    return random.choice(available_by_difficulty[fallback_difficulty])
+
+
+def choose_core_question_for_mode(
+    core_questions: List[dict],
+    theme_key: str,
+    mode: str = "mix",
+) -> Optional[dict]:
+    normalized_mode = normalize_question_difficulty_mode(mode)
+    if normalized_mode == "mix":
+        return choose_balanced_core_question(core_questions, theme_key)
+
+    available_by_difficulty: Dict[str, List[dict]] = {
+        difficulty: []
+        for difficulty in QUESTION_DIFFICULTY_ORDER
+    }
+
+    for question in core_questions:
+        if str(question.get("type") or "multiple_choice") != "multiple_choice":
+            continue
+        if question.get("theme") != theme_key:
+            continue
+        if question.get("used", False):
+            continue
+        if not question.get("approved", True) or question.get("rejected", False):
+            continue
+
+        available_by_difficulty[question_difficulty_key_for_question(question)].append(question)
+
+    difficulty_priority = (
+        ["basis", "verdieping", "uitdaging"]
+        if normalized_mode == "basis"
+        else ["uitdaging", "verdieping", "basis"]
+    )
+
+    for difficulty_key in difficulty_priority:
+        if available_by_difficulty[difficulty_key]:
+            return random.choice(available_by_difficulty[difficulty_key])
+
+    return None
+
+
+def current_question_difficulty_mode() -> str:
+    if STATE is not None:
+        return normalize_question_difficulty_mode(getattr(STATE, "question_difficulty_mode", None))
+    return normalize_question_difficulty_mode(QUESTION_DIFFICULTY_MODE)
+
+
+def choose_generation_difficulty(theme_key: str, questions: List[dict]) -> str:
+    counts = difficulty_count_template()
+
+    for question in questions:
+        if str(question.get("type") or "multiple_choice") != "multiple_choice":
+            continue
+        if question.get("theme") != theme_key:
+            continue
+        if question.get("rejected", False):
+            continue
+
+        counts[question_difficulty_key_for_question(question)] += 1
+
+    lowest_count = min(counts.values()) if counts else 0
+    underrepresented = [
+        difficulty
+        for difficulty in QUESTION_DIFFICULTY_ORDER
+        if counts.get(difficulty, 0) == lowest_count
+    ]
+
+    for preferred_difficulty in QUESTION_DIFFICULTY_SELECTION_PRIORITY:
+        if preferred_difficulty in underrepresented:
+            return preferred_difficulty
+
+    return "verdieping"
+
+
+def multiple_choice_quality_issues(question: dict, difficulty_key: Optional[str] = None) -> List[str]:
+    if str(question.get("type") or "multiple_choice") != "multiple_choice":
+        return []
+
+    options = [str(option).strip() for option in list(question.get("options") or [])]
+    correct_index = question.get("correct_index")
+    if len(options) != 4 or not isinstance(correct_index, int) or not 0 <= correct_index < 4:
+        return ["De vraag heeft geen geldige set van vier antwoordopties."]
+
+    issues: List[str] = []
+    normalized_question = normalize_text_for_similarity(question.get("question", ""))
+    if len(normalized_question.split()) < 6:
+        issues.append("De vraag mist nog context en is te kort om echt te laten redeneren.")
+
+    normalized_options = [normalize_text_for_similarity(option) for option in options]
+    word_counts = [len(option.split()) for option in normalized_options]
+    correct_option = normalized_options[correct_index]
+    correct_tokens = similarity_tokens(options[correct_index])
+    question_tokens = similarity_tokens(question.get("question", ""))
+    overlap_target_tokens = correct_tokens | question_tokens
+
+    plausible_distractors = 0
+    overlapping_distractors = 0
+
+    for index, option in enumerate(normalized_options):
+        if any(marker in option for marker in TRIVIAL_DISTRACTOR_MARKERS):
+            issues.append("Er zit nog een flauwe of te makkelijke afleider tussen.")
+            break
+
+        if index == correct_index:
+            continue
+
+        if len(option.split()) >= max(2, len(correct_option.split()) - 1):
+            plausible_distractors += 1
+        if similarity_tokens(options[index]) & overlap_target_tokens:
+            overlapping_distractors += 1
+
+        if difficulty_key in {"verdieping", "uitdaging"} and len(option.split()) < 3:
+            issues.append("Minstens één fout antwoord is te kort om geloofwaardig te zijn.")
+            break
+
+    if max(word_counts) - min(word_counts) >= 7:
+        issues.append("De antwoordopties verschillen te sterk in lengte, waardoor één optie te veel opvalt.")
+    if plausible_distractors < 2:
+        issues.append("De foute opties leunen nog te weinig aan bij het echte antwoord.")
+    if overlapping_distractors < 2:
+        issues.append("Minstens twee foute opties moeten inhoudelijk dichter bij het juiste antwoord liggen.")
+
+    deduped_issues: List[str] = []
+    seen = set()
+    for issue in issues:
+        if issue not in seen:
+            seen.add(issue)
+            deduped_issues.append(issue)
+    return deduped_issues
+
+
 def build_question_payload(question: dict, fallback_theme: str) -> dict:
     question_type = str(question.get("type") or "multiple_choice")
     is_image_question = question_type == "image_binary"
@@ -1705,7 +2129,7 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
     else:
         instruction = (
             question.get("instruction")
-            or "Kies het beste antwoord. Bij een juist antwoord mag je 3 tegels leggen, bij een fout krijg je een plaatsingscoordinaat."
+            or question_difficulty_instruction(question)
         )
         eyebrow = question.get("eyebrow") or "Meerkeuzevraag"
 
@@ -1718,6 +2142,11 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
         "instruction": instruction,
         "eyebrow": eyebrow,
     }
+
+    if not is_image_question:
+        payload["difficulty"] = question_difficulty_key_for_question(question)
+        payload["difficulty_label"] = question_difficulty_label(question)
+        payload["difficulty_short_label"] = question_difficulty_short_label(question)
 
     if question.get("image_url"):
         payload["image_url"] = question["image_url"]
@@ -1769,6 +2198,9 @@ def build_manageable_question_summary(
     else:
         payload["options"] = list(question.get("options") or [])
         payload["correct_label"] = answer_label_from_index(question.get("correct_index"))
+        payload["difficulty"] = question_difficulty_key_for_question(question)
+        payload["difficulty_label"] = question_difficulty_label(question)
+        payload["difficulty_short_label"] = question_difficulty_short_label(question)
 
     return payload
 
@@ -2174,6 +2606,7 @@ class SpawnItem(BaseModel):
 class GameState(BaseModel):
     game_id: str
     phase: Phase = "setup"
+    question_difficulty_mode: Literal["basis", "mix", "uitdaging"] = "mix"
 
     # Timing
     started_at: Optional[float] = None
@@ -2281,6 +2714,16 @@ class ActionResponse(BaseModel):
     state: GameState
 
 
+class OptionalStateActionResponse(BaseModel):
+    ok: bool
+    message: str
+    state: Optional[GameState] = None
+
+
+class QuestionDifficultyModeRequest(BaseModel):
+    mode: Literal["basis", "mix", "uitdaging"]
+
+
 class SpawnRequest(BaseModel):
     kind: Literal["diamond", "dynamite"]
     max_simultaneous: int = 3  # e.g. dynamite max 3 simultaneously; can use for diamonds too
@@ -2354,6 +2797,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 STATE_LOCK = asyncio.Lock()
 AI_IMAGE_POOL_LOCK = asyncio.Lock()
 STATE: Optional[GameState] = None
+QUESTION_DIFFICULTY_MODE = "mix"
 
 # Global config for current game (stored for the loop)
 CONFIG: Dict[str, int] = {
@@ -4031,9 +4475,11 @@ async def new_game(req: NewGameRequest):
         ))
 
     now = time.time()
+    active_question_mode = normalize_question_difficulty_mode(QUESTION_DIFFICULTY_MODE)
     gs = GameState(
         game_id=game_id,
         phase="running",
+        question_difficulty_mode=active_question_mode,
         started_at=now,
         deadline_at=now + req.timer_minutes * 60,
         auto_exit_reveal_at=now + req.auto_exit_reveal_minute * 60,
@@ -4051,7 +4497,11 @@ async def new_game(req: NewGameRequest):
         **DEFAULT_RANDOM_SPAWN_CONFIG,
     }
 
-    _log(gs, f"Nieuw spel gestart met {len(players)} spelers. Timer: {req.timer_minutes} min.")
+    _log(
+        gs,
+        f"Nieuw spel gestart met {len(players)} spelers. Timer: {req.timer_minutes} min. "
+        f"Vraagniveau: {question_difficulty_mode_label(active_question_mode)}."
+    )
     _seed_initial_board_items(gs, diamond_count=6, dynamite_count=4, now=now)
     for p in players:
         _log(gs, f"Startcoordinaat {p.name}: {p.start_coord}")
@@ -4059,7 +4509,15 @@ async def new_game(req: NewGameRequest):
     async with STATE_LOCK:
         STATE = gs
 
-    return ActionResponse(ok=True, message="Spel gestart.", state=gs)
+    return ActionResponse(
+        ok=True,
+        message=(
+            "Spel gestart. Vraagniveau: "
+            + question_difficulty_mode_label(active_question_mode)
+            + "."
+        ),
+        state=gs,
+    )
 
 @app.post("/api/question/next")
 async def next_question(payload: dict):
@@ -4078,14 +4536,11 @@ async def next_question(payload: dict):
             asyncio.create_task(ensure_ai_image_pool_background())
     else:
         core_questions = rebalance_ai_question_answer_positions()
-        available_questions = [
-            q for q in core_questions
-            if q.get("theme") == theme_key
-            and not q.get("used", False)
-            and q.get("approved", True)
-        ]
-        if available_questions:
-            selected_question = random.choice(available_questions)
+        selected_question = choose_core_question_for_mode(
+            core_questions,
+            theme_key,
+            current_question_difficulty_mode(),
+        )
 
     if selected_question:
         return build_question_payload(selected_question, theme_key)
@@ -4112,6 +4567,8 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
         questions = prune_duplicate_pending_ai_questions()
         rejected_variants: List[str] = []
         duplicate_match: Optional[dict] = None
+        last_quality_feedback: List[str] = []
+        target_difficulty = choose_generation_difficulty(theme, questions)
 
         for _attempt in range(AI_GENERATION_MAX_ATTEMPTS):
             avoid_list = build_generation_avoid_list(questions, theme, rejected_variants)
@@ -4121,6 +4578,14 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
                     "Maak GEEN vraag die inhoudelijk hetzelfde is als of sterk lijkt op een van deze bestaande of afgekeurde vragen:\n"
                     f"{avoid_list}\n\n"
                     "Kies dus bewust een andere invalshoek, situatie of redenering.\n\n"
+                )
+
+            quality_instruction = ""
+            if last_quality_feedback:
+                quality_instruction = (
+                    "Verbeter deze zwakke punten uit je vorige poging:\n"
+                    + "\n".join(f"- {feedback}" for feedback in last_quality_feedback)
+                    + "\n\n"
                 )
 
             resp = _client.chat.completions.create(
@@ -4135,11 +4600,18 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
                         "role": "user",
                         "content": (
                             f"Thema: {THEMES[theme]['label']}\n\n"
+                            f"Mik op deze moeilijkheidsgraad: {QUESTION_DIFFICULTIES[target_difficulty]['label']}\n"
+                            f"Richtlijn voor dit niveau: {QUESTION_DIFFICULTY_GENERATION_GUIDANCE[target_difficulty]}\n\n"
                             f"Extra richtlijnen voor dit thema:\n{THEME_GENERATION_GUIDANCE[theme]}\n\n"
                             f"{duplicate_instruction}"
+                            f"{quality_instruction}"
                             "Maak 1 korte, concrete meerkeuzevraag die leerlingen echt laat nadenken over AI-geletterdheid. "
                             "Laat de vraag aansluiten bij een herkenbare leerlingensituatie. "
                             "Gebruik gewone taal, maar maak de vraag niet flauw of te simplistisch. "
+                            "Zorg dat de 3 foute opties inhoudelijk dicht bij het juiste antwoord liggen: ze moeten plausibel of gedeeltelijk logisch klinken, "
+                            "maar net om een subtiele reden fout zijn. "
+                            "Laat het juiste antwoord niet opvallen door veel meer detail, lengte of precisie dan de andere opties. "
+                            "Gebruik geen grapantwoorden, extreme onzin of overduidelijke afleiders. "
                             "Geef alleen JSON terug."
                         )
                     }
@@ -4182,6 +4654,13 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
             ai_question["approved"] = False
             ai_question["rejected"] = False
             ai_question["used"] = False
+            ai_question["difficulty"] = target_difficulty
+
+            quality_issues = multiple_choice_quality_issues(ai_question, target_difficulty)
+            if quality_issues:
+                last_quality_feedback = quality_issues
+                rejected_variants.append(ai_question["question"])
+                continue
 
             duplicate_match = find_similar_question(ai_question, questions)
             if duplicate_match is not None:
@@ -4193,12 +4672,18 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
             ai_question["explanation"] = learning_explanation_text(ai_question)
             questions.append(ai_question)
             save_core_questions(questions)
-            return ai_question
+            return with_question_difficulty_metadata(ai_question)
 
         if duplicate_match is not None:
             raise HTTPException(
                 409,
                 "AI blijft te gelijkaardige vragen voorstellen. Probeer opnieuw voor meer variatie."
+            )
+
+        if last_quality_feedback:
+            raise HTTPException(
+                500,
+                "AI maakte nog geen sterke vraag met plausibele afleiders. Probeer opnieuw voor een betere variant."
             )
 
         raise HTTPException(500, "AI vraag kon niet uniek genoeg gegenereerd worden.")
@@ -4369,6 +4854,23 @@ async def get_state():
         return STATE
 
 
+@app.post("/api/reset", response_model=OptionalStateActionResponse)
+async def reset_game_state():
+    global STATE
+
+    async with STATE_LOCK:
+        if STATE is not None:
+            _log(STATE, "Spel automatisch teruggezet naar het startscherm na 3 minuten zonder activiteit.")
+        STATE = None
+
+    reset_questions()
+    return OptionalStateActionResponse(
+        ok=True,
+        message="Geen activiteit gedetecteerd. De spel-app staat opnieuw op het startscherm.",
+        state=None,
+    )
+
+
 @app.get("/api/ranking", response_model=List[AllTimeRankingEntry])
 async def get_all_time_ranking():
     return load_all_time_ranking()
@@ -4519,7 +5021,55 @@ async def pending_questions(x_teacher_password: Optional[str] = Header(None)):
         if q.get("approved") is False and not q.get("rejected", False)
     ]
 
-    return pending
+    return [with_question_difficulty_metadata(question) for question in pending]
+
+
+@app.get("/api/question/settings")
+async def get_question_settings(x_teacher_password: Optional[str] = Header(None)):
+    require_teacher_password(x_teacher_password)
+
+    async with STATE_LOCK:
+        state_payload = STATE
+
+    mode = normalize_question_difficulty_mode(
+        getattr(state_payload, "question_difficulty_mode", None) if state_payload is not None else QUESTION_DIFFICULTY_MODE
+    )
+    return {
+        "mode": mode,
+        "label": question_difficulty_mode_label(mode),
+        "description": question_difficulty_mode_description(mode),
+        "state": state_payload,
+    }
+
+
+@app.post("/api/question/settings")
+async def update_question_settings(
+    payload: QuestionDifficultyModeRequest,
+    x_teacher_password: Optional[str] = Header(None),
+):
+    global QUESTION_DIFFICULTY_MODE
+
+    require_teacher_password(x_teacher_password)
+    normalized_mode = normalize_question_difficulty_mode(payload.mode)
+    QUESTION_DIFFICULTY_MODE = normalized_mode
+
+    async with STATE_LOCK:
+        if STATE is not None:
+            STATE.question_difficulty_mode = normalized_mode
+        state_payload = STATE
+
+    return {
+        "ok": True,
+        "message": (
+            "Het vraagniveau staat nu op "
+            + question_difficulty_mode_label(normalized_mode)
+            + ". Deze keuze geldt voor het huidige en volgende spel."
+        ),
+        "mode": normalized_mode,
+        "label": question_difficulty_mode_label(normalized_mode),
+        "description": question_difficulty_mode_description(normalized_mode),
+        "state": state_payload,
+    }
 
 
 @app.get("/api/question/removable")
@@ -4576,6 +5126,7 @@ async def review_question(payload: QuestionReviewRequest, x_teacher_password: Op
         question["question"] = normalized_question
         question["options"] = normalized_options
         question["correct_index"] = payload.correct_index
+        question["difficulty"] = infer_question_difficulty(question)
         question["approved"] = True
         question["rejected"] = False
 
@@ -4854,6 +5405,13 @@ async def create_teacher_question(
         "question": normalized_question,
         "options": normalized_options,
         "correct_index": payload.correct_index,
+        "difficulty": infer_question_difficulty({
+            "type": "multiple_choice",
+            "theme": theme_key,
+            "source": "teacher",
+            "question": normalized_question,
+            "options": normalized_options,
+        }),
         "approved": True,
         "rejected": False,
         "used": False,
@@ -4875,7 +5433,7 @@ async def create_teacher_question(
     return {
         "ok": True,
         "message": "Eigen vraag opgeslagen en meteen toegevoegd aan het spel.",
-        "question": teacher_question,
+        "question": with_question_difficulty_metadata(teacher_question),
     }
     
 @app.post("/api/next_turn", response_model=ActionResponse)

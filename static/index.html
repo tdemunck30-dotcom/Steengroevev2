@@ -1842,6 +1842,43 @@
             overflow-y: auto;
         }
 
+        .idle-reset-overlay-card {
+            width: min(620px, 100%);
+            display: grid;
+            gap: 18px;
+            text-align: center;
+            justify-items: center;
+        }
+
+        .idle-reset-overlay-card p {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.88);
+        }
+
+        .idle-reset-countdown {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 92px;
+            min-height: 92px;
+            padding: 12px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 30%, #ffb46b, #b93a1d 72%);
+            color: #fff7ef;
+            font-size: 2.2rem;
+            font-weight: 900;
+            box-shadow: 0 18px 34px rgba(185, 58, 29, 0.28);
+        }
+
+        .idle-reset-note {
+            font-size: 0.98rem;
+        }
+
+        .idle-reset-actions {
+            display: flex;
+            justify-content: center;
+        }
+
         .teacher-review-header {
             display: flex;
             justify-content: space-between;
@@ -2058,6 +2095,54 @@
 
         .teacher-auto-image-grid .teacher-generate-button {
             min-width: 180px;
+        }
+
+        .teacher-difficulty-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .teacher-difficulty-button {
+            min-height: 74px;
+            display: grid;
+            gap: 4px;
+            align-content: center;
+            justify-items: start;
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(91, 124, 153, 0.18), rgba(64, 84, 105, 0.14));
+            border: 1px solid rgba(91, 124, 153, 0.22);
+            box-shadow: none;
+            text-align: left;
+        }
+
+        .teacher-difficulty-button strong {
+            color: #fff4dd;
+            font-size: 0.98rem;
+            font-weight: 900;
+        }
+
+        .teacher-difficulty-button span {
+            color: rgba(234, 223, 206, 0.78);
+            font-size: 0.84rem;
+            line-height: 1.35;
+        }
+
+        .teacher-difficulty-button.active {
+            background: linear-gradient(135deg, #d37a2d, #a6471f);
+            border-color: rgba(255, 219, 147, 0.34);
+            box-shadow: 0 14px 28px rgba(166, 71, 31, 0.22);
+        }
+
+        .teacher-difficulty-button.active span {
+            color: rgba(255, 244, 221, 0.92);
+        }
+
+        .teacher-difficulty-note {
+            margin: 0;
+            color: rgba(234, 223, 206, 0.74);
+            line-height: 1.5;
         }
 
         .teacher-mode-switch {
@@ -2470,6 +2555,11 @@
             border-color: rgba(255, 199, 96, 0.18);
         }
 
+        .teacher-difficulty {
+            background: rgba(91, 124, 153, 0.18);
+            border-color: rgba(91, 124, 153, 0.3);
+        }
+
         .teacher-inline-field {
             display: grid;
             gap: 8px;
@@ -2582,9 +2672,35 @@
             flex-wrap: wrap;
         }
 
+        .question-top-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
         #questionOverlay .question-top {
             align-items: flex-start;
             gap: 18px;
+        }
+
+        .question-difficulty-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 214, 126, 0.16);
+            border: 1px solid rgba(255, 214, 126, 0.28);
+            color: #ffe7b3;
+            font-size: 0.84rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .question-difficulty-badge[hidden] {
+            display: none;
         }
 
         .question-instruction {
@@ -3014,6 +3130,7 @@
 
             .teacher-generate-actions,
             .teacher-auto-image-grid,
+            .teacher-difficulty-grid,
             .teacher-mode-switch,
             .teacher-option-grid {
                 grid-template-columns: 1fr;
@@ -3184,6 +3301,10 @@
 
             .question-top {
                 align-items: flex-start;
+            }
+
+            .question-top-meta {
+                width: 100%;
             }
 
             #optionsContainer button {
@@ -3427,10 +3548,28 @@
         </div>
     </div>
 
+    <div id="idleResetOverlay" class="overlay" hidden>
+        <div class="overlay-card idle-reset-overlay-card">
+            <span class="eyebrow">Automatische reset</span>
+            <h2>Bijna terug naar het startscherm</h2>
+            <div id="idleResetCountdown" class="idle-reset-countdown">10</div>
+            <p id="idleResetMessage">
+                Geen activiteit gedetecteerd. De spel-app keert zo terug naar het startscherm voor een nieuwe groep.
+            </p>
+            <p class="idle-reset-note">Tik ergens op het scherm of klik op de knop hieronder om verder te spelen.</p>
+            <div class="idle-reset-actions">
+                <button class="close-button" type="button" onclick="continueCurrentGame()">Verder spelen</button>
+            </div>
+        </div>
+    </div>
+
     <div id="questionOverlay" class="overlay" hidden>
         <div class="overlay-card">
             <div class="question-top">
-                <span id="questionEyebrow" class="eyebrow">Meerkeuzevraag</span>
+                <div class="question-top-meta">
+                    <span id="questionEyebrow" class="eyebrow">Meerkeuzevraag</span>
+                    <span id="questionDifficultyBadge" class="question-difficulty-badge" hidden>Niveau 2 · Verdieping</span>
+                </div>
                 <span id="questionInstruction" class="question-instruction">Kies het beste antwoord.</span>
             </div>
             <div class="question-turn-banner">
@@ -3579,6 +3718,24 @@
                 <div class="teacher-section-head">
                     <h3>AI-vragen nakijken</h3>
                     <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. De beeldronde zelf werkt nu alleen nog met echte foto's of AI-beelden.</p>
+                </div>
+                <div class="teacher-generate-bar">
+                    <span class="teacher-generate-label">Vraagniveau tijdens het spel</span>
+                    <div class="teacher-difficulty-grid" aria-label="Kies het vraagniveau">
+                        <button id="teacherDifficultyModeBasis" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('basis')">
+                            <strong>Basis</strong>
+                            <span>Vooral toegankelijkere vragen</span>
+                        </button>
+                        <button id="teacherDifficultyModeMix" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('mix')">
+                            <strong>Mix</strong>
+                            <span>Afwisseling met stevige denkvraag</span>
+                        </button>
+                        <button id="teacherDifficultyModeUitdaging" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('uitdaging')">
+                            <strong>Uitdaging</strong>
+                            <span>Vooral moeilijkere vragen</span>
+                        </button>
+                    </div>
+                    <p id="teacherDifficultyModeNote" class="teacher-difficulty-note">Deze keuze geldt voor het huidige en volgende spel.</p>
                 </div>
                 <div class="teacher-generate-bar">
                     <span class="teacher-generate-label">Nieuwe AI-vraag genereren per thema</span>
@@ -3786,11 +3943,28 @@
             verantwoord: "Kritisch, veilig en verantwoord",
             beeldronde: "AI-foto's herkennen"
         };
+        const difficultyLabels = {
+            basis: "Niveau 1 · Basis",
+            verdieping: "Niveau 2 · Verdieping",
+            uitdaging: "Niveau 3 · Uitdaging"
+        };
+        const difficultyModeNotes = {
+            basis: "Deze keuze legt de nadruk op de toegankelijkere vragen. Als die op zijn, schakelt de app slim door naar het dichtstbijzijnde niveau.",
+            mix: "Deze keuze wisselt niveaus af, met extra aandacht voor stevige denkvragen en variatie tussen de rondes.",
+            uitdaging: "Deze keuze legt de nadruk op de moeilijkere vragen. Als die op zijn, schakelt de app slim terug naar nabije niveaus."
+        };
         const imageBinaryLabels = [
             "Waarschijnlijk AI-gegenereerd of bewerkt",
             "Waarschijnlijk een echte foto"
         ];
         const answerLetters = ["A", "B", "C", "D"];
+
+        function difficultyLabelForQuestion(question) {
+            if (!question) {
+                return "";
+            }
+            return question.difficulty_label || difficultyLabels[question.difficulty] || "";
+        }
 
         let currentQuestionId = null;
         let questionLocked = false;
@@ -3816,15 +3990,22 @@
         let teacherManualBusy = false;
         let teacherImageUploadBusy = false;
         let teacherDeleteBusy = false;
+        let teacherQuestionSettingsBusy = false;
         let teacherAuthBusy = false;
         let teacherAuthSuccessAction = null;
         let teacherPassword = "";
+        let teacherQuestionDifficultyMode = "mix";
         let consensusBusy = false;
         let timerControlBusy = false;
         let stateRefreshBusy = false;
         let stateRefreshQueued = false;
+        let idleResetBusy = false;
+        let idleResetWarningVisible = false;
+        let lastUserActivityAt = Date.now();
         const TIMER_TICK_INTERVAL_MS = 250;
         const STATE_REFRESH_INTERVAL_MS = 2500;
+        const IDLE_RESET_TIMEOUT_MS = 3 * 60 * 1000;
+        const IDLE_RESET_WARNING_MS = 10 * 1000;
         let teacherMode = "review";
 
         function byId(id) {
@@ -4062,10 +4243,209 @@
             byId("statusMessage").textContent = text || "";
         }
 
+        function hasResettableGameState(state) {
+            return Boolean(state && ["running", "endgame", "exploded", "finished"].includes(state.phase || ""));
+        }
+
+        function hideIdleResetWarning() {
+            const overlay = byId("idleResetOverlay");
+            if (!overlay) {
+                return;
+            }
+
+            overlay.hidden = true;
+            idleResetWarningVisible = false;
+        }
+
+        function showIdleResetWarning(secondsRemaining) {
+            const overlay = byId("idleResetOverlay");
+            const countdown = byId("idleResetCountdown");
+            const message = byId("idleResetMessage");
+            if (!overlay || !countdown || !message) {
+                return;
+            }
+
+            const safeSeconds = Math.max(1, secondsRemaining);
+            countdown.textContent = String(safeSeconds);
+            message.textContent =
+                "Geen activiteit gedetecteerd. De spel-app keert over "
+                + safeSeconds
+                + " seconde"
+                + (safeSeconds === 1 ? "" : "n")
+                + " terug naar het startscherm.";
+            overlay.hidden = false;
+            idleResetWarningVisible = true;
+        }
+
+        function recordUserActivity() {
+            lastUserActivityAt = Date.now();
+            if (idleResetWarningVisible) {
+                hideIdleResetWarning();
+            }
+        }
+
+        function continueCurrentGame() {
+            recordUserActivity();
+            setStatusMessage("Automatische reset geannuleerd. Het spel blijft actief.");
+        }
+
+        function resetPlayerInputsToDefaults() {
+            const container = byId("playerInputs");
+            if (!container) {
+                return;
+            }
+
+            container.replaceChildren();
+            playerInputCount = 0;
+            ["", "", "", ""].forEach((name) => {
+                container.appendChild(createPlayerInput(name));
+            });
+            syncPlayerLabels();
+        }
+
+        async function triggerIdleReset() {
+            if (idleResetBusy || !hasResettableGameState(latestState)) {
+                return;
+            }
+
+            idleResetBusy = true;
+            hideIdleResetWarning();
+
+            try {
+                const data = await fetchJson("/api/reset", {method: "POST"});
+                resetPlayerInputsToDefaults();
+                renderState(data.state || null);
+                setStatusMessage(data.message || "De spel-app staat opnieuw op het startscherm.");
+            } catch (error) {
+                setStatusMessage(error.message);
+                lastUserActivityAt = Date.now();
+            } finally {
+                idleResetBusy = false;
+            }
+        }
+
+        function monitorIdleReset() {
+            if (idleResetBusy) {
+                return;
+            }
+
+            if (!hasResettableGameState(latestState)) {
+                hideIdleResetWarning();
+                return;
+            }
+
+            const remainingMs = IDLE_RESET_TIMEOUT_MS - (Date.now() - lastUserActivityAt);
+            if (remainingMs <= 0) {
+                triggerIdleReset();
+                return;
+            }
+
+            if (remainingMs <= IDLE_RESET_WARNING_MS) {
+                showIdleResetWarning(Math.ceil(remainingMs / 1000));
+                return;
+            }
+
+            hideIdleResetWarning();
+        }
+
         function setTeacherReviewStatus(text = "", isError = false) {
             const status = byId("teacherReviewStatus");
             status.textContent = text;
             status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setTeacherQuestionModeButtonsDisabled(disabled) {
+            document
+                .querySelectorAll("[data-role='difficulty-mode']")
+                .forEach((button) => {
+                    button.disabled = disabled;
+                });
+        }
+
+        function renderTeacherQuestionDifficultyMode(mode = "mix") {
+            teacherQuestionDifficultyMode = ["basis", "mix", "uitdaging"].includes(mode) ? mode : "mix";
+
+            const buttonMap = {
+                basis: byId("teacherDifficultyModeBasis"),
+                mix: byId("teacherDifficultyModeMix"),
+                uitdaging: byId("teacherDifficultyModeUitdaging")
+            };
+
+            Object.entries(buttonMap).forEach(([key, button]) => {
+                if (!button) {
+                    return;
+                }
+                button.classList.toggle("active", key === teacherQuestionDifficultyMode);
+                button.setAttribute("aria-pressed", key === teacherQuestionDifficultyMode ? "true" : "false");
+            });
+
+            const note = byId("teacherDifficultyModeNote");
+            if (note) {
+                note.textContent = difficultyModeNotes[teacherQuestionDifficultyMode]
+                    || "Deze keuze geldt voor het huidige en volgende spel.";
+            }
+        }
+
+        async function loadTeacherQuestionSettings(force = false) {
+            if ((!teacherPassword || teacherQuestionSettingsBusy) && !force) {
+                return;
+            }
+
+            teacherQuestionSettingsBusy = true;
+            setTeacherQuestionModeButtonsDisabled(true);
+
+            try {
+                const data = await fetchJson("/api/question/settings", {
+                    headers: getTeacherRequestHeaders()
+                });
+                renderTeacherQuestionDifficultyMode(data.mode || "mix");
+                if (data.state) {
+                    renderState(data.state);
+                }
+            } catch (error) {
+                if (!handleTeacherAuthFailure(error)) {
+                    setTeacherReviewStatus(error.message, true);
+                }
+            } finally {
+                teacherQuestionSettingsBusy = false;
+                setTeacherQuestionModeButtonsDisabled(false);
+            }
+        }
+
+        async function setTeacherQuestionDifficultyMode(mode) {
+            if (teacherQuestionSettingsBusy) {
+                return;
+            }
+
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om het vraagniveau te wijzigen.");
+                return;
+            }
+
+            teacherQuestionSettingsBusy = true;
+            setTeacherQuestionModeButtonsDisabled(true);
+            setTeacherReviewStatus("Vraagniveau wordt aangepast...");
+
+            try {
+                const data = await fetchJson("/api/question/settings", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify({mode})
+                });
+                renderTeacherQuestionDifficultyMode(data.mode || mode || "mix");
+                if (data.state) {
+                    renderState(data.state);
+                }
+                setTeacherReviewStatus(data.message || "Vraagniveau aangepast.");
+                setStatusMessage(data.message || "Vraagniveau aangepast.");
+            } catch (error) {
+                if (!handleTeacherAuthFailure(error)) {
+                    setTeacherReviewStatus(error.message, true);
+                }
+            } finally {
+                teacherQuestionSettingsBusy = false;
+                setTeacherQuestionModeButtonsDisabled(false);
+            }
         }
 
         function clearTeacherImageMixPreview() {
@@ -4391,12 +4771,16 @@
             if (teacherPassword && !teacherDeleteBusy) {
                 refreshTeacherRemovableQuestions();
             }
+            if (teacherPassword && !teacherQuestionSettingsBusy) {
+                loadTeacherQuestionSettings();
+            }
         }
 
         function refreshTeacherActivePanel() {
             if (teacherPassword) {
                 refreshTeacherQuestions();
                 refreshTeacherRemovableQuestions();
+                loadTeacherQuestionSettings();
             }
             setTeacherManualStatus("Formulier is klaar om een nieuwe vraag toe te voegen.");
         }
@@ -4453,12 +4837,23 @@
             source.className = "teacher-pill";
             source.textContent = (question.source || "ai").toUpperCase();
 
+            const difficultyLabel = difficultyLabelForQuestion(question);
+            const difficulty = difficultyLabel
+                ? Object.assign(document.createElement("span"), {
+                    className: "teacher-pill teacher-difficulty",
+                    textContent: difficultyLabel
+                })
+                : null;
+
             const questionId = document.createElement("span");
             questionId.className = "teacher-pill";
             questionId.textContent = question.id;
 
             meta.appendChild(theme);
             meta.appendChild(source);
+            if (difficulty) {
+                meta.appendChild(difficulty);
+            }
             meta.appendChild(questionId);
 
             const correctField = document.createElement("div");
@@ -4624,12 +5019,23 @@
             source.className = "teacher-pill";
             source.textContent = (question.source || question.store || "vraag").toUpperCase();
 
+            const difficultyLabel = difficultyLabelForQuestion(question);
+            const difficulty = difficultyLabel
+                ? Object.assign(document.createElement("span"), {
+                    className: "teacher-pill teacher-difficulty",
+                    textContent: difficultyLabel
+                })
+                : null;
+
             const questionId = document.createElement("span");
             questionId.className = "teacher-pill";
             questionId.textContent = question.id;
 
             meta.appendChild(theme);
             meta.appendChild(source);
+            if (difficulty) {
+                meta.appendChild(difficulty);
+            }
             meta.appendChild(questionId);
             top.appendChild(meta);
 
@@ -4897,6 +5303,7 @@
                     async () => {
                         byId("teacherOverlay").hidden = false;
                         setTeacherMode("review", {scroll: false, refresh: false});
+                        await loadTeacherQuestionSettings(true);
                         await refreshTeacherQuestions(true);
                         await refreshTeacherRemovableQuestions(true);
                     }
@@ -4906,6 +5313,7 @@
 
             byId("teacherOverlay").hidden = false;
             setTeacherMode("review", {scroll: false, refresh: false});
+            loadTeacherQuestionSettings();
             refreshTeacherQuestions();
             refreshTeacherRemovableQuestions();
         }
@@ -5466,6 +5874,8 @@
             byId("optionsContainer").replaceChildren();
             renderQuestionMedia(null);
             resetQuestionFeedback();
+            byId("questionDifficultyBadge").hidden = true;
+            byId("questionDifficultyBadge").textContent = "";
             currentQuestionId = null;
             questionLocked = false;
 
@@ -6685,6 +7095,8 @@
                 lastDynamiteBlastId = 0;
                 lastRankingRevealSignature = "";
                 knownItemKeys = new Set();
+                hideIdleResetWarning();
+                lastUserActivityAt = Date.now();
                 renderStartPositions(null);
                 renderItems([]);
                 renderEventLog([]);
@@ -6715,6 +7127,8 @@
                 lastDynamiteBlastId = 0;
                 lastRankingRevealSignature = "";
                 knownItemKeys = new Set((state.items || []).map(itemKey));
+                hideIdleResetWarning();
+                lastUserActivityAt = Date.now();
                 byId("alarmBanner").classList.remove("show", "diamond", "dynamite");
             } else {
                 const newItems = (state.items || []).filter((item) => !knownItemKeys.has(itemKey(item)));
@@ -6732,6 +7146,7 @@
             byId("phaseDisplay").classList.toggle("endgame", state.phase === "endgame");
             byId("currentPlayerDisplay").textContent = getCurrentPlayer(state);
             byId("exitDisplay").textContent = state.exit_known ? state.exit_coord : "Nog onbekend";
+            renderTeacherQuestionDifficultyMode(state.question_difficulty_mode || teacherQuestionDifficultyMode || "mix");
             renderTurnSpotlight(state);
             knownItemKeys = new Set((state.items || []).map(itemKey));
             renderStartPositions(state);
@@ -7019,6 +7434,15 @@
                 questionAnswered = false;
                 questionTurnPlayerName = getCurrentPlayer(latestState);
                 byId("questionEyebrow").textContent = data.eyebrow || "Meerkeuzevraag";
+                const difficultyBadge = byId("questionDifficultyBadge");
+                const difficultyLabel = data.difficulty_label || difficultyLabels[data.difficulty] || "";
+                if (difficultyLabel) {
+                    difficultyBadge.textContent = difficultyLabel;
+                    difficultyBadge.hidden = false;
+                } else {
+                    difficultyBadge.textContent = "";
+                    difficultyBadge.hidden = true;
+                }
                 byId("questionTheme").textContent = data.display_theme || themeLabels[theme] || theme;
                 byId("questionText").textContent = data.question;
                 byId("questionInstruction").textContent = data.instruction || "Kies het beste antwoord. Na het afronden springt de beurt automatisch naar de volgende speler.";
@@ -7138,7 +7562,7 @@
         }
 
         document.addEventListener("DOMContentLoaded", () => {
-            ["", "", "", ""].forEach((name) => addPlayerInput(name));
+            resetPlayerInputsToDefaults();
             bindAutoResizeTextarea("teacherManualQuestion");
             bindAutoResizeTextarea("teacherManualExplanation");
             bindAutoResizeTextarea("teacherManualGuidance");
@@ -7146,16 +7570,22 @@
             bindTeacherImageHelpers();
             resetTeacherManualForm();
             updateTeacherManualType();
+            renderTeacherQuestionDifficultyMode("mix");
             setTeacherMode("review", {scroll: false});
             renderEventLog([]);
             renderPlayersSetup(null);
             refreshState();
+            document.addEventListener("pointerdown", recordUserActivity, {passive: true});
+            document.addEventListener("keydown", recordUserActivity);
             setInterval(() => {
                 updateTimerDisplay();
             }, TIMER_TICK_INTERVAL_MS);
             setInterval(() => {
                 refreshState();
             }, STATE_REFRESH_INTERVAL_MS);
+            setInterval(() => {
+                monitorIdleReset();
+            }, 500);
         });
     </script>
 </body>
