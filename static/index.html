@@ -4133,6 +4133,32 @@
             "Waarschijnlijk een echte foto"
         ];
         const answerLetters = ["A", "B", "C", "D"];
+        const GAME_SESSION_STORAGE_KEY = "diamantmijnGameSessionId";
+
+        function getGameSessionId() {
+            let sessionId = "";
+            try {
+                sessionId = sessionStorage.getItem(GAME_SESSION_STORAGE_KEY) || "";
+                if (!sessionId) {
+                    sessionId = (
+                        window.crypto && typeof window.crypto.randomUUID === "function"
+                            ? window.crypto.randomUUID()
+                            : "session-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2)
+                    );
+                    sessionStorage.setItem(GAME_SESSION_STORAGE_KEY, sessionId);
+                }
+            } catch (error) {
+                sessionId = "session-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
+            }
+            return sessionId;
+        }
+
+        function withGameSessionHeaders(headers = {}) {
+            return {
+                ...headers,
+                "X-Game-Session": getGameSessionId()
+            };
+        }
 
         function difficultyLabelForQuestion(question) {
             if (!question) {
@@ -4953,7 +4979,7 @@
 
         function getTeacherRequestHeaders(headers = {}) {
             return {
-                ...headers,
+                ...withGameSessionHeaders(headers),
                 "X-Teacher-Password": teacherPassword
             };
         }
@@ -7661,7 +7687,10 @@
         }
 
         async function fetchJson(url, options = {}) {
-            const response = await fetch(url, options);
+            const response = await fetch(url, {
+                ...options,
+                headers: withGameSessionHeaders(options.headers || {})
+            });
             let data = {};
 
             try {

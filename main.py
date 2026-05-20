@@ -2100,9 +2100,9 @@ def choose_core_question_for_mode(
     return None
 
 
-def current_question_difficulty_mode() -> str:
-    if STATE is not None:
-        return normalize_question_difficulty_mode(getattr(STATE, "question_difficulty_mode", None))
+def current_question_difficulty_mode(gs: Optional[GameState] = None) -> str:
+    if gs is not None:
+        return normalize_question_difficulty_mode(getattr(gs, "question_difficulty_mode", None))
     return normalize_question_difficulty_mode(QUESTION_DIFFICULTY_MODE)
 
 
@@ -2883,7 +2883,11 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 STATE_LOCK = asyncio.Lock()
 AI_IMAGE_POOL_LOCK = asyncio.Lock()
-STATE: Optional[GameState] = None
+GAME_SESSIONS: Dict[str, GameState] = {}
+GAME_SESSION_LAST_SEEN: Dict[str, float] = {}
+DEFAULT_GAME_SESSION_ID = "default"
+MAX_GAME_SESSIONS = 200
+GAME_SESSION_TTL_SECONDS = 12 * 60 * 60
 QUESTION_DIFFICULTY_MODE = "mix"
 
 # Global config for current game (stored for the loop)
@@ -2898,6 +2902,55 @@ CONFIG: Dict[str, int] = {
     "dynamite_spawn_max_seconds": 300,
     "dynamite_max_simultaneous": 4,
 }
+
+
+def normalize_game_session_id(x_game_session: Optional[str]) -> str:
+    session_id = (x_game_session or DEFAULT_GAME_SESSION_ID).strip()
+    if not re.fullmatch(r"[A-Za-z0-9_-]{8,128}", session_id):
+        return DEFAULT_GAME_SESSION_ID
+    return session_id
+
+
+def get_game_state(session_id: str) -> Optional[GameState]:
+    gs = GAME_SESSIONS.get(session_id)
+    if gs is not None:
+        GAME_SESSION_LAST_SEEN[session_id] = time.time()
+    return gs
+
+
+def set_game_state(session_id: str, gs: GameState) -> None:
+    GAME_SESSIONS[session_id] = gs
+    GAME_SESSION_LAST_SEEN[session_id] = time.time()
+    prune_game_sessions()
+
+
+def clear_game_state(session_id: str) -> None:
+    GAME_SESSIONS.pop(session_id, None)
+    GAME_SESSION_LAST_SEEN.pop(session_id, None)
+
+
+def prune_game_sessions(now: Optional[float] = None) -> None:
+    current = time.time() if now is None else now
+    stale_ids = [
+        session_id
+        for session_id, last_seen in GAME_SESSION_LAST_SEEN.items()
+        if session_id != DEFAULT_GAME_SESSION_ID and current - last_seen > GAME_SESSION_TTL_SECONDS
+    ]
+    for session_id in stale_ids:
+        clear_game_state(session_id)
+
+    if len(GAME_SESSIONS) <= MAX_GAME_SESSIONS:
+        return
+
+    oldest_ids = sorted(
+        GAME_SESSION_LAST_SEEN,
+        key=lambda session_id: GAME_SESSION_LAST_SEEN.get(session_id, 0),
+    )
+    for session_id in oldest_ids:
+        if len(GAME_SESSIONS) <= MAX_GAME_SESSIONS:
+            break
+        if session_id != DEFAULT_GAME_SESSION_ID:
+            clear_game_state(session_id)
 DEFAULT_RANDOM_SPAWN_CONFIG = {
     "diamond_spawn_min_seconds": 120,
     "diamond_spawn_max_seconds": 210,
@@ -2907,12 +2960,13 @@ DEFAULT_RANDOM_SPAWN_CONFIG = {
     "dynamite_max_simultaneous": 4,
 }
 @app.post("/api/tile/auto_place")
-async def auto_place_tile():
+async def auto_place_tile(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         coord = random_empty_coord(gs.occupied_coords(include_start_coords=True))
 
         _log(gs, f"Fout antwoord. Tegel moet geplaatst worden op {coord}.")
@@ -4510,46 +4564,44 @@ async def startup_loop():
     asyncio.create_task(game_loop())
 
 async def game_loop():
-    global STATE
     while True:
         await asyncio.sleep(0.5)
         async with STATE_LOCK:
-            if STATE is None:
-                continue
-            gs = STATE
-            if gs.phase not in ("running", "endgame"):
-                continue
-
-            if gs.timer_paused:
-                continue
-
             now = time.time()
+            prune_game_sessions(now)
 
-            # Auto reveal exit at configured time if not revealed
-            if gs.started_at and not gs.exit_known and gs.auto_exit_reveal_at and now >= gs.auto_exit_reveal_at:
-                _reveal_exit(gs, reason="automatisch (25 minuten)")
+            for gs in list(GAME_SESSIONS.values()):
+                if gs.phase not in ("running", "endgame"):
+                    continue
 
-            if gs.next_diamond_spawn_at and now >= gs.next_diamond_spawn_at:
-                _spawn_random_item(
-                    gs,
-                    kind="diamond",
-                    max_simultaneous=CONFIG["diamond_max_simultaneous"],
-                    now=now,
-                )
-                gs.next_diamond_spawn_at = _schedule_next_spawn("diamond", now)
+                if gs.timer_paused:
+                    continue
 
-            if gs.next_dynamite_spawn_at and now >= gs.next_dynamite_spawn_at:
-                _spawn_random_item(
-                    gs,
-                    kind="dynamite",
-                    max_simultaneous=CONFIG["dynamite_max_simultaneous"],
-                    now=now,
-                )
-                gs.next_dynamite_spawn_at = _schedule_next_spawn("dynamite", now)
+                # Auto reveal exit at configured time if not revealed
+                if gs.started_at and not gs.exit_known and gs.auto_exit_reveal_at and now >= gs.auto_exit_reveal_at:
+                    _reveal_exit(gs, reason="automatisch (25 minuten)")
 
-            # Explosion check
-            if gs.deadline_at and now >= gs.deadline_at:
-                _explode(gs, reason="timer")
+                if gs.next_diamond_spawn_at and now >= gs.next_diamond_spawn_at:
+                    _spawn_random_item(
+                        gs,
+                        kind="diamond",
+                        max_simultaneous=CONFIG["diamond_max_simultaneous"],
+                        now=now,
+                    )
+                    gs.next_diamond_spawn_at = _schedule_next_spawn("diamond", now)
+
+                if gs.next_dynamite_spawn_at and now >= gs.next_dynamite_spawn_at:
+                    _spawn_random_item(
+                        gs,
+                        kind="dynamite",
+                        max_simultaneous=CONFIG["dynamite_max_simultaneous"],
+                        now=now,
+                    )
+                    gs.next_dynamite_spawn_at = _schedule_next_spawn("dynamite", now)
+
+                # Explosion check
+                if gs.deadline_at and now >= gs.deadline_at:
+                    _explode(gs, reason="timer")
 
 
 # ----------------------------
@@ -4557,8 +4609,9 @@ async def game_loop():
 # ----------------------------
 
 @app.post("/api/new", response_model=ActionResponse)
-async def new_game(req: NewGameRequest):
-    global STATE, CONFIG
+async def new_game(req: NewGameRequest, x_game_session: Optional[str] = Header(None)):
+    global CONFIG
+    session_id = normalize_game_session_id(x_game_session)
     if req.seed is not None:
         random.seed(req.seed)
 
@@ -4606,7 +4659,7 @@ async def new_game(req: NewGameRequest):
         _log(gs, f"Startcoordinaat {p.name}: {p.start_coord}")
 
     async with STATE_LOCK:
-        STATE = gs
+        set_game_state(session_id, gs)
 
     return ActionResponse(
         ok=True,
@@ -4619,7 +4672,8 @@ async def new_game(req: NewGameRequest):
     )
 
 @app.post("/api/question/next")
-async def next_question(payload: dict):
+async def next_question(payload: dict, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     theme_key = normalize_theme_key(payload.get("theme"))
 
     if theme_key not in THEMES:
@@ -4631,11 +4685,13 @@ async def next_question(payload: dict):
         if available_image_questions:
             selected_question = choose_image_round_question(available_image_questions)
     else:
+        async with STATE_LOCK:
+            gs = get_game_state(session_id)
         core_questions = rebalance_ai_question_answer_positions()
         selected_question = choose_core_question_for_mode(
             core_questions,
             theme_key,
-            current_question_difficulty_mode(),
+            current_question_difficulty_mode(gs),
         )
 
     if selected_question:
@@ -4795,7 +4851,8 @@ async def generate_ai_question(
         print("AI generation error:", e)
         raise HTTPException(500, "AI vraag kon niet gegenereerd worden.")
 @app.post("/api/question/answer")
-async def answer_question(payload: dict):
+async def answer_question(payload: dict, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     question_id = payload.get("id")
     chosen_index = payload.get("chosen_index")
 
@@ -4805,8 +4862,9 @@ async def answer_question(payload: dict):
         correct_index = question["correct_index"]
         is_correct = chosen_index == correct_index
         async with STATE_LOCK:
-            if STATE is not None:
-                record_group_question_result(STATE, question, is_correct, chosen_index)
+            gs = get_game_state(session_id)
+            if gs is not None:
+                record_group_question_result(gs, question, is_correct, chosen_index)
         correct_option = correct_option_text(question)
         return {
             "correct": is_correct,
@@ -4825,12 +4883,13 @@ async def answer_question(payload: dict):
 
 
 @app.post("/api/consensus/start")
-async def start_consensus_challenge():
+async def start_consensus_challenge(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
 
@@ -4884,14 +4943,16 @@ async def start_consensus_challenge():
 async def evaluate_consensus(
     payload: ConsensusEvaluationRequest,
     x_teacher_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
 ):
     require_teacher_password(x_teacher_password)
+    session_id = normalize_game_session_id(x_game_session)
 
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         if not gs.consensus_active or not gs.consensus_question:
             raise HTTPException(400, "Er is momenteel geen actieve ethische groepsvraag.")
 
@@ -4948,21 +5009,20 @@ async def evaluate_consensus(
 
 
 @app.get("/api/state", response_model=Optional[GameState])
-async def get_state():
+async def get_state(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
-            return None
-        return STATE
+        return get_game_state(session_id)
 
 
 @app.post("/api/reset", response_model=OptionalStateActionResponse)
-async def reset_game_state():
-    global STATE
-
+async def reset_game_state(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is not None:
-            _log(STATE, "Spel automatisch teruggezet naar het startscherm na 3 minuten zonder activiteit.")
-        STATE = None
+        gs = get_game_state(session_id)
+        if gs is not None:
+            _log(gs, "Spel automatisch teruggezet naar het startscherm na 3 minuten zonder activiteit.")
+        clear_game_state(session_id)
 
     reset_questions()
     return OptionalStateActionResponse(
@@ -4978,12 +5038,13 @@ async def get_all_time_ranking():
 
 
 @app.post("/api/ranking/finalize", response_model=ActionResponse)
-async def finalize_all_time_ranking(payload: RankingFinalizeRequest):
+async def finalize_all_time_ranking(payload: RankingFinalizeRequest, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         if gs.phase != "finished":
             raise HTTPException(400, "De ranking kan pas na het einde van het spel bevestigd worden.")
 
@@ -5028,11 +5089,14 @@ async def finalize_all_time_ranking(payload: RankingFinalizeRequest):
 async def download_group_evaluation_pdf(
     x_teacher_password: Optional[str] = Header(None),
     x_ai_owner_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
 ):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        state_snapshot = STATE.model_copy(deep=True)
+        state_snapshot = gs.model_copy(deep=True)
 
     pdf_bytes = build_group_evaluation_pdf(
         state_snapshot,
@@ -5050,12 +5114,13 @@ async def download_group_evaluation_pdf(
 
 
 @app.post("/api/timer/pause", response_model=ActionResponse)
-async def pause_timer():
+async def pause_timer(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "De spelklok kan nu niet gepauzeerd worden.")
 
@@ -5071,12 +5136,13 @@ async def pause_timer():
 
 
 @app.post("/api/timer/resume", response_model=ActionResponse)
-async def resume_timer():
+async def resume_timer(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
 
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "De spelklok kan nu niet hervat worden.")
 
@@ -5173,15 +5239,20 @@ async def update_teacher_ai_settings(
 
 
 @app.post("/api/ranking/clear")
-async def clear_all_time_ranking(x_teacher_password: Optional[str] = Header(None)):
+async def clear_all_time_ranking(
+    x_teacher_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
+):
     require_teacher_password(x_teacher_password)
+    session_id = normalize_game_session_id(x_game_session)
     save_all_time_ranking([])
 
     async with STATE_LOCK:
-        if STATE is not None:
-            STATE.all_time_ranking = []
+        gs = get_game_state(session_id)
+        if gs is not None:
+            gs.all_time_ranking = []
 
-        state_payload = STATE
+        state_payload = gs
 
     return {
         "ok": True,
@@ -5205,11 +5276,15 @@ async def pending_questions(x_teacher_password: Optional[str] = Header(None)):
 
 
 @app.get("/api/question/settings")
-async def get_question_settings(x_teacher_password: Optional[str] = Header(None)):
+async def get_question_settings(
+    x_teacher_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
+):
     require_teacher_password(x_teacher_password)
+    session_id = normalize_game_session_id(x_game_session)
 
     async with STATE_LOCK:
-        state_payload = STATE
+        state_payload = get_game_state(session_id)
 
     mode = normalize_question_difficulty_mode(
         getattr(state_payload, "question_difficulty_mode", None) if state_payload is not None else QUESTION_DIFFICULTY_MODE
@@ -5226,17 +5301,19 @@ async def get_question_settings(x_teacher_password: Optional[str] = Header(None)
 async def update_question_settings(
     payload: QuestionDifficultyModeRequest,
     x_teacher_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
 ):
     global QUESTION_DIFFICULTY_MODE
 
     require_teacher_password(x_teacher_password)
+    session_id = normalize_game_session_id(x_game_session)
     normalized_mode = normalize_question_difficulty_mode(payload.mode)
     QUESTION_DIFFICULTY_MODE = normalized_mode
 
     async with STATE_LOCK:
-        if STATE is not None:
-            STATE.question_difficulty_mode = normalized_mode
-        state_payload = STATE
+        state_payload = get_game_state(session_id)
+        if state_payload is not None:
+            state_payload.question_difficulty_mode = normalized_mode
 
     return {
         "ok": True,
@@ -5620,11 +5697,12 @@ async def create_teacher_question(
     }
     
 @app.post("/api/next_turn", response_model=ActionResponse)
-async def next_turn():
+async def next_turn(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, f"Spel is niet actief (phase={gs.phase}).")
 
@@ -5648,11 +5726,12 @@ async def next_turn():
 
 
 @app.post("/api/spawn", response_model=ActionResponse)
-async def spawn_item(req: SpawnRequest):
+async def spawn_item(req: SpawnRequest, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
 
@@ -5676,11 +5755,12 @@ async def spawn_item(req: SpawnRequest):
 
 
 @app.post("/api/item/remove", response_model=ActionResponse)
-async def remove_item(req: RemoveItemRequest):
+async def remove_item(req: RemoveItemRequest, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
 
@@ -5707,11 +5787,12 @@ async def remove_item(req: RemoveItemRequest):
 
 
 @app.post("/api/reveal_exit", response_model=ActionResponse)
-async def reveal_exit_manual():
+async def reveal_exit_manual(x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
         _reveal_exit(gs, reason="handmatig")
@@ -5719,11 +5800,12 @@ async def reveal_exit_manual():
 
 
 @app.post("/api/emergency/{player_id}", response_model=ActionResponse)
-async def press_emergency(player_id: str):
+async def press_emergency(player_id: str, x_game_session: Optional[str] = Header(None)):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
         if gs.emergency_pressed:
@@ -5761,7 +5843,11 @@ async def press_emergency(player_id: str):
 
 
 @app.post("/api/collect/{player_id}", response_model=ActionResponse)
-async def collect_on_tile(player_id: str, coord: Coord):
+async def collect_on_tile(
+    player_id: str,
+    coord: Coord,
+    x_game_session: Optional[str] = Header(None),
+):
     """
     Semi-manual helper:
     Call this when a player ends movement on a coord.
@@ -5769,10 +5855,11 @@ async def collect_on_tile(player_id: str, coord: Coord):
     For diamonds: +1 info card
     For dynamite: +1 dynamite
     """
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
 
@@ -5798,11 +5885,16 @@ async def collect_on_tile(player_id: str, coord: Coord):
 
 
 @app.post("/api/escape/{player_id}", response_model=ActionResponse)
-async def player_escape(player_id: str, coord: Optional[Coord] = None):
+async def player_escape(
+    player_id: str,
+    coord: Optional[Coord] = None,
+    x_game_session: Optional[str] = Header(None),
+):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        if STATE is None:
+        gs = get_game_state(session_id)
+        if gs is None:
             raise HTTPException(404, "Geen actief spel.")
-        gs = STATE
         if gs.phase not in ("running", "endgame"):
             raise HTTPException(400, "Spel is niet actief.")
         if not gs.exit_known or not gs.exit_coord:
@@ -6107,9 +6199,11 @@ async def chat(
     req: ChatRequest,
     x_teacher_password: Optional[str] = Header(None),
     x_ai_owner_password: Optional[str] = Header(None),
+    x_game_session: Optional[str] = Header(None),
 ):
+    session_id = normalize_game_session_id(x_game_session)
     async with STATE_LOCK:
-        gs = STATE
+        gs = get_game_state(session_id)
 
         # Minimal context: player inventory if player_id is provided
         player_ctx = ""
@@ -6126,8 +6220,9 @@ async def chat(
     fallback_reply = _bot_local_fallback(gs, user_msg)
     if fallback_reply:
         async with STATE_LOCK:
-            if STATE is not None:
-                _log(STATE, f"Aico regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
+            current_state = get_game_state(session_id)
+            if current_state is not None:
+                _log(current_state, f"Aico regelantwoord op '{user_msg[:40]}...': {fallback_reply[:60]}...")
         return {"reply": fallback_reply}
 
     if gs is None:
@@ -6163,8 +6258,9 @@ async def chat(
 
         # Log bot interaction briefly
         async with STATE_LOCK:
-            if STATE is not None:
-                _log(STATE, f"Aico antwoordt op '{user_msg[:40]}...': {reply[:60]}...")
+            current_state = get_game_state(session_id)
+            if current_state is not None:
+                _log(current_state, f"Aico antwoordt op '{user_msg[:40]}...': {reply[:60]}...")
         return {"reply": reply}
     except Exception:
         return {
