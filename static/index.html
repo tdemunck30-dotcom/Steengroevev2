@@ -1861,6 +1861,53 @@
             color: #fff7ef;
         }
 
+        .teacher-ai-source-toggle {
+            display: grid;
+            gap: 4px;
+            min-width: 190px;
+            padding: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #f6e8d3;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .teacher-ai-source-toggle span {
+            padding: 8px 10px 7px;
+            border-radius: 13px;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(246, 232, 211, 0.68);
+            text-align: center;
+        }
+
+        .teacher-ai-source-toggle strong {
+            display: block;
+            padding: 9px 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff7ef;
+            font-size: 0.9rem;
+            line-height: 1.15;
+            text-align: center;
+        }
+
+        .teacher-ai-source-toggle[data-mode="default"] strong {
+            background: linear-gradient(135deg, #35566b, #233c4f);
+        }
+
+        .teacher-ai-source-toggle[data-mode="byok"] strong {
+            background: linear-gradient(135deg, #27814d, #1d5f3d);
+        }
+
+        .teacher-ai-source-toggle[data-mode="disabled"] strong {
+            background: linear-gradient(135deg, #717982, #4d5660);
+        }
+
         .consensus-overlay-card {
             width: min(960px, 100%);
             max-height: min(92vh, 980px);
@@ -3751,6 +3798,17 @@
                         <span class="teacher-count-label">Nog na te kijken</span>
                         <strong id="teacherPendingCount" class="teacher-count">0</strong>
                     </div>
+                    <button
+                        id="teacherAISourceToggle"
+                        class="teacher-ai-source-toggle"
+                        data-mode="default"
+                        type="button"
+                        onclick="openTeacherAISettings()"
+                        aria-label="AI-bron aanpassen"
+                    >
+                        <span>AI-bron</span>
+                        <strong id="teacherAISourceLabel">Laden...</strong>
+                    </button>
                     <button class="teacher-refresh" type="button" onclick="refreshTeacherActivePanel()">Vernieuwen</button>
                     <button class="teacher-refresh" type="button" onclick="openTeacherAISettings()">AI-instellingen</button>
                     <button class="teacher-danger" type="button" onclick="clearAllTimeRanking()">Ranking leegmaken</button>
@@ -4660,11 +4718,36 @@
             return "nog " + hours + " u." + (rest ? " " + rest + " min." : "");
         }
 
+        function renderTeacherAISourceSummary(status = {}) {
+            const toggle = byId("teacherAISourceToggle");
+            const label = byId("teacherAISourceLabel");
+            if (!toggle || !label) {
+                return;
+            }
+
+            const mode = status.mode || "default";
+            toggle.dataset.mode = mode;
+
+            if (mode === "byok" && status.byok_active) {
+                label.textContent = "Eigen sleutel";
+            } else if (mode === "disabled") {
+                label.textContent = "Zonder AI";
+            } else if (status.server_key_available && !status.server_key_locked) {
+                label.textContent = "Serverkey actief";
+            } else if (status.server_key_available) {
+                label.textContent = "Serverkey vergrendeld";
+            } else {
+                label.textContent = "Geen sleutel";
+            }
+        }
+
         function renderTeacherAIStatus(status = {}) {
             const box = byId("teacherAIStatus");
             const title = document.createElement("strong");
             const detail = document.createElement("span");
             const mode = status.mode || "default";
+
+            renderTeacherAISourceSummary(status);
 
             if (mode === "byok" && status.byok_active) {
                 title.textContent = "BYOK actief";
@@ -4822,13 +4905,18 @@
             };
         }
 
-        async function ensureTeacherAIReadyForGeneration() {
+        async function ensureTeacherAIReadyForGeneration(options = {}) {
+            const allowWithoutAI = Boolean(options.allowWithoutAI);
             const status = await refreshTeacherAIStatus(true);
             if (!status) {
                 return false;
             }
 
             if (status.available) {
+                return true;
+            }
+
+            if (allowWithoutAI && status.mode === "disabled") {
                 return true;
             }
 
@@ -7144,8 +7232,17 @@
 
         async function downloadGroupEvaluationPdf() {
             try {
+                if (!teacherPassword) {
+                    openTeacherAuth("Geef het leerkrachtpaswoord in om het eindrapport met AI-instellingen te maken.", downloadGroupEvaluationPdf);
+                    return;
+                }
+
+                if (!(await ensureTeacherAIReadyForGeneration({allowWithoutAI: true}))) {
+                    return;
+                }
+
                 const response = await fetch("/api/evaluation/pdf", {
-                    headers: teacherPassword ? getTeacherAIRequestHeaders() : {}
+                    headers: getTeacherAIRequestHeaders()
                 });
 
                 if (!response.ok) {
@@ -7725,6 +7822,10 @@
             const input = byId("chatInput");
             const message = input.value.trim();
             if (!message) {
+                return;
+            }
+
+            if (teacherPassword && !(await ensureTeacherAIReadyForGeneration({allowWithoutAI: true}))) {
                 return;
             }
 
