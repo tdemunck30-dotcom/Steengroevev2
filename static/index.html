@@ -1834,6 +1834,29 @@
             padding: 28px;
         }
 
+        .teacher-ai-card {
+            width: min(640px, 100%);
+            display: grid;
+            gap: 18px;
+            padding: 28px;
+        }
+
+        .teacher-ai-status {
+            display: grid;
+            gap: 6px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 249, 240, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #eadfce;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .teacher-ai-status strong {
+            color: #fff7ef;
+        }
+
         .consensus-overlay-card {
             width: min(960px, 100%);
             max-height: min(92vh, 980px);
@@ -3632,6 +3655,50 @@
         </div>
     </div>
 
+    <div id="teacherAIOverlay" class="overlay" hidden>
+        <div class="overlay-card teacher-ai-card">
+            <div>
+                <span class="eyebrow">AI-instellingen</span>
+                <h2>Eigen AI-sleutel gebruiken</h2>
+                <p class="teacher-auth-copy">
+                    Kies of De diamantmijn de serverkey gebruikt, tijdelijk een eigen OpenAI-sleutel gebruikt, of zonder AI draait.
+                </p>
+            </div>
+            <div id="teacherAIStatus" class="teacher-ai-status" aria-live="polite">
+                <strong>Status laden...</strong>
+                <span>De sleutel zelf wordt nooit getoond.</span>
+            </div>
+            <form class="teacher-auth-form" onsubmit="saveTeacherBYOK(); return false;">
+                <div class="teacher-inline-field">
+                    <label for="teacherAIKeyInput">OpenAI API-sleutel</label>
+                    <input
+                        id="teacherAIKeyInput"
+                        type="password"
+                        placeholder="sk-..."
+                        autocomplete="off"
+                    />
+                </div>
+                <div class="teacher-inline-field">
+                    <label for="teacherAIKeyTtl">Vervalt na</label>
+                    <select id="teacherAIKeyTtl">
+                        <option value="30">30 minuten</option>
+                        <option value="60">1 uur</option>
+                        <option value="120" selected>2 uur</option>
+                        <option value="240">4 uur</option>
+                        <option value="480">8 uur</option>
+                    </select>
+                </div>
+            </form>
+            <div id="teacherAIMessage" class="message" aria-live="polite"></div>
+            <div class="teacher-auth-actions">
+                <button id="teacherAISaveBYOK" type="button" onclick="saveTeacherBYOK()">Tijdelijke sleutel activeren</button>
+                <button id="teacherAIUseDefault" class="ghost-button" type="button" onclick="setTeacherAIMode('default')">Serverkey gebruiken</button>
+                <button id="teacherAIDisable" class="teacher-danger" type="button" onclick="setTeacherAIMode('disabled')">AI uitzetten</button>
+                <button id="teacherAIClose" class="close-button" type="button" onclick="closeTeacherAISettings()">Sluiten</button>
+            </div>
+        </div>
+    </div>
+
     <div id="consensusOverlay" class="overlay" hidden>
         <div class="overlay-card consensus-overlay-card">
             <div class="question-top">
@@ -3672,6 +3739,7 @@
                         <strong id="teacherPendingCount" class="teacher-count">0</strong>
                     </div>
                     <button class="teacher-refresh" type="button" onclick="refreshTeacherActivePanel()">Vernieuwen</button>
+                    <button class="teacher-refresh" type="button" onclick="openTeacherAISettings()">AI-instellingen</button>
                     <button class="teacher-danger" type="button" onclick="clearAllTimeRanking()">Ranking leegmaken</button>
                     <button class="teacher-lock" type="button" onclick="lockTeacherReview()">Vergrendelen</button>
                     <button class="close-button" type="button" onclick="closeTeacherReview()">Sluiten</button>
@@ -4540,6 +4608,161 @@
             status.style.color = isError ? "#ffd0c8" : "#eadfce";
         }
 
+        function setTeacherAIMessage(text = "", isError = false) {
+            const status = byId("teacherAIMessage");
+            status.textContent = text;
+            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+        }
+
+        function setTeacherAIButtonsDisabled(disabled) {
+            [
+                "teacherAISaveBYOK",
+                "teacherAIUseDefault",
+                "teacherAIDisable",
+                "teacherAIClose",
+                "teacherAIKeyInput",
+                "teacherAIKeyTtl"
+            ].forEach((id) => {
+                const element = byId(id);
+                if (element) {
+                    element.disabled = disabled;
+                }
+            });
+        }
+
+        function formatAIExpiry(seconds) {
+            const value = Number(seconds || 0);
+            if (value <= 0) {
+                return "verlopen";
+            }
+            const minutes = Math.ceil(value / 60);
+            if (minutes < 60) {
+                return "nog " + minutes + " min.";
+            }
+            const hours = Math.floor(minutes / 60);
+            const rest = minutes % 60;
+            return "nog " + hours + " u." + (rest ? " " + rest + " min." : "");
+        }
+
+        function renderTeacherAIStatus(status = {}) {
+            const box = byId("teacherAIStatus");
+            const title = document.createElement("strong");
+            const detail = document.createElement("span");
+            const mode = status.mode || "default";
+
+            if (mode === "byok" && status.byok_active) {
+                title.textContent = "BYOK actief";
+                detail.textContent = "Eigen sleutel eindigt op " + (status.byok_last4 || "....") + " en vervalt " + formatAIExpiry(status.expires_in_seconds) + ".";
+            } else if (mode === "disabled") {
+                title.textContent = "AI staat uit";
+                detail.textContent = "De app blijft speelbaar met lokale hulp, bestaande vragen en handmatige leerkrachtvragen.";
+            } else if (status.server_key_available) {
+                title.textContent = "Serverkey actief";
+                detail.textContent = "De app gebruikt de OpenAI-sleutel uit de serveromgeving. De sleutel wordt hier niet getoond.";
+            } else {
+                title.textContent = "Geen AI-sleutel actief";
+                detail.textContent = "AI-generatie staat uit tot je een tijdelijke sleutel ingeeft of een serverkey instelt.";
+            }
+
+            box.replaceChildren(title, detail);
+        }
+
+        async function refreshTeacherAIStatus(showErrors = false) {
+            if (!teacherPassword) {
+                return null;
+            }
+
+            try {
+                const status = await fetchJson("/api/teacher/ai-settings", {
+                    headers: getTeacherRequestHeaders()
+                });
+                renderTeacherAIStatus(status);
+                return status;
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return null;
+                }
+                if (showErrors) {
+                    setTeacherAIMessage(error.message, true);
+                }
+                return null;
+            }
+        }
+
+        async function openTeacherAISettings() {
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om de AI-instellingen te openen.", openTeacherAISettings);
+                return;
+            }
+
+            byId("teacherAIOverlay").hidden = false;
+            byId("teacherAIKeyInput").value = "";
+            setTeacherAIMessage("");
+            await refreshTeacherAIStatus(true);
+            requestAnimationFrame(() => byId("teacherAIKeyInput").focus());
+        }
+
+        function closeTeacherAISettings() {
+            if (teacherAISettingsBusy) {
+                return;
+            }
+            byId("teacherAIOverlay").hidden = true;
+            byId("teacherAIKeyInput").value = "";
+            setTeacherAIMessage("");
+        }
+
+        async function updateTeacherAISettings(payload, busyMessage) {
+            if (teacherAISettingsBusy) {
+                return;
+            }
+            if (!teacherPassword) {
+                openTeacherAuth("Geef het leerkrachtpaswoord in om de AI-instellingen aan te passen.", openTeacherAISettings);
+                return;
+            }
+
+            teacherAISettingsBusy = true;
+            setTeacherAIButtonsDisabled(true);
+            setTeacherAIMessage(busyMessage || "AI-instellingen worden opgeslagen...");
+
+            try {
+                const data = await fetchJson("/api/teacher/ai-settings", {
+                    method: "POST",
+                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    body: JSON.stringify(payload)
+                });
+                renderTeacherAIStatus(data.status || {});
+                byId("teacherAIKeyInput").value = "";
+                setTeacherAIMessage(data.message || "AI-instellingen opgeslagen.");
+                setTeacherReviewStatus(data.message || "");
+            } catch (error) {
+                if (handleTeacherAuthFailure(error)) {
+                    return;
+                }
+                setTeacherAIMessage(error.message, true);
+            } finally {
+                teacherAISettingsBusy = false;
+                setTeacherAIButtonsDisabled(false);
+            }
+        }
+
+        function saveTeacherBYOK() {
+            const apiKey = byId("teacherAIKeyInput").value.trim();
+            const ttlMinutes = Number(byId("teacherAIKeyTtl").value || 120);
+            if (!apiKey) {
+                setTeacherAIMessage("Geef eerst een OpenAI API-sleutel in.", true);
+                byId("teacherAIKeyInput").focus();
+                return;
+            }
+            updateTeacherAISettings(
+                {mode: "byok", api_key: apiKey, ttl_minutes: ttlMinutes},
+                "Tijdelijke sleutel wordt geactiveerd..."
+            );
+        }
+
+        function setTeacherAIMode(mode) {
+            updateTeacherAISettings({mode}, mode === "disabled" ? "AI wordt uitgezet..." : "Serverkey wordt opnieuw gekozen...");
+        }
+
         function setTeacherAuthButtonsDisabled(disabled) {
             byId("teacherAuthSubmit").disabled = disabled;
             byId("teacherAuthCancel").disabled = disabled;
@@ -4585,6 +4808,7 @@
 
             teacherPassword = "";
             byId("teacherOverlay").hidden = true;
+            byId("teacherAIOverlay").hidden = true;
             openTeacherAuth(error.message || "Geef het leerkrachtpaswoord opnieuw in.");
             setTeacherReviewStatus("");
             setTeacherDeleteStatus("");
@@ -4596,6 +4820,7 @@
             teacherPassword = "";
             closeTeacherReview();
             closeTeacherAuth();
+            closeTeacherAISettings();
             setStatusMessage("Leerkrachtgedeelte is opnieuw vergrendeld.");
         }
 
@@ -5303,6 +5528,7 @@
                     async () => {
                         byId("teacherOverlay").hidden = false;
                         setTeacherMode("review", {scroll: false, refresh: false});
+                        await refreshTeacherAIStatus();
                         await loadTeacherQuestionSettings(true);
                         await refreshTeacherQuestions(true);
                         await refreshTeacherRemovableQuestions(true);
@@ -5313,6 +5539,7 @@
 
             byId("teacherOverlay").hidden = false;
             setTeacherMode("review", {scroll: false, refresh: false});
+            refreshTeacherAIStatus();
             loadTeacherQuestionSettings();
             refreshTeacherQuestions();
             refreshTeacherRemovableQuestions();
@@ -5320,6 +5547,7 @@
 
         function closeTeacherReview() {
             byId("teacherOverlay").hidden = true;
+            closeTeacherAISettings();
             setTeacherReviewStatus("");
             setTeacherManualStatus("");
             setTeacherDeleteStatus("");
@@ -6831,13 +7059,35 @@
             });
         }
 
-        function downloadGroupEvaluationPdf() {
-            const link = document.createElement("a");
-            link.href = "/api/evaluation/pdf";
-            link.download = "groepsevaluatie-ai-geletterdheid.pdf";
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+        async function downloadGroupEvaluationPdf() {
+            try {
+                const response = await fetch("/api/evaluation/pdf", {
+                    headers: teacherPassword ? getTeacherRequestHeaders() : {}
+                });
+
+                if (!response.ok) {
+                    let data = {};
+                    try {
+                        data = await response.json();
+                    } catch (error) {
+                        data = {};
+                    }
+                    throw new Error(data.detail || data.message || "Het groepsverslag kon niet gedownload worden.");
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = "groepsevaluatie-ai-geletterdheid.pdf";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                setStatusMessage(error.message);
+                setTeacherReviewStatus(error.message, true);
+            }
         }
 
         function renderGroupEvaluationDownload(state) {
@@ -7402,7 +7652,9 @@
                 const currentPlayer = getCurrentPlayerInfo(latestState);
                 const data = await fetchJson("/api/chat", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: teacherPassword
+                        ? getTeacherRequestHeaders({"Content-Type": "application/json"})
+                        : {"Content-Type": "application/json"},
                     body: JSON.stringify({
                         player_id: currentPlayer ? currentPlayer.id : null,
                         message
