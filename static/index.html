@@ -3670,6 +3670,15 @@
             </div>
             <form class="teacher-auth-form" onsubmit="saveTeacherBYOK(); return false;">
                 <div class="teacher-inline-field">
+                    <label for="teacherAIOwnerPasswordInput">Eigenaarspaswoord voor serverkey</label>
+                    <input
+                        id="teacherAIOwnerPasswordInput"
+                        type="password"
+                        placeholder="Alleen nodig voor serverkey"
+                        autocomplete="off"
+                    />
+                </div>
+                <div class="teacher-inline-field">
                     <label for="teacherAIKeyInput">OpenAI API-sleutel</label>
                     <input
                         id="teacherAIKeyInput"
@@ -4060,8 +4069,10 @@
         let teacherDeleteBusy = false;
         let teacherQuestionSettingsBusy = false;
         let teacherAuthBusy = false;
+        let teacherAISettingsBusy = false;
         let teacherAuthSuccessAction = null;
         let teacherPassword = "";
+        let aiOwnerPassword = "";
         let teacherQuestionDifficultyMode = "mix";
         let consensusBusy = false;
         let timerControlBusy = false;
@@ -4620,6 +4631,7 @@
                 "teacherAIUseDefault",
                 "teacherAIDisable",
                 "teacherAIClose",
+                "teacherAIOwnerPasswordInput",
                 "teacherAIKeyInput",
                 "teacherAIKeyTtl"
             ].forEach((id) => {
@@ -4656,9 +4668,14 @@
             } else if (mode === "disabled") {
                 title.textContent = "AI staat uit";
                 detail.textContent = "De app blijft speelbaar met lokale hulp, bestaande vragen en handmatige leerkrachtvragen.";
+            } else if (status.server_key_locked) {
+                title.textContent = "Serverkey vergrendeld";
+                detail.textContent = status.server_key_owner_configured
+                    ? "Geef het eigenaarspaswoord in om jouw serverkey in deze browser te gebruiken."
+                    : "Stel eerst AI_OWNER_PASSWORD in op Render om jouw serverkey af te schermen.";
             } else if (status.server_key_available) {
                 title.textContent = "Serverkey actief";
-                detail.textContent = "De app gebruikt de OpenAI-sleutel uit de serveromgeving. De sleutel wordt hier niet getoond.";
+                detail.textContent = "Deze browser mag jouw serverkey gebruiken. De sleutel zelf wordt hier niet getoond.";
             } else {
                 title.textContent = "Geen AI-sleutel actief";
                 detail.textContent = "AI-generatie staat uit tot je een tijdelijke sleutel ingeeft of een serverkey instelt.";
@@ -4674,7 +4691,7 @@
 
             try {
                 const status = await fetchJson("/api/teacher/ai-settings", {
-                    headers: getTeacherRequestHeaders()
+                    headers: getTeacherAIRequestHeaders()
                 });
                 renderTeacherAIStatus(status);
                 return status;
@@ -4697,9 +4714,10 @@
 
             byId("teacherAIOverlay").hidden = false;
             byId("teacherAIKeyInput").value = "";
+            byId("teacherAIOwnerPasswordInput").value = "";
             setTeacherAIMessage("");
             await refreshTeacherAIStatus(true);
-            requestAnimationFrame(() => byId("teacherAIKeyInput").focus());
+            requestAnimationFrame(() => byId("teacherAIOwnerPasswordInput").focus());
         }
 
         function closeTeacherAISettings() {
@@ -4708,6 +4726,7 @@
             }
             byId("teacherAIOverlay").hidden = true;
             byId("teacherAIKeyInput").value = "";
+            byId("teacherAIOwnerPasswordInput").value = "";
             setTeacherAIMessage("");
         }
 
@@ -4727,11 +4746,12 @@
             try {
                 const data = await fetchJson("/api/teacher/ai-settings", {
                     method: "POST",
-                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    headers: getTeacherAIRequestHeaders({"Content-Type": "application/json"}),
                     body: JSON.stringify(payload)
                 });
                 renderTeacherAIStatus(data.status || {});
                 byId("teacherAIKeyInput").value = "";
+                byId("teacherAIOwnerPasswordInput").value = "";
                 setTeacherAIMessage(data.message || "AI-instellingen opgeslagen.");
                 setTeacherReviewStatus(data.message || "");
             } catch (error) {
@@ -4760,12 +4780,32 @@
         }
 
         function setTeacherAIMode(mode) {
-            updateTeacherAISettings({mode}, mode === "disabled" ? "AI wordt uitgezet..." : "Serverkey wordt opnieuw gekozen...");
+            const ownerPassword = byId("teacherAIOwnerPasswordInput").value.trim();
+            if (mode === "default") {
+                if (!ownerPassword && !aiOwnerPassword) {
+                    setTeacherAIMessage("Geef eerst het eigenaarspaswoord in om de serverkey te gebruiken.", true);
+                    byId("teacherAIOwnerPasswordInput").focus();
+                    return;
+                }
+                aiOwnerPassword = ownerPassword || aiOwnerPassword;
+            }
+            updateTeacherAISettings(
+                {mode, owner_password: mode === "default" ? aiOwnerPassword : undefined},
+                mode === "disabled" ? "AI wordt uitgezet..." : "Serverkey wordt opnieuw gekozen..."
+            );
         }
 
         function setTeacherAuthButtonsDisabled(disabled) {
             byId("teacherAuthSubmit").disabled = disabled;
             byId("teacherAuthCancel").disabled = disabled;
+        }
+
+        function getTeacherAIRequestHeaders(headers = {}) {
+            const nextHeaders = getTeacherRequestHeaders(headers);
+            if (aiOwnerPassword) {
+                nextHeaders["X-AI-Owner-Password"] = aiOwnerPassword;
+            }
+            return nextHeaders;
         }
 
         function getTeacherRequestHeaders(headers = {}) {
@@ -4807,6 +4847,7 @@
             }
 
             teacherPassword = "";
+            aiOwnerPassword = "";
             byId("teacherOverlay").hidden = true;
             byId("teacherAIOverlay").hidden = true;
             openTeacherAuth(error.message || "Geef het leerkrachtpaswoord opnieuw in.");
@@ -4818,6 +4859,7 @@
 
         function lockTeacherReview() {
             teacherPassword = "";
+            aiOwnerPassword = "";
             closeTeacherReview();
             closeTeacherAuth();
             closeTeacherAISettings();
@@ -5579,7 +5621,7 @@
             try {
                 const data = await fetchJson("/api/question/generate?theme=" + encodeURIComponent(theme), {
                     method: "POST",
-                    headers: getTeacherRequestHeaders()
+                    headers: getTeacherAIRequestHeaders()
                 });
 
                 const label = themeLabels[theme] || theme;
@@ -5641,7 +5683,7 @@
             try {
                 const data = await fetchJson("/api/question/image-set/generate", {
                     method: "POST",
-                    headers: getTeacherRequestHeaders({"Content-Type": "application/json"}),
+                    headers: getTeacherAIRequestHeaders({"Content-Type": "application/json"}),
                     body: JSON.stringify(payload)
                 });
 
@@ -7062,7 +7104,7 @@
         async function downloadGroupEvaluationPdf() {
             try {
                 const response = await fetch("/api/evaluation/pdf", {
-                    headers: teacherPassword ? getTeacherRequestHeaders() : {}
+                    headers: teacherPassword ? getTeacherAIRequestHeaders() : {}
                 });
 
                 if (!response.ok) {
@@ -7653,7 +7695,7 @@
                 const data = await fetchJson("/api/chat", {
                     method: "POST",
                     headers: teacherPassword
-                        ? getTeacherRequestHeaders({"Content-Type": "application/json"})
+                        ? getTeacherAIRequestHeaders({"Content-Type": "application/json"})
                         : {"Content-Type": "application/json"},
                     body: JSON.stringify({
                         player_id: currentPlayer ? currentPlayer.id : null,

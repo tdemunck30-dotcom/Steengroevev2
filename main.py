@@ -563,6 +563,7 @@ except Exception:
 
 TEACHER_PASSWORD = os.getenv("TEACHER_PASSWORD", "double diamond").strip()
 OPENAI_API_KEY = (os.getenv("OPENAI_API_KEY") or "").strip()
+AI_OWNER_PASSWORD = (os.getenv("AI_OWNER_PASSWORD") or "").strip()
 
 # OpenAI client (Aico)
 # Works with the "openai" python package (new style client).
@@ -696,31 +697,41 @@ def cleanup_expired_byok_key(now: Optional[float] = None) -> None:
         })
 
 
-def get_openai_client():
+def has_valid_ai_owner_password(x_ai_owner_password: Optional[str]) -> bool:
+    return bool(AI_OWNER_PASSWORD) and (x_ai_owner_password or "").strip() == AI_OWNER_PASSWORD
+
+
+def get_openai_client(allow_server_key: bool = False):
     cleanup_expired_byok_key()
     if AI_RUNTIME_CONFIG.get("mode") == "disabled":
         return None
     if AI_RUNTIME_CONFIG.get("mode") == "byok":
         return AI_RUNTIME_CONFIG.get("byok_client")
-    return _client
+    if allow_server_key:
+        return _client
+    return None
 
 
 def openai_unavailable_message() -> str:
     if AI_RUNTIME_CONFIG.get("mode") == "disabled":
         return "AI staat momenteel uit in de leerkrachtenmodule."
-    return "OpenAI client niet beschikbaar. Stel een serverkey in of gebruik tijdelijk BYOK in de leerkrachtenmodule."
+    return "OpenAI client niet beschikbaar. Gebruik BYOK of ontgrendel de serverkey met het eigenaarspaswoord."
 
 
-def build_ai_runtime_status() -> dict:
+def build_ai_runtime_status(owner_verified: bool = False) -> dict:
     cleanup_expired_byok_key()
     mode = str(AI_RUNTIME_CONFIG.get("mode") or "default")
-    client = get_openai_client()
+    client = get_openai_client(allow_server_key=owner_verified)
     expires_at = float(AI_RUNTIME_CONFIG.get("byok_expires_at") or 0)
     expires_in = max(0, int(expires_at - time.time())) if mode == "byok" and expires_at else 0
     return {
         "mode": mode,
         "available": client is not None,
         "server_key_available": _client is not None,
+        "server_key_owner_required": _client is not None,
+        "server_key_owner_configured": bool(AI_OWNER_PASSWORD),
+        "server_key_owner_verified": owner_verified,
+        "server_key_locked": mode == "default" and _client is not None and not owner_verified,
         "byok_active": mode == "byok" and client is not None,
         "byok_last4": AI_RUNTIME_CONFIG.get("byok_last4") or "",
         "expires_at": expires_at if mode == "byok" else None,
@@ -1489,13 +1500,14 @@ def explain_generated_ai_image(
     image_bytes: bytes,
     output_format: str = "png",
     image_alt: str = "",
+    allow_server_key: bool = False,
 ) -> str:
     fallback = (
         "Er zit in dit beeld een klein detail dat niet logisch doorloopt, zoals een vervormde rand, een rare reflectie of tekst die half verandert. "
         "Tip: kies één verdacht stukje en volg dat detail heel precies, bijvoorbeeld langs een raamrand, vinger, letter of schaduw."
     )
 
-    client = get_openai_client()
+    client = get_openai_client(allow_server_key=allow_server_key)
     if client is None or not image_bytes:
         return fallback
 
@@ -1590,8 +1602,8 @@ def build_auto_image_prompt(scene: dict, focus: str = "") -> str:
     )
 
 
-def generate_ai_mix_image(scene: dict, focus: str = "") -> dict:
-    client = get_openai_client()
+def generate_ai_mix_image(scene: dict, focus: str = "", allow_server_key: bool = False) -> dict:
+    client = get_openai_client(allow_server_key=allow_server_key)
     if client is None:
         raise HTTPException(500, openai_unavailable_message())
 
@@ -1645,12 +1657,13 @@ def generate_ai_mix_image(scene: dict, focus: str = "") -> dict:
             image_bytes,
             output_format,
             str(scene.get("alt") or "AI-gegenereerde foto"),
+            allow_server_key=allow_server_key,
         ),
     }
 
 
-def seed_ai_image_question_pool_if_needed() -> int:
-    if get_openai_client() is None:
+def seed_ai_image_question_pool_if_needed(allow_server_key: bool = False) -> int:
+    if get_openai_client(allow_server_key=allow_server_key) is None:
         return 0
 
     existing_image_questions = load_image_questions()
@@ -1677,7 +1690,7 @@ def seed_ai_image_question_pool_if_needed() -> int:
 
     for scene in scenes:
         try:
-            generated_image = generate_ai_mix_image(scene)
+            generated_image = generate_ai_mix_image(scene, allow_server_key=allow_server_key)
         except HTTPException as exc:
             print("AI pool seed skipped:", exc.detail)
             break
@@ -2842,6 +2855,7 @@ class TeacherQuestionDeleteRequest(BaseModel):
 class TeacherAISettingsRequest(BaseModel):
     mode: Literal["default", "byok", "disabled"]
     api_key: Optional[str] = None
+    owner_password: Optional[str] = None
     ttl_minutes: int = Field(default=AI_BYOK_DEFAULT_TTL_MINUTES, ge=5, le=AI_BYOK_MAX_TTL_MINUTES)
 
 
@@ -3217,10 +3231,14 @@ def group_evaluation_ai_report_cache_key(payload: dict) -> str:
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
-def build_ai_group_evaluation_report_rows(gs: GameState, allow_ai: bool = False) -> Optional[List[Tuple[str, int, int]]]:
+def build_ai_group_evaluation_report_rows(
+    gs: GameState,
+    allow_ai: bool = False,
+    allow_server_key: bool = False,
+) -> Optional[List[Tuple[str, int, int]]]:
     if not allow_ai:
         return None
-    client = get_openai_client()
+    client = get_openai_client(allow_server_key=allow_server_key)
     if client is None or gs.group_evaluation.total_answered <= 0:
         return None
 
@@ -4161,8 +4179,12 @@ def build_text_pdf(rows: List[Tuple[str, int, int]]) -> bytes:
     return pdf
 
 
-def build_group_evaluation_pdf(gs: GameState, allow_ai: bool = False) -> bytes:
-    rows = build_ai_group_evaluation_report_rows(gs, allow_ai=allow_ai) or student_group_evaluation_report_rows(gs)
+def build_group_evaluation_pdf(gs: GameState, allow_ai: bool = False, allow_server_key: bool = False) -> bytes:
+    rows = build_ai_group_evaluation_report_rows(
+        gs,
+        allow_ai=allow_ai,
+        allow_server_key=allow_server_key,
+    ) or student_group_evaluation_report_rows(gs)
     return build_text_pdf(rows)
 
 def _choose_start_coords(names: List[str], min_dist: int, seed: Optional[int]) -> List[Coord]:
@@ -4466,17 +4488,17 @@ def preload_runtime_caches() -> None:
     load_all_time_ranking()
 
 
-async def ensure_ai_image_pool_background(allow_ai: bool = False) -> int:
+async def ensure_ai_image_pool_background(allow_ai: bool = False, allow_server_key: bool = False) -> int:
     if not allow_ai:
         return 0
-    if get_openai_client() is None:
+    if get_openai_client(allow_server_key=allow_server_key) is None:
         return 0
     if AI_IMAGE_POOL_LOCK.locked():
         return 0
 
     async with AI_IMAGE_POOL_LOCK:
         try:
-            return await asyncio.to_thread(seed_ai_image_question_pool_if_needed)
+            return await asyncio.to_thread(seed_ai_image_question_pool_if_needed, allow_server_key)
         except Exception as exc:
             print("AI image pool seed error:", exc)
             return 0
@@ -4621,7 +4643,11 @@ async def next_question(payload: dict):
 
     return {"message": "Geen beschikbare vragen meer voor dit thema."}
 @app.post("/api/question/generate")
-async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = Header(None)):
+async def generate_ai_question(
+    theme: str,
+    x_teacher_password: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     require_teacher_password(x_teacher_password)
 
     theme = normalize_theme_key(theme)
@@ -4634,7 +4660,7 @@ async def generate_ai_question(theme: str, x_teacher_password: Optional[str] = H
             "De beeldronde gebruikt alleen beeldvragen. Gebruik de automatische beeldmix of voeg handmatig een beeldvraag toe.",
         )
 
-    client = get_openai_client()
+    client = get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password))
     if client is None:
         raise HTTPException(500, openai_unavailable_message())
 
@@ -4999,7 +5025,10 @@ async def finalize_all_time_ranking(payload: RankingFinalizeRequest):
 
 
 @app.get("/api/evaluation/pdf")
-async def download_group_evaluation_pdf(x_teacher_password: Optional[str] = Header(None)):
+async def download_group_evaluation_pdf(
+    x_teacher_password: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     async with STATE_LOCK:
         if STATE is None:
             raise HTTPException(404, "Geen actief spel.")
@@ -5008,6 +5037,7 @@ async def download_group_evaluation_pdf(x_teacher_password: Optional[str] = Head
     pdf_bytes = build_group_evaluation_pdf(
         state_snapshot,
         allow_ai=has_valid_teacher_password(x_teacher_password),
+        allow_server_key=has_valid_ai_owner_password(x_ai_owner_password),
     )
 
     return Response(
@@ -5071,9 +5101,12 @@ async def teacher_auth_check(x_teacher_password: Optional[str] = Header(None)):
 
 
 @app.get("/api/teacher/ai-settings")
-async def get_teacher_ai_settings(x_teacher_password: Optional[str] = Header(None)):
+async def get_teacher_ai_settings(
+    x_teacher_password: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     require_teacher_password(x_teacher_password)
-    return build_ai_runtime_status()
+    return build_ai_runtime_status(owner_verified=has_valid_ai_owner_password(x_ai_owner_password))
 
 
 @app.post("/api/teacher/ai-settings")
@@ -5082,6 +5115,7 @@ async def update_teacher_ai_settings(
     x_teacher_password: Optional[str] = Header(None),
 ):
     require_teacher_password(x_teacher_password)
+    owner_verified = has_valid_ai_owner_password(payload.owner_password)
 
     if payload.mode == "disabled":
         AI_RUNTIME_CONFIG.update({
@@ -5093,10 +5127,18 @@ async def update_teacher_ai_settings(
         return {
             "ok": True,
             "message": "AI staat uit. De app blijft werken met lokale hulp en bestaande vragen.",
-            "status": build_ai_runtime_status(),
+            "status": build_ai_runtime_status(owner_verified=owner_verified),
         }
 
     if payload.mode == "default":
+        if _client is not None:
+            if not AI_OWNER_PASSWORD:
+                raise HTTPException(
+                    403,
+                    "Serverkey is beschermd. Stel eerst AI_OWNER_PASSWORD in als environment variable.",
+                )
+            if not owner_verified:
+                raise HTTPException(403, "Alleen de eigenaar kan de serverkey gebruiken.")
         AI_RUNTIME_CONFIG.update({
             "mode": "default",
             "byok_client": None,
@@ -5108,7 +5150,7 @@ async def update_teacher_ai_settings(
             if _client is not None
             else "Er is geen serverkey ingesteld. De app werkt zonder AI tot er een BYOK-sleutel wordt ingesteld."
         )
-        return {"ok": True, "message": message, "status": build_ai_runtime_status()}
+        return {"ok": True, "message": message, "status": build_ai_runtime_status(owner_verified=owner_verified)}
 
     api_key = str(payload.api_key or "").strip()
     if not api_key:
@@ -5126,7 +5168,7 @@ async def update_teacher_ai_settings(
     return {
         "ok": True,
         "message": f"BYOK is actief voor {ttl_minutes} minuten. De sleutel wordt niet getoond en vervalt automatisch.",
-        "status": build_ai_runtime_status(),
+        "status": build_ai_runtime_status(owner_verified=owner_verified),
     }
 
 
@@ -5307,8 +5349,10 @@ async def upload_teacher_image(
 async def generate_teacher_image_set(
     payload: TeacherAutoImageSetRequest,
     x_teacher_password: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
 ):
     require_teacher_password(x_teacher_password)
+    allow_server_key = has_valid_ai_owner_password(x_ai_owner_password)
 
     focus = str(payload.focus or "").strip()
     existing_image_questions = load_image_questions()
@@ -5337,14 +5381,14 @@ async def generate_teacher_image_set(
     generated_ai_count = 0
     fallback_ai_count = 0
     openai_failed = False
-    client_available = get_openai_client() is not None
+    client_available = get_openai_client(allow_server_key=allow_server_key) is not None
 
     for scene in selected_scenes:
         if openai_failed or not client_available:
             break
 
         try:
-            generated_image = generate_ai_mix_image(scene, focus)
+            generated_image = generate_ai_mix_image(scene, focus, allow_server_key=allow_server_key)
         except HTTPException as exc:
             print("AI image mix fallback:", exc.detail)
             if exc.status_code in (502, 503):
@@ -6059,7 +6103,11 @@ Officiële regels:
 """
 
 @app.post("/api/chat", response_model=dict)
-async def chat(req: ChatRequest, x_teacher_password: Optional[str] = Header(None)):
+async def chat(
+    req: ChatRequest,
+    x_teacher_password: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     async with STATE_LOCK:
         gs = STATE
 
@@ -6085,7 +6133,11 @@ async def chat(req: ChatRequest, x_teacher_password: Optional[str] = Header(None
     if gs is None:
         return {"reply": _bot_intro_reply()}
 
-    client = get_openai_client() if has_valid_teacher_password(x_teacher_password) else None
+    client = (
+        get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password))
+        if has_valid_teacher_password(x_teacher_password)
+        else None
+    )
     if client is None:
         return {
             "reply": (
