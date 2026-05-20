@@ -2941,6 +2941,46 @@
             box-shadow: none;
         }
 
+        .prompt-mission-card {
+            display: grid;
+            gap: 14px;
+            padding: 20px;
+            border-radius: 22px;
+            background: rgba(255, 249, 240, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .prompt-mission-card strong {
+            color: #fff4dd;
+        }
+
+        .prompt-mission-card p {
+            margin: 0;
+            color: rgba(255, 248, 239, 0.86);
+            line-height: 1.5;
+        }
+
+        .weak-prompt-box {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(181, 65, 44, 0.18);
+            border: 1px solid rgba(255, 143, 128, 0.28);
+            color: #fff8ef;
+            font-weight: 800;
+        }
+
+        .prompt-mission-card textarea {
+            min-height: 150px;
+            background: rgba(255, 255, 255, 0.96);
+            color: var(--stone);
+        }
+
+        .prompt-submit-button {
+            justify-content: center !important;
+            text-align: center !important;
+            background: linear-gradient(135deg, #2f8f5b, #236846) !important;
+        }
+
         .feedback-panel {
             min-height: 28px;
             margin: 20px 0 0;
@@ -4168,6 +4208,7 @@
         }
 
         let currentQuestionId = null;
+        let currentQuestionData = null;
         let questionLocked = false;
         let questionAnswered = false;
         let questionTurnBusy = false;
@@ -6355,6 +6396,7 @@
             byId("questionDifficultyBadge").hidden = true;
             byId("questionDifficultyBadge").textContent = "";
             currentQuestionId = null;
+            currentQuestionData = null;
             questionLocked = false;
 
             const shouldAdvance = Boolean(
@@ -6435,7 +6477,7 @@
 
         function setQuestionButtonsDisabled(disabled) {
             byId("optionsContainer")
-                .querySelectorAll("button.answer-option")
+                .querySelectorAll("button.answer-option, button.prompt-submit-button")
                 .forEach((button) => {
                     button.disabled = disabled;
                 });
@@ -6495,6 +6537,50 @@
             button.appendChild(key);
             button.appendChild(text);
             return button;
+        }
+
+        function renderPromptMission(question) {
+            const container = byId("optionsContainer");
+            container.replaceChildren();
+
+            const card = document.createElement("div");
+            card.className = "prompt-mission-card";
+
+            const situation = document.createElement("p");
+            situation.innerHTML = "<strong>Situatie:</strong> " + escapeHtml(question.situation || "");
+
+            const weakPrompt = document.createElement("div");
+            weakPrompt.className = "weak-prompt-box";
+            weakPrompt.textContent = "Zwakke prompt: " + (question.weak_prompt || "");
+
+            const goal = document.createElement("p");
+            goal.innerHTML = "<strong>Doel:</strong> " + escapeHtml(question.goal || "Maak de prompt duidelijker en nuttiger.");
+
+            const textarea = document.createElement("textarea");
+            textarea.id = "promptImprovementInput";
+            textarea.placeholder = "Schrijf hier jullie verbeterde prompt...";
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "prompt-submit-button";
+            button.textContent = "Laat Aico beoordelen";
+            button.onclick = submitPromptImprovement;
+
+            card.appendChild(situation);
+            card.appendChild(weakPrompt);
+            card.appendChild(goal);
+            card.appendChild(textarea);
+            card.appendChild(button);
+            container.appendChild(card);
+        }
+
+        function escapeHtml(value) {
+            return String(value || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         function createPlayerInput(value = "") {
@@ -7938,7 +8024,9 @@
             try {
                 const data = await fetchJson("/api/question/next", {
                     method: "POST",
-                    headers: {"Content-Type": "application/json"},
+                    headers: teacherPassword
+                        ? getTeacherAIRequestHeaders({"Content-Type": "application/json"})
+                        : {"Content-Type": "application/json"},
                     body: JSON.stringify({theme})
                 });
 
@@ -7948,6 +8036,7 @@
                 }
 
                 currentQuestionId = data.id;
+                currentQuestionData = data;
                 questionLocked = false;
                 questionAnswered = false;
                 questionTurnPlayerName = getCurrentPlayer(latestState);
@@ -7970,9 +8059,13 @@
                 resetAnswerPopup();
                 byId("optionsContainer").replaceChildren();
 
-                data.options.forEach((option, index) => {
-                    byId("optionsContainer").appendChild(createAnswerButton(option, index));
-                });
+                if (data.type === "prompt_improvement") {
+                    renderPromptMission(data);
+                } else {
+                    data.options.forEach((option, index) => {
+                        byId("optionsContainer").appendChild(createAnswerButton(option, index));
+                    });
+                }
 
                 byId("questionOverlay").hidden = false;
             } catch (error) {
@@ -8069,6 +8162,86 @@
                 questionLocked = false;
                 setQuestionButtonsDisabled(false);
                 setStatusMessage(error.message);
+            }
+        }
+
+        async function submitPromptImprovement() {
+            if (!currentQuestionId || questionLocked || !currentQuestionData) {
+                return;
+            }
+
+            const input = byId("promptImprovementInput");
+            const submittedPrompt = input ? input.value.trim() : "";
+            if (submittedPrompt.length < 12) {
+                setQuestionFeedback("error", "Nog iets te kort.", "Schrijf een duidelijkere prompt met context, doel en gewenste vorm.");
+                return;
+            }
+
+            questionLocked = true;
+            setQuestionButtonsDisabled(true);
+            if (input) {
+                input.disabled = true;
+            }
+            setQuestionFeedback("", "", "");
+
+            try {
+                const data = await fetchJson("/api/question/answer", {
+                    method: "POST",
+                    headers: teacherPassword
+                        ? getTeacherAIRequestHeaders({"Content-Type": "application/json"})
+                        : {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        id: currentQuestionId,
+                        submitted_prompt: submittedPrompt,
+                        situation: currentQuestionData.situation || "",
+                        weak_prompt: currentQuestionData.weak_prompt || "",
+                        goal: currentQuestionData.goal || ""
+                    })
+                });
+
+                questionAnswered = true;
+                const scoreLabel = data.correct_label || ("Score " + (data.score || "?") + "/4");
+                const explanation = (data.explanation || "").trim();
+                const examplePrompt = (data.correct_option || "").trim();
+
+                if (data.correct) {
+                    setQuestionFeedback("success", "Sterke prompt.", explanation + " Je mag nu zelf 3 tegels leggen waar je wil.");
+                    showAnswerPopup({
+                        title: "Prompt goedgekeurd",
+                        answer: scoreLabel,
+                        detail: examplePrompt ? explanation + " Voorbeeld: " + examplePrompt : explanation,
+                        noteTitle: "Wat nu?",
+                        noteText: "Je mag nu zelf 3 tegels leggen waar je wil."
+                    });
+                } else {
+                    let autoCoord = "";
+                    try {
+                        const autoData = await fetchJson("/api/tile/auto_place", {method: "POST"});
+                        autoCoord = String(autoData.coord || "").trim();
+                    } catch (coordError) {
+                        console.error("Auto place error after prompt mission:", coordError);
+                    }
+                    setQuestionFeedback("error", "Prompt kan sterker.", explanation || "Maak duidelijker wat AI moet doen, voor wie en in welke vorm.", autoCoord);
+                    showAnswerPopup({
+                        title: "Nog wat scherper maken",
+                        answer: scoreLabel,
+                        detail: examplePrompt ? explanation + " Voorbeeld: " + examplePrompt : explanation,
+                        noteTitle: "Wat nu?",
+                        noteText: autoCoord
+                            ? "De tegel moet nu geplaatst worden op dit coordinaat:"
+                            : "Vraag de leerkracht om meteen een plaatsingscoordinaat te geven.",
+                        coord: autoCoord
+                    });
+                }
+
+                await refreshState();
+            } catch (error) {
+                questionLocked = false;
+                if (input) {
+                    input.disabled = false;
+                }
+                setStatusMessage(error.message);
+                setQuestionFeedback("error", "Beoordeling lukt niet.", error.message);
             }
         }
 

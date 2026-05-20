@@ -668,6 +668,35 @@ except Exception:
     APIStatusError = Exception
     BadRequestError = Exception
 
+PROMPT_IMPROVEMENT_CHANCE = 0.35
+PROMPT_IMPROVEMENT_MISSIONS = [
+    {
+        "situation": "Je moet voor Nederlands een spreekbeurt voorbereiden over plastic soep.",
+        "weak_prompt": "Maak mijn spreekbeurt.",
+        "goal": "Vraag hulp om ideeen, structuur en controlepunten te krijgen, zonder dat AI de hele taak overneemt.",
+    },
+    {
+        "situation": "Je wil voor techniek een stappenplan maken om veilig met een lijmpistool te werken.",
+        "weak_prompt": "Zeg alles over lijmpistolen.",
+        "goal": "Vraag een kort, bruikbaar stappenplan met veiligheidsregels en een checklist.",
+    },
+    {
+        "situation": "Je begrijpt een stukje leerstof over fotosynthese nog niet goed.",
+        "weak_prompt": "Leg fotosynthese uit.",
+        "goal": "Vraag uitleg op jouw niveau, met een voorbeeld en een korte controlevraag.",
+    },
+    {
+        "situation": "Je groepje wil ideeen zoeken voor een creatief project rond hergebruik van materialen.",
+        "weak_prompt": "Geef ideeen.",
+        "goal": "Vraag meerdere haalbare ideeen, met materiaal, tijd en wat je ervan kan leren.",
+    },
+    {
+        "situation": "Je wil een planning maken voor een toetsweek zonder alles uit te stellen.",
+        "weak_prompt": "Maak een planning.",
+        "goal": "Vraag een realistische planning op basis van vakken, tijd en pauzes, met ruimte om zelf keuzes te maken.",
+    },
+]
+
 
 def env_int(name: str, default: int) -> int:
     try:
@@ -2231,6 +2260,26 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
         payload["image_alt"] = question["image_alt"]
 
     return payload
+
+
+def build_prompt_improvement_payload() -> dict:
+    mission = random.choice(PROMPT_IMPROVEMENT_MISSIONS)
+    prompt_id = "prompt-improvement-" + str(int(time.time() * 1000)) + "-" + "".join(random.choices(string.ascii_lowercase, k=5))
+    return {
+        "id": prompt_id,
+        "type": "prompt_improvement",
+        "display_theme": THEMES["kansen"]["label"],
+        "eyebrow": "Promptmissie",
+        "instruction": "Verbeter de zwakke prompt. Maak hem duidelijker, concreter en nuttiger, zonder de taak volledig door AI te laten overnemen.",
+        "question": "Verbeter deze prompt zodat AI beter kan helpen.",
+        "situation": mission["situation"],
+        "weak_prompt": mission["weak_prompt"],
+        "goal": mission["goal"],
+        "options": [],
+        "difficulty": "verdieping",
+        "difficulty_label": QUESTION_DIFFICULTIES["verdieping"]["label"],
+        "difficulty_short_label": QUESTION_DIFFICULTIES["verdieping"]["short_label"],
+    }
 
 
 def build_manageable_question_summary(
@@ -4672,7 +4721,11 @@ async def new_game(req: NewGameRequest, x_game_session: Optional[str] = Header(N
     )
 
 @app.post("/api/question/next")
-async def next_question(payload: dict, x_game_session: Optional[str] = Header(None)):
+async def next_question(
+    payload: dict,
+    x_game_session: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     session_id = normalize_game_session_id(x_game_session)
     theme_key = normalize_theme_key(payload.get("theme"))
 
@@ -4687,6 +4740,12 @@ async def next_question(payload: dict, x_game_session: Optional[str] = Header(No
     else:
         async with STATE_LOCK:
             gs = get_game_state(session_id)
+        if (
+            theme_key == "kansen"
+            and random.random() < PROMPT_IMPROVEMENT_CHANCE
+            and get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password)) is not None
+        ):
+            return build_prompt_improvement_payload()
         core_questions = rebalance_ai_question_answer_positions()
         selected_question = choose_core_question_for_mode(
             core_questions,
@@ -4851,10 +4910,79 @@ async def generate_ai_question(
         print("AI generation error:", e)
         raise HTTPException(500, "AI vraag kon niet gegenereerd worden.")
 @app.post("/api/question/answer")
-async def answer_question(payload: dict, x_game_session: Optional[str] = Header(None)):
+async def answer_question(
+    payload: dict,
+    x_game_session: Optional[str] = Header(None),
+    x_ai_owner_password: Optional[str] = Header(None),
+):
     session_id = normalize_game_session_id(x_game_session)
     question_id = payload.get("id")
     chosen_index = payload.get("chosen_index")
+
+    if str(question_id or "").startswith("prompt-improvement-"):
+        submitted_prompt = str(payload.get("submitted_prompt") or "").strip()
+        situation = str(payload.get("situation") or "").strip()
+        weak_prompt = str(payload.get("weak_prompt") or "").strip()
+        goal = str(payload.get("goal") or "").strip()
+        if len(submitted_prompt) < 12:
+            raise HTTPException(400, "Schrijf eerst een iets duidelijkere verbeterde prompt.")
+
+        client = get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password))
+        if client is None:
+            raise HTTPException(400, "Deze promptmissie kan alleen beoordeeld worden wanneer AI actief is.")
+
+        try:
+            resp = client.chat.completions.create(
+                model=QUESTION_GENERATION_MODEL,
+                response_format={"type": "json_object"},
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Je beoordeelt een verbeterde prompt van leerlingen van 12 tot 14 jaar. "
+                            "Geef mild maar inhoudelijk feedback in eenvoudig Nederlands. "
+                            "Score van 1 tot 4. Vanaf 3 is voldoende. Geef JSON met score, feedback en voorbeeld_prompt."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Situatie: {situation}\n"
+                            f"Zwakke prompt: {weak_prompt}\n"
+                            f"Doel: {goal}\n"
+                            f"Verbeterde prompt van leerlingen: {submitted_prompt}\n\n"
+                            "Beoordeel op: duidelijk doel, context, gewenste vorm, grenzen/verantwoord gebruik."
+                        ),
+                    },
+                ],
+                temperature=0.2,
+                timeout=10.0,
+            )
+            content = (resp.choices[0].message.content or "").strip()
+            data = json.loads(content)
+            score = max(1, min(4, int(data.get("score") or 1)))
+            feedback = str(data.get("feedback") or "").strip()
+            example_prompt = str(data.get("voorbeeld_prompt") or data.get("example_prompt") or "").strip()
+        except Exception as exc:
+            print("Prompt evaluation error:", exc)
+            raise HTTPException(500, "Aico kon de verbeterde prompt nu niet beoordelen.")
+
+        is_correct = score >= 3
+        async with STATE_LOCK:
+            gs = get_game_state(session_id)
+            if gs is not None:
+                label = "voldoende" if is_correct else "nog niet sterk genoeg"
+                _log(gs, f"Promptmissie beoordeeld: {score}/4 ({label}).")
+
+        return {
+            "correct": is_correct,
+            "correct_index": None,
+            "correct_option": example_prompt or submitted_prompt,
+            "correct_label": f"Score {score}/4",
+            "question_type": "prompt_improvement",
+            "score": score,
+            "explanation": feedback or "Bespreek samen of de prompt duidelijk genoeg zegt wat AI moet doen.",
+        }
 
     question = mark_question_used(question_id)
     if question is not None:
