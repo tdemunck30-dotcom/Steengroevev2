@@ -860,6 +860,16 @@
             font-weight: 700;
         }
 
+        .message.is-error {
+            background: #fff0ea;
+            border-color: rgba(185, 58, 29, 0.38);
+            color: #8e2614 !important;
+        }
+
+        .message.is-success {
+            color: var(--stone-soft) !important;
+        }
+
         .message:empty {
             display: none;
         }
@@ -868,6 +878,25 @@
             min-height: 0;
             padding: 10px 12px;
             font-size: 0.92rem;
+        }
+
+        .overlay-card .message,
+        .teacher-overlay-card .message {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #eadfce;
+        }
+
+        .overlay-card .message.is-error,
+        .teacher-overlay-card .message.is-error {
+            background: rgba(255, 107, 82, 0.14);
+            border-color: rgba(255, 180, 155, 0.38);
+            color: #ffd8cc !important;
+        }
+
+        .overlay-card .message.is-success,
+        .teacher-overlay-card .message.is-success {
+            color: #eadfce !important;
         }
 
         .alarm-banner {
@@ -2678,6 +2707,14 @@
             color: rgba(234, 223, 206, 0.78);
             font-size: 0.92rem;
             font-weight: 700;
+        }
+
+        .teacher-card-message.is-error {
+            color: #ffd8cc;
+        }
+
+        .teacher-card-message.is-success {
+            color: rgba(234, 223, 206, 0.78);
         }
 
         .teacher-card-actions {
@@ -4491,7 +4528,7 @@
         function setTeacherReviewStatus(text = "", isError = false) {
             const status = byId("teacherReviewStatus");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setTeacherQuestionModeButtonsDisabled(disabled) {
@@ -4662,28 +4699,36 @@
             panel.hidden = false;
         }
 
+        function setMessageState(element, isError = false) {
+            if (!element) {
+                return;
+            }
+            element.classList.toggle("is-error", Boolean(isError));
+            element.classList.toggle("is-success", !isError && Boolean(element.textContent.trim()));
+        }
+
         function setTeacherManualStatus(text = "", isError = false) {
             const status = byId("teacherManualStatus");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setTeacherDeleteStatus(text = "", isError = false) {
             const status = byId("teacherDeleteStatus");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setTeacherAuthStatus(text = "", isError = false) {
             const status = byId("teacherAuthStatus");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setTeacherAIMessage(text = "", isError = false) {
             const status = byId("teacherAIMessage");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setTeacherAIButtonsDisabled(disabled) {
@@ -5193,7 +5238,7 @@
                 return;
             }
             message.textContent = text || "";
-            message.style.color = isError ? "#ffd0c8" : "rgba(234, 223, 206, 0.78)";
+            setMessageState(message, isError);
         }
 
         function createTeacherOptionRow(value, index) {
@@ -7162,7 +7207,7 @@
         function setRankingNameStatus(text = "", isError = false) {
             const status = byId("rankingNameStatus");
             status.textContent = text;
-            status.style.color = isError ? "#ffd0c8" : "#eadfce";
+            setMessageState(status, isError);
         }
 
         function setRankingNameButtonsDisabled(disabled) {
