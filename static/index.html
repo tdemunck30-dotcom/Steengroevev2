@@ -3719,7 +3719,7 @@
                 <strong>Status laden...</strong>
                 <span>De sleutel zelf wordt nooit getoond.</span>
             </div>
-            <form class="teacher-auth-form" onsubmit="saveTeacherBYOK(); return false;">
+            <form class="teacher-auth-form" onsubmit="submitTeacherAISettingsForm(); return false;">
                 <div class="teacher-inline-field">
                     <label for="teacherAIOwnerPasswordInput">Eigenaarspaswoord voor serverkey</label>
                     <input
@@ -3752,7 +3752,7 @@
             <div id="teacherAIMessage" class="message" aria-live="polite"></div>
             <div class="teacher-auth-actions">
                 <button id="teacherAISaveBYOK" type="button" onclick="saveTeacherBYOK()">Tijdelijke sleutel activeren</button>
-                <button id="teacherAIUseDefault" class="ghost-button" type="button" onclick="setTeacherAIMode('default')">Serverkey gebruiken</button>
+                <button id="teacherAIUseDefault" class="ghost-button" type="button" onclick="setTeacherAIMode('default')">Serverkey ontgrendelen</button>
                 <button id="teacherAIDisable" class="teacher-danger" type="button" onclick="setTeacherAIMode('disabled')">AI uitzetten</button>
                 <button id="teacherAIClose" class="close-button" type="button" onclick="closeTeacherAISettings()">Sluiten</button>
             </div>
@@ -4867,6 +4867,15 @@
                 {mode: "byok", api_key: apiKey, ttl_minutes: ttlMinutes},
                 "Tijdelijke sleutel wordt geactiveerd..."
             );
+        }
+
+        function submitTeacherAISettingsForm() {
+            const apiKey = byId("teacherAIKeyInput").value.trim();
+            if (apiKey) {
+                saveTeacherBYOK();
+                return;
+            }
+            setTeacherAIMode("default");
         }
 
         function setTeacherAIMode(mode) {
