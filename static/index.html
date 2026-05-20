@@ -4710,7 +4710,7 @@
             }
         }
 
-        async function openTeacherAISettings() {
+        async function openTeacherAISettings(message = "", isError = false) {
             if (!teacherPassword) {
                 openTeacherAuth("Geef het leerkrachtpaswoord in om de AI-instellingen te openen.", openTeacherAISettings);
                 return;
@@ -4721,6 +4721,9 @@
             byId("teacherAIOwnerPasswordInput").value = "";
             setTeacherAIMessage("");
             await refreshTeacherAIStatus(true);
+            if (message) {
+                setTeacherAIMessage(message, isError);
+            }
             requestAnimationFrame(() => byId("teacherAIOwnerPasswordInput").focus());
         }
 
@@ -4817,6 +4820,32 @@
                 ...headers,
                 "X-Teacher-Password": teacherPassword
             };
+        }
+
+        async function ensureTeacherAIReadyForGeneration() {
+            const status = await refreshTeacherAIStatus(true);
+            if (!status) {
+                return false;
+            }
+
+            if (status.available) {
+                return true;
+            }
+
+            let message = "AI-generatie is nog niet beschikbaar. Kies een tijdelijke sleutel of ontgrendel de serverkey.";
+            if (status.mode === "disabled") {
+                message = "AI staat momenteel uit. Zet AI opnieuw aan of gebruik een tijdelijke sleutel.";
+            } else if (status.server_key_locked) {
+                message = status.server_key_owner_configured
+                    ? "Geef het eigenaarspaswoord in en klik op Serverkey gebruiken. Daarna kan deze browser vragen genereren."
+                    : "Stel eerst AI_OWNER_PASSWORD in op Render om de serverkey veilig te kunnen gebruiken.";
+            } else if (!status.server_key_available) {
+                message = "Er is geen serverkey ingesteld. Voeg een tijdelijke OpenAI-sleutel toe of stel OPENAI_API_KEY in op Render.";
+            }
+
+            setTeacherReviewStatus(message, true);
+            await openTeacherAISettings(message, true);
+            return false;
         }
 
         function openTeacherAuth(
@@ -5617,6 +5646,10 @@
                 return;
             }
 
+            if (!(await ensureTeacherAIReadyForGeneration())) {
+                return;
+            }
+
             teacherReviewBusy = true;
             setTeacherGenerateButtonsDisabled(true);
             setTeacherAutoImageControlsDisabled(true);
@@ -5668,6 +5701,10 @@
 
             if (!teacherPassword) {
                 openTeacherAuth("Geef het leerkrachtpaswoord in om een automatische beeldmix te maken.");
+                return;
+            }
+
+            if (!(await ensureTeacherAIReadyForGeneration())) {
                 return;
             }
 
