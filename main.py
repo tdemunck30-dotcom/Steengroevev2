@@ -4941,7 +4941,7 @@ async def answer_question(
                         "content": (
                             "Je beoordeelt een verbeterde prompt van leerlingen van 12 tot 14 jaar. "
                             "Geef mild maar inhoudelijk feedback in eenvoudig Nederlands. "
-                            "Score van 1 tot 4. Vanaf 3 is voldoende. Geef JSON met score, feedback en voorbeeld_prompt."
+                            "Score van 1 tot 4. Vanaf 2 is voldoende. Geef JSON met score, feedback en voorbeeld_prompt."
                         ),
                     },
                     {
@@ -4967,7 +4967,7 @@ async def answer_question(
             print("Prompt evaluation error:", exc)
             raise HTTPException(500, "Aico kon de verbeterde prompt nu niet beoordelen.")
 
-        is_correct = score >= 3
+        is_correct = score >= 2
         async with STATE_LOCK:
             gs = get_game_state(session_id)
             if gs is not None:
