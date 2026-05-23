@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI in actie!</title>
+    <title>AI in Actie!</title>
     <style>
         :root {
             --sand: #f6efdf;
@@ -240,6 +240,26 @@
             margin-bottom: 0;
         }
 
+        .hero-description {
+            display: grid;
+            gap: 12px;
+            max-width: 56rem;
+            color: var(--stone-soft);
+        }
+
+        .hero-description p {
+            margin-bottom: 0;
+        }
+
+        .hero-story-card {
+            display: grid;
+            gap: 12px;
+            padding: 18px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.66);
+            border: 1px solid rgba(109, 66, 37, 0.12);
+        }
+
         .hero-notes {
             display: flex;
             gap: 10px;
@@ -310,6 +330,10 @@
             font-size: 0.98rem;
             line-height: 1.45;
             max-width: 56rem;
+        }
+
+        .dashboard-hero .hero-description {
+            line-height: 1.55;
         }
 
         .dashboard-hero .hero-notes {
@@ -3479,7 +3503,7 @@
         <section class="panel hero-panel dashboard-hero">
             <div class="hero-copy">
                 <div>
-                    <h1>AI in actie!</h1>
+                    <h1>AI in Actie!</h1>
                     <p class="lead">Blijf AI de baas.</p>
                 </div>
                 <div class="hero-tools">
@@ -3506,6 +3530,15 @@
                 </section>
             </div>
             <div class="hero-main-column">
+                <section class="hero-story-card">
+                    <span class="eyebrow">Over het spel</span>
+                    <div class="hero-description">
+                        <p>AI in Actie! is een educatief bordspel met bijhorende app dat leerlingen van de eerste graad secundair onderwijs op een speelse manier laat kennismaken met artificiële intelligentie. In het spel dalen leerlingen af in een spannende diamantmijn, waar ze vragen beantwoorden, AI-beelden bekijken en samen nadenken over kansen, risico's en veilig gebruik van AI.</p>
+                        <p>Onderweg ontdekken ze wat AI is, hoe AI werkt en waar ze AI tegenkomen in hun dagelijkse leven, zoals in chatbots, sociale media, zoekmachines en aanbevelingssystemen. De app begeleidt het spelverloop en zorgt voor extra interactie.</p>
+                        <p>Zo verzamelen de spelers niet alleen diamanten, maar ook kennis en inzichten om AI beter te begrijpen en er kritisch, bewust en verantwoord mee om te gaan.</p>
+                        <p>AI in Actie! werd ontwikkeld in het kader van een bachelorproef binnen de lerarenopleiding aan Hogeschool VIVES, campus Torhout. Met dit spel wil de maker leerkrachten ondersteunen om artificiële intelligentie op een toegankelijke, speelse en kritische manier bespreekbaar te maken in de klas.</p>
+                    </div>
+                </section>
                 <div class="turn-spotlight">
                     <span class="turn-spotlight-label">Aan Beurt</span>
                     <strong id="turnSpotlightName" class="turn-spotlight-name">-</strong>
