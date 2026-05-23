@@ -3965,8 +3965,8 @@
                     <span class="teacher-generate-label">Automatische echt-of-AI beeldmix samenstellen</span>
                     <div class="teacher-auto-image-grid">
                         <div class="teacher-inline-field">
-                            <label for="teacherAutoImageCount">Aantal beeldvragen (even aantal)</label>
-                            <input id="teacherAutoImageCount" type="number" min="2" max="6" step="2" value="4" />
+                            <label for="teacherAutoImageCount">Aantal beeldvragen</label>
+                            <input id="teacherAutoImageCount" type="number" min="2" max="6" value="4" />
                         </div>
                         <div class="teacher-inline-field">
                             <label for="teacherAutoImageFocus">Extra focus</label>
@@ -5892,8 +5892,8 @@
             const count = Number(byId("teacherAutoImageCount").value);
             const focus = byId("teacherAutoImageFocus").value.trim();
 
-            if (Number.isNaN(count) || count < 2 || count > 6 || count % 2 !== 0) {
-                throw new Error("Kies een even aantal beeldvragen tussen 2 en 6, zodat de mix 50/50 blijft.");
+            if (Number.isNaN(count) || count < 2 || count > 6) {
+                throw new Error("Kies een aantal beeldvragen tussen 2 en 6.");
             }
 
             return {
