@@ -923,7 +923,106 @@ def count_unique_image_scene_keys(questions: List[dict]) -> int:
     return len(keys)
 
 
-def choose_image_round_question(questions: List[dict]) -> Optional[dict]:
+def question_history_key(question: dict) -> str:
+    question_type = str(question.get("type") or "multiple_choice").strip().lower()
+    parts = [
+        question_type,
+        normalize_text_for_similarity(question.get("question", "")),
+    ]
+
+    if question_type == "prompt_improvement":
+        parts.extend([
+            normalize_text_for_similarity(question.get("situation", "")),
+            normalize_text_for_similarity(question.get("weak_prompt", "")),
+            normalize_text_for_similarity(question.get("goal", "")),
+        ])
+
+    return "||".join(part for part in parts if part)
+
+
+def question_image_history_key(question: dict) -> str:
+    return str(question.get("image_url") or "").strip().lower()
+
+
+def prompt_improvement_mission_history_key(mission: dict) -> str:
+    return question_history_key(
+        {
+            "type": "prompt_improvement",
+            "question": "Verbeter deze prompt zodat AI beter kan helpen.",
+            "situation": mission.get("situation", ""),
+            "weak_prompt": mission.get("weak_prompt", ""),
+            "goal": mission.get("goal", ""),
+        }
+    )
+
+
+def preferred_image_round_correct_index(gs: Optional["GameState"]) -> Optional[int]:
+    if gs is None:
+        return None
+
+    real_served = max(0, int(getattr(gs, "image_round_real_served", 0) or 0))
+    ai_served = max(0, int(getattr(gs, "image_round_ai_served", 0) or 0))
+
+    if real_served < ai_served:
+        return 1
+    if ai_served < real_served:
+        return 0
+    return None
+
+
+def record_image_round_question_served(gs: Optional["GameState"], question: Optional[dict]) -> None:
+    if gs is None or question is None:
+        return
+
+    correct_index = question.get("correct_index")
+    if correct_index == 1:
+        gs.image_round_real_served += 1
+    elif correct_index == 0:
+        gs.image_round_ai_served += 1
+
+
+def question_seen_in_game(gs: Optional["GameState"], question: dict) -> bool:
+    if gs is None:
+        return False
+
+    question_id = str(question.get("id") or "").strip()
+    if question_id and question_id in gs.served_question_ids:
+        return True
+
+    history_key = question_history_key(question)
+    if history_key and history_key in gs.served_question_keys:
+        return True
+
+    image_key = question_image_history_key(question)
+    if image_key and image_key in gs.served_image_keys:
+        return True
+
+    return False
+
+
+def record_game_question_served(gs: Optional["GameState"], question: Optional[dict]) -> None:
+    if gs is None or question is None:
+        return
+
+    question_id = str(question.get("id") or "").strip()
+    if question_id and question_id not in gs.served_question_ids:
+        gs.served_question_ids.append(question_id)
+
+    history_key = question_history_key(question)
+    if history_key and history_key not in gs.served_question_keys:
+        gs.served_question_keys.append(history_key)
+
+    image_key = question_image_history_key(question)
+    if image_key and image_key not in gs.served_image_keys:
+        gs.served_image_keys.append(image_key)
+
+    record_image_round_question_served(gs, question)
+
+
+def choose_image_round_question(
+    questions: List[dict],
+    preferred_correct_index: Optional[int] = None,
+) -> Optional[dict]:
     if not questions:
         return None
 
@@ -937,8 +1036,13 @@ def choose_image_round_question(questions: List[dict]) -> Optional[dict]:
     ai_candidates = [question for question in candidate_pool if question.get("correct_index") == 0]
     real_candidates = [question for question in candidate_pool if question.get("correct_index") == 1]
 
+    if preferred_correct_index == 0 and ai_candidates:
+        return random.choice(ai_candidates)
+    if preferred_correct_index == 1 and real_candidates:
+        return random.choice(real_candidates)
+
     if ai_candidates and real_candidates:
-        if random.random() < 0.8:
+        if random.random() < 0.5:
             return random.choice(ai_candidates)
         return random.choice(real_candidates)
 
@@ -2262,8 +2366,8 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
     return payload
 
 
-def build_prompt_improvement_payload() -> dict:
-    mission = random.choice(PROMPT_IMPROVEMENT_MISSIONS)
+def build_prompt_improvement_payload(mission: Optional[dict] = None) -> dict:
+    mission = mission or random.choice(PROMPT_IMPROVEMENT_MISSIONS)
     prompt_id = "prompt-improvement-" + str(int(time.time() * 1000)) + "-" + "".join(random.choices(string.ascii_lowercase, k=5))
     return {
         "id": prompt_id,
@@ -2736,6 +2840,11 @@ class GameState(BaseModel):
     game_id: str
     phase: Phase = "setup"
     question_difficulty_mode: Literal["basis", "mix", "uitdaging"] = "mix"
+    image_round_real_served: int = 0
+    image_round_ai_served: int = 0
+    served_question_ids: List[str] = Field(default_factory=list)
+    served_question_keys: List[str] = Field(default_factory=list)
+    served_image_keys: List[str] = Field(default_factory=list)
 
     # Timing
     started_at: Optional[float] = None
@@ -4732,26 +4841,60 @@ async def next_question(
     if theme_key not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
 
+    async with STATE_LOCK:
+        gs = get_game_state(session_id)
+
     selected_question = None
     if theme_key == "beeld":
-        available_image_questions = load_round_image_questions(include_used=False)
+        available_image_questions = [
+            question
+            for question in load_round_image_questions(include_used=False)
+            if not question_seen_in_game(gs, question)
+        ]
         if available_image_questions:
-            selected_question = choose_image_round_question(available_image_questions)
+            selected_question = choose_image_round_question(
+                available_image_questions,
+                preferred_correct_index=preferred_image_round_correct_index(gs),
+            )
+            if selected_question is not None:
+                async with STATE_LOCK:
+                    current_gs = get_game_state(session_id)
+                    if current_gs is not None:
+                        record_game_question_served(current_gs, selected_question)
     else:
-        async with STATE_LOCK:
-            gs = get_game_state(session_id)
         if (
             theme_key == "kansen"
             and random.random() < PROMPT_IMPROVEMENT_CHANCE
             and get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password)) is not None
         ):
-            return build_prompt_improvement_payload()
-        core_questions = rebalance_ai_question_answer_positions()
+            available_prompt_missions = [
+                mission
+                for mission in PROMPT_IMPROVEMENT_MISSIONS
+                if prompt_improvement_mission_history_key(mission) not in set(gs.served_question_keys if gs else [])
+            ]
+            if available_prompt_missions:
+                selected_prompt_payload = build_prompt_improvement_payload(random.choice(available_prompt_missions))
+                async with STATE_LOCK:
+                    current_gs = get_game_state(session_id)
+                    if current_gs is not None:
+                        record_game_question_served(current_gs, selected_prompt_payload)
+                return selected_prompt_payload
+
+        core_questions = [
+            question
+            for question in rebalance_ai_question_answer_positions()
+            if not question_seen_in_game(gs, question)
+        ]
         selected_question = choose_core_question_for_mode(
             core_questions,
             theme_key,
             current_question_difficulty_mode(gs),
         )
+        if selected_question is not None:
+            async with STATE_LOCK:
+                current_gs = get_game_state(session_id)
+                if current_gs is not None:
+                    record_game_question_served(current_gs, selected_question)
 
     if selected_question:
         return build_question_payload(selected_question, theme_key)
@@ -5570,17 +5713,27 @@ async def generate_teacher_image_set(
             "Er zijn momenteel geen betrouwbare echte foto's beschikbaar voor de beeldronde.",
         )
 
-    real_count = 1
-    target_ai_count = payload.count - real_count
-    if target_ai_count <= 0:
-        raise HTTPException(400, "De automatische beeldmix heeft minstens een AI-beeld nodig.")
+    if payload.count % 2 != 0:
+        raise HTTPException(
+            400,
+            "Kies een even aantal beeldvragen tussen 2 en 6, zodat de beeldmix exact 50/50 blijft.",
+        )
+
+    real_count = payload.count // 2
+    target_ai_count = payload.count // 2
+    if len(real_candidates) < real_count:
+        raise HTTPException(
+            400,
+            "Er zijn momenteel niet genoeg betrouwbare echte foto's beschikbaar voor deze 50/50 beeldmix.",
+        )
 
     selected_real_questions = random.sample(real_candidates, k=real_count)
     selected_scenes = choose_auto_image_scene_seeds_for_generation(target_ai_count, local_ai_candidates)
 
     new_questions: List[dict] = []
     preview_questions: List[dict] = [
-        build_auto_image_preview_item(selected_real_questions[0], "bestaand")
+        build_auto_image_preview_item(question, "bestaand")
+        for question in selected_real_questions
     ]
     working_questions = list(existing_image_questions)
     generated_ai_count = 0
@@ -5644,7 +5797,10 @@ async def generate_teacher_image_set(
         existing_image_questions.extend(new_questions)
         save_image_questions(existing_image_questions)
 
+    random.shuffle(preview_questions)
+
     ai_total = generated_ai_count + fallback_ai_count
+    real_suffix = "betrouwbare echte foto" if real_count == 1 else "betrouwbare echte foto's"
     ai_suffix = "AI-beeld" if ai_total == 1 else "AI-beelden"
     generation_note = ""
     if generated_ai_count and fallback_ai_count:
@@ -5660,7 +5816,8 @@ async def generate_teacher_image_set(
     return {
         "ok": True,
         "message": (
-            f"Automatische beeldmix klaar: 1 betrouwbare echte foto en {ai_total} {ai_suffix}."
+            f"Automatische beeldmix klaar: {real_count} {real_suffix} en {ai_total} {ai_suffix}."
+            " De verdeling is 50/50 echt versus AI."
             f"{generation_note}"
         ),
         "real_count": real_count,
@@ -5670,7 +5827,8 @@ async def generate_teacher_image_set(
         "questions": preview_questions,
         "saved_count": len(new_questions),
         "preview_message": (
-            f"De mix hieronder gebruikt 1 betrouwbare echte foto en {ai_total} {ai_suffix.lower()}."
+            f"De mix hieronder gebruikt {real_count} {real_suffix} en {ai_total} {ai_suffix.lower()}."
+            " De verdeling is 50/50."
             " Alleen echt nieuwe AI-vragen worden extra toegevoegd onder 'Vragen verwijderen'."
         ),
     }
