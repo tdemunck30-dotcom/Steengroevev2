@@ -938,7 +938,7 @@ def choose_image_round_question(questions: List[dict]) -> Optional[dict]:
     real_candidates = [question for question in candidate_pool if question.get("correct_index") == 1]
 
     if ai_candidates and real_candidates:
-        if random.random() < 0.8:
+        if random.random() < 0.5:
             return random.choice(ai_candidates)
         return random.choice(real_candidates)
 
@@ -5570,17 +5570,27 @@ async def generate_teacher_image_set(
             "Er zijn momenteel geen betrouwbare echte foto's beschikbaar voor de beeldronde.",
         )
 
-    real_count = 1
-    target_ai_count = payload.count - real_count
-    if target_ai_count <= 0:
-        raise HTTPException(400, "De automatische beeldmix heeft minstens een AI-beeld nodig.")
+    if payload.count % 2 != 0:
+        raise HTTPException(
+            400,
+            "Kies een even aantal beeldvragen tussen 2 en 6, zodat de beeldmix exact 50/50 blijft.",
+        )
+
+    real_count = payload.count // 2
+    target_ai_count = payload.count // 2
+    if len(real_candidates) < real_count:
+        raise HTTPException(
+            400,
+            "Er zijn momenteel niet genoeg betrouwbare echte foto's beschikbaar voor deze 50/50 beeldmix.",
+        )
 
     selected_real_questions = random.sample(real_candidates, k=real_count)
     selected_scenes = choose_auto_image_scene_seeds_for_generation(target_ai_count, local_ai_candidates)
 
     new_questions: List[dict] = []
     preview_questions: List[dict] = [
-        build_auto_image_preview_item(selected_real_questions[0], "bestaand")
+        build_auto_image_preview_item(question, "bestaand")
+        for question in selected_real_questions
     ]
     working_questions = list(existing_image_questions)
     generated_ai_count = 0
@@ -5644,7 +5654,10 @@ async def generate_teacher_image_set(
         existing_image_questions.extend(new_questions)
         save_image_questions(existing_image_questions)
 
+    random.shuffle(preview_questions)
+
     ai_total = generated_ai_count + fallback_ai_count
+    real_suffix = "betrouwbare echte foto" if real_count == 1 else "betrouwbare echte foto's"
     ai_suffix = "AI-beeld" if ai_total == 1 else "AI-beelden"
     generation_note = ""
     if generated_ai_count and fallback_ai_count:
@@ -5660,7 +5673,8 @@ async def generate_teacher_image_set(
     return {
         "ok": True,
         "message": (
-            f"Automatische beeldmix klaar: 1 betrouwbare echte foto en {ai_total} {ai_suffix}."
+            f"Automatische beeldmix klaar: {real_count} {real_suffix} en {ai_total} {ai_suffix}."
+            " De verdeling is 50/50 echt versus AI."
             f"{generation_note}"
         ),
         "real_count": real_count,
@@ -5670,7 +5684,8 @@ async def generate_teacher_image_set(
         "questions": preview_questions,
         "saved_count": len(new_questions),
         "preview_message": (
-            f"De mix hieronder gebruikt 1 betrouwbare echte foto en {ai_total} {ai_suffix.lower()}."
+            f"De mix hieronder gebruikt {real_count} {real_suffix} en {ai_total} {ai_suffix.lower()}."
+            " De verdeling is 50/50."
             " Alleen echt nieuwe AI-vragen worden extra toegevoegd onder 'Vragen verwijderen'."
         ),
     }
