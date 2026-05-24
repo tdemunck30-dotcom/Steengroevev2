@@ -926,13 +926,7 @@ def count_unique_image_scene_keys(questions: List[dict]) -> int:
 def choose_image_round_question(questions: List[dict]) -> Optional[dict]:
     if not questions:
         return None
-
-    recent_scene_keys = set(load_recent_image_scene_keys())
-    fresh_questions = [
-        question for question in questions
-        if image_scene_family_key(question) not in recent_scene_keys
-    ]
-    candidate_pool = fresh_questions or questions
+    candidate_pool = questions
 
     ai_candidates = [question for question in candidate_pool if question.get("correct_index") == 0]
     real_candidates = [question for question in candidate_pool if question.get("correct_index") == 1]
@@ -1858,6 +1852,35 @@ def normalize_text_for_similarity(text: object) -> str:
     return " ".join(collapsed.split())
 
 
+def session_question_key(question: dict) -> str:
+    question_type = str(question.get("type") or "multiple_choice")
+    question_id = str(question.get("id") or "").strip()
+
+    if question_type == "image_binary":
+        scene_key = image_scene_family_key(question)
+        if scene_key:
+            return f"image::{scene_key}"
+        image_url = normalize_text_for_similarity(question.get("image_url", ""))
+        if image_url:
+            return f"image::{image_url}"
+        return f"image::{question_id}"
+
+    question_text = normalize_text_for_similarity(question.get("question", ""))
+    if question_text:
+        return f"{question_type}::{question_text}"
+    return f"{question_type}::{question_id}"
+
+
+def prompt_improvement_mission_key(mission: dict) -> str:
+    parts = [
+        normalize_text_for_similarity(mission.get("situation", "")),
+        normalize_text_for_similarity(mission.get("weak_prompt", "")),
+        normalize_text_for_similarity(mission.get("goal", "")),
+    ]
+    normalized = "::".join(part for part in parts if part)
+    return f"prompt::{normalized or 'mission'}"
+
+
 def similarity_tokens(text: object) -> set[str]:
     tokens = {
         token
@@ -2045,12 +2068,17 @@ def difficulty_count_template() -> Dict[str, int]:
     return {difficulty: 0 for difficulty in QUESTION_DIFFICULTY_ORDER}
 
 
-def choose_balanced_core_question(core_questions: List[dict], theme_key: str) -> Optional[dict]:
+def choose_balanced_core_question(
+    core_questions: List[dict],
+    theme_key: str,
+    seen_question_keys: Optional[set[str]] = None,
+) -> Optional[dict]:
     available_by_difficulty: Dict[str, List[dict]] = {
         difficulty: []
         for difficulty in QUESTION_DIFFICULTY_ORDER
     }
     used_counts = difficulty_count_template()
+    seen_keys = seen_question_keys or set()
 
     for question in core_questions:
         if str(question.get("type") or "multiple_choice") != "multiple_choice":
@@ -2061,7 +2089,7 @@ def choose_balanced_core_question(core_questions: List[dict], theme_key: str) ->
             continue
 
         difficulty_key = question_difficulty_key_for_question(question)
-        if question.get("used", False):
+        if session_question_key(question) in seen_keys:
             used_counts[difficulty_key] += 1
             continue
 
@@ -2094,22 +2122,24 @@ def choose_core_question_for_mode(
     core_questions: List[dict],
     theme_key: str,
     mode: str = "mix",
+    seen_question_keys: Optional[set[str]] = None,
 ) -> Optional[dict]:
     normalized_mode = normalize_question_difficulty_mode(mode)
     if normalized_mode == "mix":
-        return choose_balanced_core_question(core_questions, theme_key)
+        return choose_balanced_core_question(core_questions, theme_key, seen_question_keys)
 
     available_by_difficulty: Dict[str, List[dict]] = {
         difficulty: []
         for difficulty in QUESTION_DIFFICULTY_ORDER
     }
+    seen_keys = seen_question_keys or set()
 
     for question in core_questions:
         if str(question.get("type") or "multiple_choice") != "multiple_choice":
             continue
         if question.get("theme") != theme_key:
             continue
-        if question.get("used", False):
+        if session_question_key(question) in seen_keys:
             continue
         if not question.get("approved", True) or question.get("rejected", False):
             continue
@@ -2262,12 +2292,24 @@ def build_question_payload(question: dict, fallback_theme: str) -> dict:
     return payload
 
 
-def build_prompt_improvement_payload() -> dict:
-    mission = random.choice(PROMPT_IMPROVEMENT_MISSIONS)
+def build_prompt_improvement_payload(
+    seen_question_keys: Optional[set[str]] = None,
+) -> Optional[dict]:
+    seen_keys = seen_question_keys or set()
+    available_missions = [
+        mission
+        for mission in PROMPT_IMPROVEMENT_MISSIONS
+        if prompt_improvement_mission_key(mission) not in seen_keys
+    ]
+    if not available_missions:
+        return None
+
+    mission = random.choice(available_missions)
     prompt_id = "prompt-improvement-" + str(int(time.time() * 1000)) + "-" + "".join(random.choices(string.ascii_lowercase, k=5))
     return {
         "id": prompt_id,
         "type": "prompt_improvement",
+        "session_key": prompt_improvement_mission_key(mission),
         "display_theme": THEMES["kansen"]["label"],
         "eyebrow": "Promptmissie",
         "instruction": "Verbeter de zwakke prompt. Maak hem duidelijker, concreter en nuttiger, zonder de taak volledig door AI te laten overnemen.",
@@ -2472,6 +2514,22 @@ def mark_consensus_dilemma_used(dilemma_id: str) -> Optional[dict]:
         dilemma["used"] = True
         save_consensus_dilemmas(dilemmas)
         return dilemma
+
+    return None
+
+
+def find_question_by_id(question_id: str) -> Optional[dict]:
+    for question in load_core_questions():
+        if question.get("id") == question_id:
+            return question
+
+    for question in load_image_questions():
+        if question.get("id") == question_id:
+            return question
+
+    for question in build_trusted_real_image_questions():
+        if question.get("id") == question_id:
+            return question
 
     return None
 
@@ -2772,6 +2830,8 @@ class GameState(BaseModel):
     consensus_question_id: Optional[str] = None
     consensus_question: Optional[str] = None
     consensus_guidance: Optional[str] = None
+    seen_question_ids: List[str] = Field(default_factory=list)
+    seen_question_keys: List[str] = Field(default_factory=list)
     passage_bonus_tiles: int = 0
 
     # Control flags
@@ -2818,6 +2878,22 @@ class GameState(BaseModel):
             for p in self.players:
                 occ.add(p.start_coord)
         return occ
+
+
+def reserve_question_for_session(gs: GameState, question: dict) -> None:
+    question_id = str(question.get("id") or "").strip()
+    if question_id and question_id not in gs.seen_question_ids:
+        gs.seen_question_ids.append(question_id)
+
+    question_key = session_question_key(question)
+    if question_key and question_key not in gs.seen_question_keys:
+        gs.seen_question_keys.append(question_key)
+
+
+def reserve_prompt_mission_for_session(gs: GameState, mission_key: str) -> None:
+    normalized_key = str(mission_key or "").strip()
+    if normalized_key and normalized_key not in gs.seen_question_keys:
+        gs.seen_question_keys.append(normalized_key)
 
 
 # ----------------------------
@@ -4690,7 +4766,6 @@ async def new_game(req: NewGameRequest, x_game_session: Optional[str] = Header(N
         turn_index=0,
         all_time_ranking=load_all_time_ranking(),
     )
-    reset_questions()
     CONFIG = {
         "timer_minutes": req.timer_minutes,
         "auto_exit_reveal_minute": req.auto_exit_reveal_minute,
@@ -4732,29 +4807,43 @@ async def next_question(
     if theme_key not in THEMES:
         raise HTTPException(400, "Ongeldig thema.")
 
-    selected_question = None
-    if theme_key == "beeld":
-        available_image_questions = load_round_image_questions(include_used=False)
-        if available_image_questions:
-            selected_question = choose_image_round_question(available_image_questions)
-    else:
-        async with STATE_LOCK:
-            gs = get_game_state(session_id)
-        if (
-            theme_key == "kansen"
-            and random.random() < PROMPT_IMPROVEMENT_CHANCE
-            and get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password)) is not None
-        ):
-            return build_prompt_improvement_payload()
-        core_questions = rebalance_ai_question_answer_positions()
-        selected_question = choose_core_question_for_mode(
-            core_questions,
-            theme_key,
-            current_question_difficulty_mode(gs),
-        )
+    async with STATE_LOCK:
+        gs = get_game_state(session_id)
+        seen_question_keys = set(gs.seen_question_keys) if gs is not None else set()
+        selected_question = None
 
-    if selected_question:
-        return build_question_payload(selected_question, theme_key)
+        if theme_key == "beeld":
+            available_image_questions = [
+                question
+                for question in load_round_image_questions(include_used=True)
+                if session_question_key(question) not in seen_question_keys
+            ]
+            if available_image_questions:
+                selected_question = choose_image_round_question(available_image_questions)
+        else:
+            if (
+                theme_key == "kansen"
+                and random.random() < PROMPT_IMPROVEMENT_CHANCE
+                and get_openai_client(allow_server_key=has_valid_ai_owner_password(x_ai_owner_password)) is not None
+            ):
+                prompt_payload = build_prompt_improvement_payload(seen_question_keys)
+                if prompt_payload is not None:
+                    if gs is not None:
+                        reserve_prompt_mission_for_session(gs, str(prompt_payload.get("session_key") or ""))
+                    return prompt_payload
+
+            core_questions = rebalance_ai_question_answer_positions()
+            selected_question = choose_core_question_for_mode(
+                core_questions,
+                theme_key,
+                current_question_difficulty_mode(gs),
+                seen_question_keys,
+            )
+
+        if selected_question:
+            if gs is not None:
+                reserve_question_for_session(gs, selected_question)
+            return build_question_payload(selected_question, theme_key)
 
     return {"message": "Geen beschikbare vragen meer voor dit thema."}
 @app.post("/api/question/generate")
@@ -4984,7 +5073,7 @@ async def answer_question(
             "explanation": feedback or "Bespreek samen of de prompt duidelijk genoeg zegt wat AI moet doen.",
         }
 
-    question = mark_question_used(question_id)
+    question = find_question_by_id(question_id)
     if question is not None:
         question_type = str(question.get("type") or "multiple_choice")
         correct_index = question["correct_index"]
@@ -5152,7 +5241,6 @@ async def reset_game_state(x_game_session: Optional[str] = Header(None)):
             _log(gs, "Spel automatisch teruggezet naar het startscherm na 3 minuten zonder activiteit.")
         clear_game_state(session_id)
 
-    reset_questions()
     return OptionalStateActionResponse(
         ok=True,
         message="Geen activiteit gedetecteerd. De spel-app staat opnieuw op het startscherm.",

@@ -2007,6 +2007,55 @@
             align-items: stretch;
         }
 
+        .teacher-workspace-switch {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .teacher-workspace-button {
+            display: grid;
+            gap: 8px;
+            align-content: start;
+            min-height: 68px;
+            border-radius: 20px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(246, 232, 211, 0.88);
+            box-shadow: none;
+            text-align: left;
+        }
+
+        .teacher-workspace-title-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .teacher-workspace-title {
+            font-size: 1.02rem;
+            font-weight: 900;
+            color: #fff4dd;
+        }
+
+        .teacher-workspace-note {
+            color: rgba(234, 223, 206, 0.72);
+            font-size: 0.84rem;
+            line-height: 1.45;
+        }
+
+        .teacher-workspace-button.active {
+            background: linear-gradient(135deg, #a4662f, #7b4b24);
+            border-color: rgba(255, 213, 165, 0.22);
+            color: #fff6ea;
+        }
+
+        .teacher-workspace-button.active .teacher-workspace-note {
+            color: rgba(255, 244, 221, 0.88);
+        }
+
         .teacher-count-card {
             display: grid;
             gap: 2px;
@@ -2320,6 +2369,15 @@
             color: rgba(255, 244, 221, 0.88);
         }
 
+        .teacher-workspace {
+            display: grid;
+            gap: 18px;
+        }
+
+        .teacher-workspace[hidden] {
+            display: none;
+        }
+
         .teacher-panel {
             min-height: 0;
             display: grid;
@@ -2341,6 +2399,27 @@
 
         #teacherReviewPanel {
             grid-template-rows: auto auto auto auto auto;
+        }
+
+        .teacher-settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .teacher-settings-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .teacher-settings-actions button {
+            min-height: 50px;
+        }
+
+        .teacher-settings-actions .teacher-ai-source-toggle {
+            flex: 1 1 220px;
         }
 
         .teacher-section-head {
@@ -3282,7 +3361,9 @@
             .teacher-generate-actions,
             .teacher-auto-image-grid,
             .teacher-difficulty-grid,
+            .teacher-workspace-switch,
             .teacher-mode-switch,
+            .teacher-settings-grid,
             .teacher-option-grid {
                 grid-template-columns: 1fr;
             }
@@ -3383,7 +3464,9 @@
 
             .teacher-generate-actions,
             .teacher-auto-image-grid,
+            .teacher-workspace-switch,
             .teacher-mode-switch,
+            .teacher-settings-grid,
             .teacher-option-grid {
                 grid-template-columns: 1fr;
             }
@@ -3865,284 +3948,332 @@
             <div class="teacher-review-header">
                 <div>
                     <span class="eyebrow">Leerkracht</span>
-                    <h2>Vragen beheren</h2>
+                    <h2>Leerkrachtenmodule</h2>
                     <p>
-                        Kies of je AI-vragen wil nakijken, of meteen zelf een nieuwe vraag, beeldvraag of groepsdilemma wil toevoegen aan het spel.
+                        Kies eerst of je vragen wil beheren of de AI-instellingen wil aanpassen.
                     </p>
                 </div>
                 <div class="teacher-review-tools">
-                    <div class="teacher-count-card">
-                        <span class="teacher-count-label">Nog na te kijken</span>
-                        <strong id="teacherPendingCount" class="teacher-count">0</strong>
-                    </div>
-                    <button
-                        id="teacherAISourceToggle"
-                        class="teacher-ai-source-toggle"
-                        data-mode="default"
-                        type="button"
-                        onclick="openTeacherAISettings()"
-                        aria-label="AI-bron aanpassen"
-                    >
-                        <span>AI-bron</span>
-                        <strong id="teacherAISourceLabel">Laden...</strong>
-                    </button>
                     <button class="teacher-refresh" type="button" onclick="refreshTeacherActivePanel()">Vernieuwen</button>
-                    <button class="teacher-danger" type="button" onclick="clearAllTimeRanking()">Ranking leegmaken</button>
                     <button class="teacher-lock" type="button" onclick="lockTeacherReview()">Vergrendelen</button>
                     <button class="close-button" type="button" onclick="closeTeacherReview()">Sluiten</button>
                 </div>
             </div>
-            <div class="teacher-mode-switch" aria-label="Leerkrachtacties">
+            <div class="teacher-workspace-switch" aria-label="Leerkrachtmodule onderdelen">
                 <button
-                    id="teacherReviewTab"
-                    class="teacher-mode-button active"
+                    id="teacherQuestionsWorkspaceTab"
+                    class="teacher-workspace-button active"
                     type="button"
-                    onclick="setTeacherMode('review')"
+                    onclick="setTeacherWorkspace('questions')"
                 >
-                    <span class="teacher-mode-title-row">
-                        <span class="teacher-mode-title">Nakijken</span>
-                        <span id="teacherReviewTabCount" class="teacher-mode-badge">0</span>
+                    <span class="teacher-workspace-title-row">
+                        <span class="teacher-workspace-title">Vragen beheren</span>
+                        <span id="teacherPendingCount" class="teacher-mode-badge">0</span>
                     </span>
-                    <span id="teacherReviewTabNote" class="teacher-mode-note">Openstaande AI-vragen en beeldmixen</span>
+                    <span class="teacher-workspace-note">Vragen controleren, maken en samenstellen.</span>
                 </button>
                 <button
-                    id="teacherManualTab"
-                    class="teacher-mode-button"
+                    id="teacherSettingsWorkspaceTab"
+                    class="teacher-workspace-button"
                     type="button"
-                    onclick="setTeacherMode('manual')"
+                    onclick="setTeacherWorkspace('settings')"
                 >
-                    <span class="teacher-mode-title-row">
-                        <span class="teacher-mode-title">Toevoegen</span>
+                    <span class="teacher-workspace-title-row">
+                        <span class="teacher-workspace-title">AI-instellingen</span>
                     </span>
-                    <span class="teacher-mode-note">Maak zelf meteen een vraag, beeldvraag of groepsdilemma.</span>
-                </button>
-                <button
-                    id="teacherDeleteTab"
-                    class="teacher-mode-button"
-                    type="button"
-                    onclick="setTeacherMode('delete')"
-                >
-                    <span class="teacher-mode-title-row">
-                        <span class="teacher-mode-title">Beheren</span>
-                        <span id="teacherDeleteTabCount" class="teacher-mode-badge">0</span>
-                    </span>
-                    <span id="teacherDeleteTabNote" class="teacher-mode-note">Bekijk en verwijder alle vragen, beeldvragen en dilemma's.</span>
+                    <span class="teacher-workspace-note">AI-bron kiezen en de ranking leegmaken.</span>
                 </button>
             </div>
-            <section id="teacherReviewPanel" class="teacher-panel">
-                <div class="teacher-section-head">
-                    <h3>AI-vragen nakijken</h3>
-                    <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. De beeldronde zelf werkt nu alleen nog met echte foto's of AI-beelden.</p>
+            <section id="teacherQuestionsWorkspace" class="teacher-workspace">
+                <div class="teacher-mode-switch" aria-label="Vragen beheren">
+                    <button
+                        id="teacherReviewTab"
+                        class="teacher-mode-button active"
+                        type="button"
+                        onclick="setTeacherMode('review')"
+                    >
+                        <span class="teacher-mode-title-row">
+                            <span class="teacher-mode-title">Controleren</span>
+                            <span id="teacherReviewTabCount" class="teacher-mode-badge">0</span>
+                        </span>
+                        <span id="teacherReviewTabNote" class="teacher-mode-note">Openstaande AI-vragen en beeldmixen</span>
+                    </button>
+                    <button
+                        id="teacherManualTab"
+                        class="teacher-mode-button"
+                        type="button"
+                        onclick="setTeacherMode('manual')"
+                    >
+                        <span class="teacher-mode-title-row">
+                            <span class="teacher-mode-title">Maken</span>
+                        </span>
+                        <span class="teacher-mode-note">Maak zelf meteen een vraag, beeldvraag of groepsdilemma.</span>
+                    </button>
+                    <button
+                        id="teacherDeleteTab"
+                        class="teacher-mode-button"
+                        type="button"
+                        onclick="setTeacherMode('delete')"
+                    >
+                        <span class="teacher-mode-title-row">
+                            <span class="teacher-mode-title">Samenstellen</span>
+                            <span id="teacherDeleteTabCount" class="teacher-mode-badge">0</span>
+                        </span>
+                        <span id="teacherDeleteTabNote" class="teacher-mode-note">Bekijk en verfijn de volledige vragenpool.</span>
+                    </button>
                 </div>
-                <div class="teacher-generate-bar">
-                    <span class="teacher-generate-label">Vraagniveau tijdens het spel</span>
-                    <div class="teacher-difficulty-grid" aria-label="Kies het vraagniveau">
-                        <button id="teacherDifficultyModeBasis" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('basis')">
-                            <strong>Basis</strong>
-                            <span>Vooral toegankelijkere vragen</span>
-                        </button>
-                        <button id="teacherDifficultyModeMix" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('mix')">
-                            <strong>Mix</strong>
-                            <span>Afwisseling met stevige denkvraag</span>
-                        </button>
-                        <button id="teacherDifficultyModeUitdaging" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('uitdaging')">
-                            <strong>Uitdaging</strong>
-                            <span>Vooral moeilijkere vragen</span>
-                        </button>
+                <section id="teacherReviewPanel" class="teacher-panel">
+                    <div class="teacher-section-head">
+                        <h3>Vragen controleren</h3>
+                        <p>Hier bekijk je automatisch gemaakte vragen en beeldmixen. De beeldronde zelf werkt nu alleen nog met echte foto's of AI-beelden.</p>
                     </div>
-                    <p id="teacherDifficultyModeNote" class="teacher-difficulty-note">Deze keuze geldt voor het huidige en volgende spel.</p>
-                </div>
-                <div class="teacher-generate-bar">
-                    <span class="teacher-generate-label">Nieuwe AI-vraag genereren per thema</span>
-                    <div class="teacher-generate-actions">
-                        <button class="teacher-generate-button theme werking" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('werking')">Hoe werkt AI?</button>
-                        <button class="teacher-generate-button theme leefwereld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('leefwereld')">AI in jouw leefwereld</button>
-                        <button class="teacher-generate-button theme kritisch" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kritisch')">Kritisch, veilig en verantwoord</button>
-                        <button class="teacher-generate-button theme kansen" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kansen')">Voordelen en kansen</button>
-                    </div>
-                </div>
-                <div class="teacher-generate-bar">
-                    <span class="teacher-generate-label">Automatische echt-of-AI beeldmix samenstellen</span>
-                    <div class="teacher-auto-image-grid">
-                        <div class="teacher-inline-field">
-                            <label for="teacherAutoImageCount">Aantal beeldvragen (even aantal)</label>
-                            <input id="teacherAutoImageCount" type="number" min="2" max="6" step="2" value="4" />
+                    <div class="teacher-generate-bar">
+                        <span class="teacher-generate-label">Vraagniveau tijdens het spel</span>
+                        <div class="teacher-difficulty-grid" aria-label="Kies het vraagniveau">
+                            <button id="teacherDifficultyModeBasis" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('basis')">
+                                <strong>Basis</strong>
+                                <span>Vooral toegankelijkere vragen</span>
+                            </button>
+                            <button id="teacherDifficultyModeMix" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('mix')">
+                                <strong>Mix</strong>
+                                <span>Afwisseling met stevige denkvraag</span>
+                            </button>
+                            <button id="teacherDifficultyModeUitdaging" class="teacher-difficulty-button" data-role="difficulty-mode" type="button" onclick="setTeacherQuestionDifficultyMode('uitdaging')">
+                                <strong>Uitdaging</strong>
+                                <span>Vooral moeilijkere vragen</span>
+                            </button>
                         </div>
-                        <div class="teacher-inline-field">
-                            <label for="teacherAutoImageFocus">Extra focus</label>
-                            <input
-                                id="teacherAutoImageFocus"
-                                type="text"
-                                maxlength="120"
-                                placeholder="Bijv. school, sport, dieren of natuur"
-                            />
+                        <p id="teacherDifficultyModeNote" class="teacher-difficulty-note">Deze keuze geldt voor het huidige en volgende spel.</p>
+                    </div>
+                    <div class="teacher-generate-bar">
+                        <span class="teacher-generate-label">Nieuwe AI-vraag genereren per thema</span>
+                        <div class="teacher-generate-actions">
+                            <button class="teacher-generate-button theme werking" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('werking')">Hoe werkt AI?</button>
+                            <button class="teacher-generate-button theme leefwereld" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('leefwereld')">AI in jouw leefwereld</button>
+                            <button class="teacher-generate-button theme kritisch" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kritisch')">Kritisch, veilig en verantwoord</button>
+                            <button class="teacher-generate-button theme kansen" data-role="teacher-generate" type="button" onclick="generateTeacherQuestion('kansen')">Voordelen en kansen</button>
                         </div>
-                        <button
-                            id="teacherAutoImageButton"
-                            class="teacher-generate-button"
-                            data-role="teacher-generate"
-                            type="button"
-                            onclick="generateTeacherImageMix()"
-                        >
-                            Beeldmix maken
-                        </button>
                     </div>
-                </div>
-                <div id="teacherReviewStatus" class="message" aria-live="polite"></div>
-                <section id="teacherImageMixPreviewPanel" class="teacher-preview-panel" hidden>
-                    <div class="teacher-preview-header">
-                        <h3 class="teacher-preview-title">Laatste beeldmix</h3>
-                        <p id="teacherImageMixPreviewCopy" class="teacher-preview-copy"></p>
-                    </div>
-                    <div id="teacherImageMixPreviewGrid" class="teacher-preview-grid"></div>
-                </section>
-                <div id="teacherReviewList" class="teacher-review-list"></div>
-            </section>
-            <section id="teacherManualPanel" class="teacher-panel teacher-manual-panel" hidden>
-                <div class="teacher-section-head">
-                    <h3>Zelf vragen toevoegen</h3>
-                    <p>Voeg hier rechtstreeks een eigen vraag, beeldvraag of groepsdilemma toe zonder eerst door andere schermen te moeten gaan.</p>
-                </div>
-                <form id="teacherManualForm" class="teacher-manual-form" onsubmit="submitTeacherManualQuestion(); return false;">
-                    <p id="teacherManualIntro" class="teacher-manual-intro">
-                        Voeg hier een eigen vraag toe. Die wordt meteen opgeslagen en kan daarna tijdens het spel opduiken binnen het gekozen thema.
-                    </p>
-                    <div class="teacher-inline-field">
-                        <label for="teacherManualType">Type vraag</label>
-                        <select id="teacherManualType" onchange="updateTeacherManualType()">
-                            <option value="multiple_choice">Gewone meerkeuzevraag</option>
-                            <option value="image_binary">Beeldvraag: echt of AI</option>
-                            <option value="consensus_dilemma">Groepsdilemma</option>
-                        </select>
-                    </div>
-                    <div id="teacherManualThemeField" class="teacher-inline-field">
-                        <label for="teacherManualTheme">Thema</label>
-                        <select id="teacherManualTheme">
-                            <option value="werking">Hoe werkt AI?</option>
-                            <option value="leefwereld">AI in jouw leefwereld</option>
-                            <option value="kritisch">Kritisch, veilig en verantwoord</option>
-                            <option value="kansen">Voordelen en kansen</option>
-                        </select>
-                    </div>
-                    <div class="teacher-inline-field">
-                        <label for="teacherManualQuestion">Vraag</label>
-                        <textarea
-                            id="teacherManualQuestion"
-                            maxlength="1400"
-                            placeholder="Typ hier je eigen meerkeuzevraag"
-                        ></textarea>
-                    </div>
-                    <section id="teacherManualStandardFields" class="teacher-manual-section">
-                        <div class="teacher-option-grid">
-                            <div class="teacher-option-row">
-                                <label for="teacherManualOption0">Optie A</label>
-                                <input id="teacherManualOption0" type="text" maxlength="160" />
+                    <div class="teacher-generate-bar">
+                        <span class="teacher-generate-label">Automatische echt-of-AI beeldmix samenstellen</span>
+                        <div class="teacher-auto-image-grid">
+                            <div class="teacher-inline-field">
+                                <label for="teacherAutoImageCount">Aantal beeldvragen (even aantal)</label>
+                                <input id="teacherAutoImageCount" type="number" min="2" max="6" step="2" value="4" />
                             </div>
-                            <div class="teacher-option-row">
-                                <label for="teacherManualOption1">Optie B</label>
-                                <input id="teacherManualOption1" type="text" maxlength="160" />
+                            <div class="teacher-inline-field">
+                                <label for="teacherAutoImageFocus">Extra focus</label>
+                                <input
+                                    id="teacherAutoImageFocus"
+                                    type="text"
+                                    maxlength="120"
+                                    placeholder="Bijv. school, sport, dieren of natuur"
+                                />
                             </div>
-                            <div class="teacher-option-row">
-                                <label for="teacherManualOption2">Optie C</label>
-                                <input id="teacherManualOption2" type="text" maxlength="160" />
-                            </div>
-                            <div class="teacher-option-row">
-                                <label for="teacherManualOption3">Optie D</label>
-                                <input id="teacherManualOption3" type="text" maxlength="160" />
-                            </div>
-                        </div>
-                        <div class="teacher-inline-field">
-                            <label for="teacherManualCorrect">Juiste antwoord</label>
-                            <select id="teacherManualCorrect">
-                                <option value="0">A</option>
-                                <option value="1">B</option>
-                                <option value="2">C</option>
-                                <option value="3">D</option>
-                            </select>
-                        </div>
-                    </section>
-                    <section id="teacherManualImageFields" class="teacher-manual-section" hidden>
-                        <div class="teacher-inline-field">
-                            <label for="teacherImagePasteZone">Plak een AI-beeld of bewerkte foto</label>
-                            <div
-                                id="teacherImagePasteZone"
-                                class="teacher-paste-zone"
-                                tabindex="0"
-                                role="button"
-                                aria-label="Plak hier een AI-beeld of bewerkte foto voor deze beeldvraag"
+                            <button
+                                id="teacherAutoImageButton"
+                                class="teacher-generate-button"
+                                data-role="teacher-generate"
+                                type="button"
+                                onclick="generateTeacherImageMix()"
                             >
-                                <strong id="teacherImagePasteTitle">Plak hier een AI-beeld of bewerkte foto</strong>
-                                <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je hieronder een directe link van Wikimedia Commons.</span>
-                            </div>
+                                Beeldmix maken
+                            </button>
                         </div>
+                    </div>
+                    <div id="teacherReviewStatus" class="message" aria-live="polite"></div>
+                    <section id="teacherImageMixPreviewPanel" class="teacher-preview-panel" hidden>
+                        <div class="teacher-preview-header">
+                            <h3 class="teacher-preview-title">Laatste beeldmix</h3>
+                            <p id="teacherImageMixPreviewCopy" class="teacher-preview-copy"></p>
+                        </div>
+                        <div id="teacherImageMixPreviewGrid" class="teacher-preview-grid"></div>
+                    </section>
+                    <div id="teacherReviewList" class="teacher-review-list"></div>
+                </section>
+                <section id="teacherManualPanel" class="teacher-panel teacher-manual-panel" hidden>
+                    <div class="teacher-section-head">
+                        <h3>Vragen maken</h3>
+                        <p>Voeg hier rechtstreeks een eigen vraag, beeldvraag of groepsdilemma toe zonder eerst door andere schermen te moeten gaan.</p>
+                    </div>
+                    <form id="teacherManualForm" class="teacher-manual-form" onsubmit="submitTeacherManualQuestion(); return false;">
+                        <p id="teacherManualIntro" class="teacher-manual-intro">
+                            Voeg hier een eigen vraag toe. Die wordt meteen opgeslagen en kan daarna tijdens het spel opduiken binnen het gekozen thema.
+                        </p>
                         <div class="teacher-inline-field">
-                            <label for="teacherManualImageUrl">Afbeeldingspad of URL</label>
-                            <input
-                                id="teacherManualImageUrl"
-                                type="text"
-                                maxlength="260"
-                                placeholder="https://commons.wikimedia.org/wiki/Special:Redirect/file/..."
-                            />
-                            <p class="teacher-manual-tip">
-                                Voor echte foto's gebruik je hier een directe URL van Wikimedia Commons. Plakken hierboven is vooral handig voor AI-beelden of bewerkte foto's.
-                            </p>
-                        </div>
-                        <div id="teacherImagePreviewBox" class="teacher-image-preview" hidden>
-                            <img id="teacherImagePreview" alt="Voorbeeld van de gekozen afbeelding" />
-                            <span id="teacherImagePreviewPath" class="teacher-manual-tip"></span>
-                        </div>
-                        <div class="teacher-inline-field">
-                            <label for="teacherManualImageAlt">Alt-tekst</label>
-                            <input
-                                id="teacherManualImageAlt"
-                                type="text"
-                                maxlength="220"
-                                placeholder="Korte beschrijving van wat er op het beeld te zien is"
-                            />
-                        </div>
-                        <div class="teacher-inline-field">
-                            <label for="teacherManualExplanation">Uitleg na het antwoord</label>
-                            <textarea
-                                id="teacherManualExplanation"
-                                maxlength="900"
-                                placeholder="Bijvoorbeeld: de reflectie klopt niet helemaal. Tip: let op ramen, handen of tekst."
-                            ></textarea>
-                        </div>
-                        <div class="teacher-inline-field">
-                            <label for="teacherManualImageCorrect">Juiste beoordeling</label>
-                            <select id="teacherManualImageCorrect">
-                                <option value="0">Waarschijnlijk AI-gegenereerd of bewerkt</option>
-                                <option value="1">Waarschijnlijk een echte foto</option>
+                            <label for="teacherManualType">Type vraag</label>
+                            <select id="teacherManualType" onchange="updateTeacherManualType()">
+                                <option value="multiple_choice">Gewone meerkeuzevraag</option>
+                                <option value="image_binary">Beeldvraag: echt of AI</option>
+                                <option value="consensus_dilemma">Groepsdilemma</option>
                             </select>
                         </div>
-                    </section>
-                    <section id="teacherManualConsensusFields" class="teacher-manual-section" hidden>
+                        <div id="teacherManualThemeField" class="teacher-inline-field">
+                            <label for="teacherManualTheme">Thema</label>
+                            <select id="teacherManualTheme">
+                                <option value="werking">Hoe werkt AI?</option>
+                                <option value="leefwereld">AI in jouw leefwereld</option>
+                                <option value="kritisch">Kritisch, veilig en verantwoord</option>
+                                <option value="kansen">Voordelen en kansen</option>
+                            </select>
+                        </div>
                         <div class="teacher-inline-field">
-                            <label for="teacherManualGuidance">Bespreekhulp voor de groep</label>
+                            <label for="teacherManualQuestion">Vraag</label>
                             <textarea
-                                id="teacherManualGuidance"
+                                id="teacherManualQuestion"
                                 maxlength="1400"
-                                placeholder="Bijvoorbeeld: weeg privacy, toestemming, eerlijkheid en mogelijke gevolgen voor anderen mee."
+                                placeholder="Typ hier je eigen meerkeuzevraag"
                             ></textarea>
-                            <p class="teacher-manual-tip">
-                                Deze korte hulptekst verschijnt tijdens het groepsdilemma zodat leerlingen weten waarop ze in hun consensus kunnen letten.
-                            </p>
+                        </div>
+                        <section id="teacherManualStandardFields" class="teacher-manual-section">
+                            <div class="teacher-option-grid">
+                                <div class="teacher-option-row">
+                                    <label for="teacherManualOption0">Optie A</label>
+                                    <input id="teacherManualOption0" type="text" maxlength="160" />
+                                </div>
+                                <div class="teacher-option-row">
+                                    <label for="teacherManualOption1">Optie B</label>
+                                    <input id="teacherManualOption1" type="text" maxlength="160" />
+                                </div>
+                                <div class="teacher-option-row">
+                                    <label for="teacherManualOption2">Optie C</label>
+                                    <input id="teacherManualOption2" type="text" maxlength="160" />
+                                </div>
+                                <div class="teacher-option-row">
+                                    <label for="teacherManualOption3">Optie D</label>
+                                    <input id="teacherManualOption3" type="text" maxlength="160" />
+                                </div>
+                            </div>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualCorrect">Juiste antwoord</label>
+                                <select id="teacherManualCorrect">
+                                    <option value="0">A</option>
+                                    <option value="1">B</option>
+                                    <option value="2">C</option>
+                                    <option value="3">D</option>
+                                </select>
+                            </div>
+                        </section>
+                        <section id="teacherManualImageFields" class="teacher-manual-section" hidden>
+                            <div class="teacher-inline-field">
+                                <label for="teacherImagePasteZone">Plak een AI-beeld of bewerkte foto</label>
+                                <div
+                                    id="teacherImagePasteZone"
+                                    class="teacher-paste-zone"
+                                    tabindex="0"
+                                    role="button"
+                                    aria-label="Plak hier een AI-beeld of bewerkte foto voor deze beeldvraag"
+                                >
+                                    <strong id="teacherImagePasteTitle">Plak hier een AI-beeld of bewerkte foto</strong>
+                                    <span id="teacherImagePasteHint">Klik eerst in dit vak en gebruik daarna Ctrl+V. De app slaat de afbeelding automatisch op en vult het pad hieronder zelf in. Voor echte foto's gebruik je hieronder een directe link van Wikimedia Commons.</span>
+                                </div>
+                            </div>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualImageUrl">Afbeeldingspad of URL</label>
+                                <input
+                                    id="teacherManualImageUrl"
+                                    type="text"
+                                    maxlength="260"
+                                    placeholder="https://commons.wikimedia.org/wiki/Special:Redirect/file/..."
+                                />
+                                <p class="teacher-manual-tip">
+                                    Voor echte foto's gebruik je hier een directe URL van Wikimedia Commons. Plakken hierboven is vooral handig voor AI-beelden of bewerkte foto's.
+                                </p>
+                            </div>
+                            <div id="teacherImagePreviewBox" class="teacher-image-preview" hidden>
+                                <img id="teacherImagePreview" alt="Voorbeeld van de gekozen afbeelding" />
+                                <span id="teacherImagePreviewPath" class="teacher-manual-tip"></span>
+                            </div>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualImageAlt">Alt-tekst</label>
+                                <input
+                                    id="teacherManualImageAlt"
+                                    type="text"
+                                    maxlength="220"
+                                    placeholder="Korte beschrijving van wat er op het beeld te zien is"
+                                />
+                            </div>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualExplanation">Uitleg na het antwoord</label>
+                                <textarea
+                                    id="teacherManualExplanation"
+                                    maxlength="900"
+                                    placeholder="Bijvoorbeeld: de reflectie klopt niet helemaal. Tip: let op ramen, handen of tekst."
+                                ></textarea>
+                            </div>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualImageCorrect">Juiste beoordeling</label>
+                                <select id="teacherManualImageCorrect">
+                                    <option value="0">Waarschijnlijk AI-gegenereerd of bewerkt</option>
+                                    <option value="1">Waarschijnlijk een echte foto</option>
+                                </select>
+                            </div>
+                        </section>
+                        <section id="teacherManualConsensusFields" class="teacher-manual-section" hidden>
+                            <div class="teacher-inline-field">
+                                <label for="teacherManualGuidance">Bespreekhulp voor de groep</label>
+                                <textarea
+                                    id="teacherManualGuidance"
+                                    maxlength="1400"
+                                    placeholder="Bijvoorbeeld: weeg privacy, toestemming, eerlijkheid en mogelijke gevolgen voor anderen mee."
+                                ></textarea>
+                                <p class="teacher-manual-tip">
+                                    Deze korte hulptekst verschijnt tijdens het groepsdilemma zodat leerlingen weten waarop ze in hun consensus kunnen letten.
+                                </p>
+                            </div>
+                        </section>
+                        <div id="teacherManualStatus" class="message teacher-form-status" aria-live="polite"></div>
+                        <div class="teacher-card-footer">
+                            <span id="teacherManualHelper" class="teacher-card-message">Vul alle velden in en voeg het item daarna meteen toe aan het spel.</span>
+                            <button id="teacherManualSubmit" class="teacher-submit-button" type="submit">Vraag toevoegen</button>
+                        </div>
+                    </form>
+                </section>
+                <section id="teacherDeletePanel" class="teacher-panel teacher-delete-panel" hidden>
+                    <div class="teacher-section-head">
+                        <h3>Vragen samenstellen</h3>
+                        <p>Hier zie je alle vragen, beeldvragen en dilemma's samen met hun voorbeeld en uitleg.</p>
+                    </div>
+                    <div id="teacherDeleteStatus" class="message" aria-live="polite"></div>
+                    <div id="teacherDeleteList" class="teacher-delete-list"></div>
+                </section>
+            </section>
+            <section id="teacherSettingsWorkspace" class="teacher-workspace" hidden>
+                <div class="teacher-settings-grid">
+                    <section class="teacher-panel active-panel">
+                        <div class="teacher-section-head">
+                            <h3>AI-bron kiezen</h3>
+                            <p>Kies of de app de serverkey, een tijdelijke eigen sleutel of geen AI gebruikt.</p>
+                        </div>
+                        <div id="teacherAIWorkspaceStatus" class="teacher-ai-status" aria-live="polite">
+                            <strong>Status laden...</strong>
+                            <span>De sleutel zelf wordt nooit getoond.</span>
+                        </div>
+                        <div class="teacher-settings-actions">
+                            <button
+                                id="teacherAISourceToggle"
+                                class="teacher-ai-source-toggle"
+                                data-mode="default"
+                                type="button"
+                                onclick="openTeacherAISettings()"
+                                aria-label="AI-bron aanpassen"
+                            >
+                                <span>AI-bron</span>
+                                <strong id="teacherAISourceLabel">Laden...</strong>
+                            </button>
                         </div>
                     </section>
-                    <div id="teacherManualStatus" class="message teacher-form-status" aria-live="polite"></div>
-                    <div class="teacher-card-footer">
-                        <span id="teacherManualHelper" class="teacher-card-message">Vul alle velden in en voeg het item daarna meteen toe aan het spel.</span>
-                        <button id="teacherManualSubmit" class="teacher-submit-button" type="submit">Vraag toevoegen</button>
-                    </div>
-                </form>
-            </section>
-            <section id="teacherDeletePanel" class="teacher-panel teacher-delete-panel" hidden>
-                <div class="teacher-section-head">
-                    <h3>Vragen beheren</h3>
-                    <p>Hier zie je alle vragen, beeldvragen en dilemma's samen met hun voorbeeld en uitleg.</p>
+                    <section class="teacher-panel active-panel">
+                        <div class="teacher-section-head">
+                            <h3>Ranking leegmaken</h3>
+                            <p>Gebruik dit wanneer je de all time ranking opnieuw wil starten voor een nieuwe klas of testreeks.</p>
+                        </div>
+                        <div class="teacher-settings-actions">
+                            <button class="teacher-danger" type="button" onclick="clearAllTimeRanking()">Ranking leegmaken</button>
+                        </div>
+                    </section>
                 </div>
-                <div id="teacherDeleteStatus" class="message" aria-live="polite"></div>
-                <div id="teacherDeleteList" class="teacher-delete-list"></div>
+                <div id="teacherSettingsStatus" class="message" aria-live="polite"></div>
             </section>
         </div>
     </div>
@@ -4239,6 +4370,7 @@
         let teacherPassword = "";
         let aiOwnerPassword = "";
         let teacherQuestionDifficultyMode = "mix";
+        let teacherWorkspace = "questions";
         let consensusBusy = false;
         let timerControlBusy = false;
         let stateRefreshBusy = false;
@@ -4780,6 +4912,15 @@
             setMessageState(status, isError);
         }
 
+        function setTeacherSettingsStatus(text = "", isError = false) {
+            const status = byId("teacherSettingsStatus");
+            if (!status) {
+                return;
+            }
+            status.textContent = text;
+            setMessageState(status, isError);
+        }
+
         function setTeacherDeleteStatus(text = "", isError = false) {
             const status = byId("teacherDeleteStatus");
             status.textContent = text;
@@ -4852,13 +4993,14 @@
             }
         }
 
-        function renderTeacherAIStatus(status = {}) {
-            const box = byId("teacherAIStatus");
+        function renderTeacherAIStatusBox(box, status = {}) {
+            if (!box) {
+                return;
+            }
+
             const title = document.createElement("strong");
             const detail = document.createElement("span");
             const mode = status.mode || "default";
-
-            renderTeacherAISourceSummary(status);
 
             if (mode === "byok" && status.byok_active) {
                 title.textContent = "BYOK actief";
@@ -4882,6 +5024,12 @@
             box.replaceChildren(title, detail);
         }
 
+        function renderTeacherAIStatus(status = {}) {
+            renderTeacherAISourceSummary(status);
+            renderTeacherAIStatusBox(byId("teacherAIStatus"), status);
+            renderTeacherAIStatusBox(byId("teacherAIWorkspaceStatus"), status);
+        }
+
         async function refreshTeacherAIStatus(showErrors = false) {
             if (!teacherPassword) {
                 return null;
@@ -4892,6 +5040,7 @@
                     headers: getTeacherAIRequestHeaders()
                 });
                 renderTeacherAIStatus(status);
+                setTeacherSettingsStatus("");
                 return status;
             } catch (error) {
                 if (handleTeacherAuthFailure(error)) {
@@ -4899,6 +5048,7 @@
                 }
                 if (showErrors) {
                     setTeacherAIMessage(error.message, true);
+                    setTeacherSettingsStatus(error.message, true);
                 }
                 return null;
             }
@@ -5239,10 +5389,48 @@
             requestAnimationFrame(refreshTeacherTextareaHeights);
         }
 
+        function setTeacherWorkspace(workspace, options = {}) {
+            teacherWorkspace = workspace === "settings" ? "settings" : "questions";
+            const shouldRefresh = options.refresh !== false;
+            const questionsActive = teacherWorkspace === "questions";
+            const settingsActive = teacherWorkspace === "settings";
+
+            byId("teacherQuestionsWorkspaceTab").classList.toggle("active", questionsActive);
+            byId("teacherSettingsWorkspaceTab").classList.toggle("active", settingsActive);
+            byId("teacherQuestionsWorkspaceTab").setAttribute("aria-pressed", questionsActive ? "true" : "false");
+            byId("teacherSettingsWorkspaceTab").setAttribute("aria-pressed", settingsActive ? "true" : "false");
+
+            byId("teacherQuestionsWorkspace").hidden = !questionsActive;
+            byId("teacherSettingsWorkspace").hidden = !settingsActive;
+
+            if (!shouldRefresh || !teacherPassword) {
+                return;
+            }
+
+            if (questionsActive) {
+                if (!teacherReviewBusy) {
+                    refreshTeacherQuestions();
+                }
+                if (!teacherDeleteBusy) {
+                    refreshTeacherRemovableQuestions();
+                }
+                if (!teacherQuestionSettingsBusy) {
+                    loadTeacherQuestionSettings();
+                }
+            } else {
+                refreshTeacherAIStatus(true);
+            }
+        }
+
         function setTeacherMode(mode, options = {}) {
             teacherMode = ["review", "manual", "delete"].includes(mode) ? mode : "review";
             const shouldRefresh = options.refresh !== false;
             const shouldScroll = options.scroll !== false;
+            const syncWorkspace = options.syncWorkspace !== false;
+
+            if (syncWorkspace) {
+                setTeacherWorkspace("questions", {refresh: false});
+            }
 
             const reviewActive = teacherMode === "review";
             const manualActive = teacherMode === "manual";
@@ -5256,9 +5444,12 @@
             byId("teacherReviewTab").classList.toggle("active", reviewActive);
             byId("teacherManualTab").classList.toggle("active", manualActive);
             byId("teacherDeleteTab").classList.toggle("active", deleteActive);
-            byId("teacherReviewPanel").hidden = false;
-            byId("teacherManualPanel").hidden = false;
-            byId("teacherDeletePanel").hidden = false;
+            byId("teacherReviewTab").setAttribute("aria-pressed", reviewActive ? "true" : "false");
+            byId("teacherManualTab").setAttribute("aria-pressed", manualActive ? "true" : "false");
+            byId("teacherDeleteTab").setAttribute("aria-pressed", deleteActive ? "true" : "false");
+            byId("teacherReviewPanel").hidden = !reviewActive;
+            byId("teacherManualPanel").hidden = !manualActive;
+            byId("teacherDeletePanel").hidden = !deleteActive;
             byId("teacherReviewPanel").classList.toggle("active-panel", reviewActive);
             byId("teacherManualPanel").classList.toggle("active-panel", manualActive);
             byId("teacherDeletePanel").classList.toggle("active-panel", deleteActive);
@@ -5289,6 +5480,7 @@
                 refreshTeacherQuestions();
                 refreshTeacherRemovableQuestions();
                 loadTeacherQuestionSettings();
+                refreshTeacherAIStatus(teacherWorkspace === "settings");
             }
             setTeacherManualStatus("Formulier is klaar om een nieuwe vraag toe te voegen.");
         }
@@ -5648,9 +5840,10 @@
 
             if (!teacherPassword) {
                 openTeacherAuth(
-                    "Geef het leerkrachtpaswoord in om de AI-vragen te openen.",
+                    "Geef het leerkrachtpaswoord in om het vragenbeheer te openen.",
                     async () => {
                         byId("teacherOverlay").hidden = false;
+                        setTeacherMode("review", {scroll: false, refresh: false});
                         await refreshTeacherQuestions(true);
                     }
                 );
@@ -5765,6 +5958,7 @@
                     "Geef het leerkrachtpaswoord in om de all time ranking leeg te maken.",
                     () => {
                         byId("teacherOverlay").hidden = false;
+                        setTeacherWorkspace("settings", {refresh: false});
                         clearAllTimeRanking();
                     }
                 );
@@ -5793,6 +5987,7 @@
 
                 setTeacherReviewStatus(data.message);
                 setTeacherDeleteStatus(data.message);
+                setTeacherSettingsStatus(data.message);
                 setStatusMessage(data.message);
             } catch (error) {
                 if (handleTeacherAuthFailure(error)) {
@@ -5800,6 +5995,7 @@
                 }
                 setTeacherReviewStatus(error.message, true);
                 setTeacherDeleteStatus(error.message, true);
+                setTeacherSettingsStatus(error.message, true);
                 setStatusMessage(error.message);
             }
         }
@@ -5807,10 +6003,11 @@
         function openTeacherReview() {
             if (!teacherPassword) {
                 openTeacherAuth(
-                    "Geef het leerkrachtpaswoord in om de AI-vragen te openen.",
+                    "Geef het leerkrachtpaswoord in om de leerkrachtenmodule te openen.",
                     async () => {
                         byId("teacherOverlay").hidden = false;
-                        setTeacherMode("review", {scroll: false, refresh: false});
+                        setTeacherWorkspace("questions", {refresh: false});
+                        setTeacherMode("review", {scroll: false, refresh: false, syncWorkspace: false});
                         await refreshTeacherAIStatus();
                         await loadTeacherQuestionSettings(true);
                         await refreshTeacherQuestions(true);
@@ -5821,7 +6018,8 @@
             }
 
             byId("teacherOverlay").hidden = false;
-            setTeacherMode("review", {scroll: false, refresh: false});
+            setTeacherWorkspace("questions", {refresh: false});
+            setTeacherMode("review", {scroll: false, refresh: false, syncWorkspace: false});
             refreshTeacherAIStatus();
             loadTeacherQuestionSettings();
             refreshTeacherQuestions();
@@ -5834,6 +6032,7 @@
             setTeacherReviewStatus("");
             setTeacherManualStatus("");
             setTeacherDeleteStatus("");
+            setTeacherSettingsStatus("");
         }
 
         async function generateTeacherQuestion(theme) {
@@ -8134,8 +8333,8 @@
                     }
 
                     const fallbackErrorDetail = explanation
-                        ? explanation + " Vraag nu aan de leerkracht om meteen een plaatsingscoördinaat te geven."
-                        : "Vraag nu aan de leerkracht om meteen een plaatsingscoördinaat te geven.";
+                        ? explanation + " De automatische plaatsingscoördinaat kon niet geladen worden."
+                        : "De automatische plaatsingscoördinaat kon niet geladen worden.";
                     setQuestionFeedback(
                         "error",
                         "Niet juist.",
@@ -8149,7 +8348,7 @@
                         noteTitle: "Wat nu?",
                         noteText: autoCoord
                             ? "De tegel moet nu geplaatst worden op dit coordinaat:"
-                            : "Vraag de leerkracht om meteen een plaatsingscoördinaat te geven.",
+                            : "De automatische plaatsingscoördinaat kon niet geladen worden.",
                         coord: autoCoord
                     });
                     if (!autoCoord) {
@@ -8229,7 +8428,7 @@
                         noteTitle: "Wat nu?",
                         noteText: autoCoord
                             ? "De tegel moet nu geplaatst worden op dit coordinaat:"
-                            : "Vraag de leerkracht om meteen een plaatsingscoordinaat te geven.",
+                            : "De automatische plaatsingscoördinaat kon niet geladen worden.",
                         coord: autoCoord
                     });
                 }
